@@ -18,12 +18,12 @@ namespace ScramblyFoxDefense.States
         readonly GameStateMachine _machine;
         readonly GameConfig _config;
         readonly TowerSystem _towers;
-        readonly BuildController _build;
+        readonly PlayerActions _build;
         readonly HudView _hud;
         float _elapsed;
         bool _startRequested;
 
-        public IntroState(GameStateMachine machine, GameConfig config, TowerSystem towers, BuildController build, HudView hud)
+        public IntroState(GameStateMachine machine, GameConfig config, TowerSystem towers, PlayerActions build, HudView hud)
         {
             _machine = machine;
             _config = config;
@@ -60,14 +60,16 @@ namespace ScramblyFoxDefense.States
         readonly GameSession _session;
         readonly WaveSpawner _spawner;
         readonly HudView _hud;
+        readonly LockBarView _locks;
 
-        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud)
+        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud, LockBarView locks)
         {
             _machine = machine;
             _config = config;
             _session = session;
             _spawner = spawner;
             _hud = hud;
+            _locks = locks;
         }
 
         public void Enter()
@@ -83,6 +85,7 @@ namespace ScramblyFoxDefense.States
             _spawner.Tick(deltaTime);
             if (!_spawner.Finished) return;
 
+            _locks.Unlock(_session.WaveIndex);
             if (_session.WaveIndex >= _config.waves.Length - 1) _machine.Enter<RedeemState>();
             else _machine.Enter<BreatherState>();
         }
@@ -126,11 +129,11 @@ namespace ScramblyFoxDefense.States
         const float Duration = 2f;
 
         readonly GameStateMachine _machine;
-        readonly BuildController _build;
+        readonly PlayerActions _build;
         readonly HudView _hud;
         float _elapsed;
 
-        public RedeemState(GameStateMachine machine, BuildController build, HudView hud)
+        public RedeemState(GameStateMachine machine, PlayerActions build, HudView hud)
         {
             _machine = machine;
             _build = build;
@@ -141,6 +144,7 @@ namespace ScramblyFoxDefense.States
         {
             _elapsed = 0f;
             _build.Enabled = false;
+            _build.ClearSelection();
             _hud.SetPhase("Redeem");
             _hud.ShowBanner("Demo rewards unlocked!", Duration);
         }

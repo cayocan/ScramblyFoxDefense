@@ -3,21 +3,19 @@ using UnityEngine;
 
 namespace ScramblyFoxDefense.Presentation
 {
-    /// <summary>Greybox HUD: TextMesh labels parented to the camera, re-anchored when the aspect changes.</summary>
+    /// <summary>Top band: phase label, demo coin balance and the wave banner.</summary>
     public sealed class HudView
     {
-        const float PlaneDistance = 2f;
-
-        readonly Camera _camera;
+        readonly HudLayout _layout;
         readonly Economy _economy;
         readonly TextMesh _coins;
         readonly TextMesh _phase;
         readonly TextMesh _banner;
         float _bannerTimer;
 
-        public HudView(Camera camera, Economy economy, TextMesh coins, TextMesh phase, TextMesh banner)
+        public HudView(HudLayout layout, Economy economy, TextMesh coins, TextMesh phase, TextMesh banner)
         {
-            _camera = camera;
+            _layout = layout;
             _economy = economy;
             _coins = coins;
             _phase = phase;
@@ -45,18 +43,15 @@ namespace ScramblyFoxDefense.Presentation
             if (_bannerTimer <= 0f) _banner.gameObject.SetActive(false);
         }
 
-        /// <summary>Anchors labels to the top of the view frustum at the HUD plane.</summary>
         public void Layout()
         {
-            float halfHeight = Mathf.Tan(_camera.fieldOfView * 0.5f * Mathf.Deg2Rad) * PlaneDistance;
-            float halfWidth = halfHeight * _camera.aspect;
-            _coins.transform.localPosition = new Vector3(halfWidth * 0.55f, halfHeight * 0.88f, PlaneDistance);
-            _phase.transform.localPosition = new Vector3(-halfWidth * 0.55f, halfHeight * 0.88f, PlaneDistance);
-            _banner.transform.localPosition = new Vector3(0f, halfHeight * 0.65f, PlaneDistance);
-            float scale = halfWidth / 0.45f;
-            _coins.transform.localScale = _phase.transform.localScale = _banner.transform.localScale = Vector3.one * scale;
+            _phase.anchor = TextAnchor.MiddleLeft;
+            _coins.anchor = TextAnchor.MiddleRight;
+            _layout.PlaceText(_phase, new Vector2(0f, 1f), new Vector2(14f, -24f), 18f);
+            _layout.PlaceText(_coins, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f);
+            _layout.PlaceText(_banner, new Vector2(0.5f, 1f), new Vector2(0f, -120f), 34f);
         }
 
-        void RefreshCoins() => _coins.text = $"Demo coins: {_economy.Wallet}";
+        void RefreshCoins() => _coins.text = $"Demo coins {_economy.Wallet}";
     }
 }
