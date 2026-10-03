@@ -22,6 +22,21 @@ Findings:
 - Cube Pets import (glTFast) as rigid per-part meshes with legacy `Animation` and 8 clips: dance, eat, gesture-negative, gesture-positive, idle, run, static, walk. No skinning, no Mecanim needed.
 - Cube Pets are ~2.3 units long vs 1-unit kit tiles: pets scale ~0.4 on towers.
 
+## 2026-10-03 — Size cuts (after G0)
+
+| Step | wasm | data | Build folder | ZIP |
+|---|---|---|---|---|
+| G0 baseline (build 2) | 2,677,169 | 675,819 | 3,533,675 | 3,724,062 |
+| KitLit shader, 256 px colormaps, own LightingData | 2,677,169 | 543,025 | 3,400,881 | 3,603,131 |
+| Physics GameObject SDK = None (PhysX stripped) | **1,832,851** | 536,723 | **2,545,557** | **2,754,552** |
+
+- Default `LightingDataAsset` (builtin, fileID 20201) carries a 524 KB reflection cubemap even with skybox off and custom reflection null. Fix: a `LightingSettings` asset with GI off + `Lightmapping.Bake()` gives a 17 KB own LightingData, plus a 4x4 flat custom reflection cubemap.
+- `Scrambly/KitLit` (half-Lambert, no reflections/shadows/fog) replaces the glTFast PBR shader (62 KB) on all kit instances (`KitMaterials` editor helper).
+- Colormaps: max 256 px, no mipmaps (175 KB → 33 KB each). Pet palette has 1829 colors (faces), so no lossless block downscale.
+- **PhysX was force-included** because `com.unity.modules.physics` comes in indirectly (uielements, required by the Pipeline package). Setting Project Settings > Physics > GameObject SDK = None (UI + editor restart) cut 844 KB of wasm. **Rule: game code must not use Physics** (no colliders, raycasts); taps use screen-distance as in GDD section 7.
+- uGUI package removed from the project.
+- Next size risk: ParticleSystem module native code when particles are first used. Measure then; fallback is pooled quads.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

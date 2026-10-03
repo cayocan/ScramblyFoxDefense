@@ -31,5 +31,7 @@ public interface IGameState
 ## Rules
 
 - No `static` mutable state, no singletons.
+- No Physics (colliders, raycasts, rigidbodies): the physics SDK is set to None to keep PhysX out of the build. Picking is by screen distance.
+- No uGUI/TMP: UI is SpriteRenderer + TextMesh (see `decisions.md`).
 - Gameplay code uses scaled time only (`Time.deltaTime`), never `unscaledDeltaTime` or wall-clock time.
 - Every subscription has a matching unsubscription (`Enter/Exit`, `OnEnable/OnDisable`, or `Dispose`).
