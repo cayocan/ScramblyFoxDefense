@@ -37,6 +37,13 @@ Build alvo ≤ 2,8 MB (duro 3,5), código ≤ 0,4 MB, assets brutos ≤ ~1 MB, m
 - Cortes de tamanho, em ordem: gato, detalhes do cenário.
 - Os pacotes originais ficam fora do repositório; só os arquivos usados entram em `Assets/`.
 
+## Unity editor automation (unattended / remote sessions)
+- Drive the open editor with the Unity CLI + Pipeline: `unity --no-banner command <name> ...` (`recompile`, `recompile_status`, `menu --path "Scrambly/Build Main Scene"`, `build --target WebGL --outputPath Builds/WebGL --confirm true` then poll `build_status`, `eval`/`eval_file`, `editor_play`/`editor_stop`, `capture_game_view`).
+- Compile check: trust `recompile_status` ("completed" with no errors) plus a type lookup via `eval`; `console_status.compilationFailed` can lag.
+- If commands time out ("Main thread operation timed out"), the editor is either throttled in the background or blocked by a modal dialog. Use `tools/unity-window.ps1` (Win32, works when the Pipeline is stuck): `status` (lists dialogs and buttons), `click "<button>"`, `focus`, `shot <png>`.
+- During long or unattended sessions run `tools/unity-window.ps1 watch keepfocus` in the background: it auto-answers known-safe dialogs (scene modified externally → Reload), logs any other dialog to `Logs/unity-window-watch.log` as NEEDS DECISION, keeps Unity in front every 30 s and keeps the PC awake. Never auto-click unknown dialogs: read them with `status`/`shot` and decide.
+- Play Mode does not advance frames while Unity is in the background; for logic checks use `Assets/Editor/SessionSimulator.cs` (ticks the real services) and `tools/browser-test` (headless Chrome against `python -m http.server 8080` in `Builds/WebGL`).
+
 ## Contexto adicional
 Coloque documentos de contexto (GDD, notas, referências) em `docs/rag/`. Leia `docs/rag/README.md` antes de decidir escopo.
 
