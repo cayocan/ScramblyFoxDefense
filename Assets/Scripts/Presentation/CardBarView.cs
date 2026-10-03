@@ -59,6 +59,11 @@ namespace ScramblyFoxDefense.Presentation
 
         public void Dispose() => _economy.Changed -= RefreshPrices;
 
+        public void SetVisible(bool visible)
+        {
+            foreach (var card in _cards) card.root.gameObject.SetActive(visible);
+        }
+
         public void Layout()
         {
             float totalWidth = _cards.Length * CardWidth + (_cards.Length - 1) * Gap;
@@ -75,6 +80,7 @@ namespace ScramblyFoxDefense.Presentation
         {
             for (int i = 0; i < _cards.Length; i++)
             {
+                if (!_cards[i].root.gameObject.activeInHierarchy) continue;
                 Vector3 center = _camera.WorldToScreenPoint(_cards[i].root.position);
                 // Card roots are scaled to one reference pixel per local unit (see Layout).
                 Vector3 corner = _camera.WorldToScreenPoint(_cards[i].root.TransformPoint(new Vector3(CardWidth * 0.5f, CardHeight * 0.5f, 0f)));

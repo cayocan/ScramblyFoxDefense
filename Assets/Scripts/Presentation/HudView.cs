@@ -45,9 +45,9 @@ namespace ScramblyFoxDefense.Presentation
 
         public void Layout()
         {
-            _phase.anchor = TextAnchor.MiddleLeft;
+            _phase.anchor = TextAnchor.MiddleCenter;
             _coins.anchor = TextAnchor.MiddleRight;
-            _layout.PlaceText(_phase, new Vector2(0f, 1f), new Vector2(14f, -24f), 18f);
+            _layout.PlaceText(_phase, new Vector2(0.5f, 1f), new Vector2(0f, -58f), 14f);
             _layout.PlaceText(_coins, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f);
             _layout.PlaceText(_banner, new Vector2(0.5f, 1f), new Vector2(0f, -120f), 34f);
         }

@@ -37,6 +37,17 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] TextMesh bannerText;
         [SerializeField] CardView[] cards;
         [SerializeField] Renderer[] locks;
+        [SerializeField] HudButton restartButton;
+
+        [Header("Redeem and end card")]
+        [SerializeField] Transform vault;
+        [SerializeField] Transform endCardPanel;
+        [SerializeField] TextMesh endTitle;
+        [SerializeField] TextMesh endCollected;
+        [SerializeField] TextMesh ctaToast;
+        [SerializeField] Transform[] rewardCards;
+        [SerializeField] HudButton ctaButton;
+        [SerializeField] HudButton playAgainButton;
 
         InputRouter _input;
         EnemySystem _enemies;
@@ -50,6 +61,9 @@ namespace ScramblyFoxDefense.Core
         TowerBadges _badges;
         SlotHighlighter _slotHighlighter;
         CameraFit _cameraFit;
+        RestartController _restart;
+        RedeemSequence _redeem;
+        EndCardView _endCard;
         GameStateMachine _machine;
 
         void Awake()
@@ -68,6 +82,9 @@ namespace ScramblyFoxDefense.Core
             var slots = new SlotManager(slotTransforms, mainCamera, config.pickRadiusCssPixels);
 
             _layout = new HudLayout(mainCamera);
+            // HUD buttons first: the first tap handler that accepts a tap consumes it.
+            _restart = new RestartController(restartButton, mainCamera);
+            _input.Register(_restart.HandleTap);
             _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText);
             _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera);
             _lockBar = new LockBarView(locks, _layout);
@@ -76,13 +93,15 @@ namespace ScramblyFoxDefense.Core
             _slotHighlighter = new SlotHighlighter(slots, _actions);
             _coinFx = new CoinPopFx(_enemies, coinPrefab, fxRoot);
             _cameraFit = new CameraFit(mainCamera, boardCenter, boardSize.x, boardSize.y);
+            _redeem = new RedeemSequence(coinPrefab, fxRoot, vault, pathWaypoints);
+            _endCard = new EndCardView(endCardPanel, endTitle, endCollected, ctaToast, rewardCards, ctaButton, playAgainButton, _layout, mainCamera);
 
             _machine = new GameStateMachine();
             _machine.Register(new IntroState(_machine, config, _towers, _actions, _hud));
             _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar));
             _machine.Register(new BreatherState(_machine, config, session));
-            _machine.Register(new RedeemState(_machine, _actions, _hud));
-            _machine.Register(new EndCardState(economy, _hud));
+            _machine.Register(new RedeemState(_machine, _actions, _hud, _redeem, _input, _cardBar, _badges));
+            _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input));
         }
 
         void Start() => _machine.Enter<IntroState>();
@@ -96,6 +115,8 @@ namespace ScramblyFoxDefense.Core
                 _hud.Layout();
                 _cardBar.Layout();
                 _lockBar.Layout();
+                _endCard.Layout();
+                _layout.Place(restartButton.root, new Vector2(0f, 1f), new Vector2(46f, -26f), 1f);
             }
 
             _input.Tick();
@@ -107,11 +128,13 @@ namespace ScramblyFoxDefense.Core
             _cardBar.Tick(deltaTime);
             _lockBar.Tick(deltaTime);
             _slotHighlighter.Tick(deltaTime);
+            _endCard.Tick(deltaTime);
         }
 
         void OnDestroy()
         {
             _machine?.Stop();
+            if (_restart != null) _input.Unregister(_restart.HandleTap);
             _actions?.Dispose();
             _badges?.Dispose();
             _cardBar?.Dispose();

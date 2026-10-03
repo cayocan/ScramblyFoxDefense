@@ -17,6 +17,7 @@ namespace ScramblyFoxDefense.Presentation
         readonly GameObject _badgePrefab;
         readonly Transform _camera;
         readonly Dictionary<Tower, TextMesh> _badges = new Dictionary<Tower, TextMesh>();
+        bool _hidden;
 
         public TowerBadges(TowerSystem towers, Economy economy, GameObject badgePrefab, Transform camera)
         {
@@ -36,6 +37,13 @@ namespace ScramblyFoxDefense.Presentation
             _economy.Changed -= RefreshAll;
         }
 
+        /// <summary>Hidden for Redeem and the end card so world text never shows through the panel.</summary>
+        public void HideAll()
+        {
+            _hidden = true;
+            foreach (var badge in _badges.Values) badge.gameObject.SetActive(false);
+        }
+
         void OnBuilt(Tower tower)
         {
             var badge = Object.Instantiate(_badgePrefab, tower.Transform).GetComponent<TextMesh>();
@@ -47,7 +55,7 @@ namespace ScramblyFoxDefense.Presentation
 
         void Refresh(Tower tower)
         {
-            if (!_badges.TryGetValue(tower, out var badge)) return;
+            if (_hidden || !_badges.TryGetValue(tower, out var badge)) return;
             badge.transform.localPosition = Vector3.up * (Height + tower.Level * tower.BaseHeight);
             bool maxed = tower.IsMaxLevel;
             badge.gameObject.SetActive(!maxed);

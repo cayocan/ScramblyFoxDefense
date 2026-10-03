@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ScramblyFoxDefense.Input
@@ -6,14 +7,20 @@ namespace ScramblyFoxDefense.Input
     /// <summary>
     /// Single input primitive: a tap. Only the first pointer counts; a canceled touch or focus loss
     /// raises Canceled so the current selection is dropped (GDD section 4, interrupted input).
+    /// Tap handlers run in registration order and the first one returning true consumes the tap,
+    /// so HUD buttons registered first win over board actions.
     /// </summary>
     public sealed class InputRouter
     {
+        readonly List<Func<Vector2, bool>> _handlers = new List<Func<Vector2, bool>>();
         int _activeFingerId = -1;
         bool _hadFocus = true;
 
-        public event Action<Vector2> Tapped;
         public event Action Canceled;
+
+        public void Register(Func<Vector2, bool> handler) => _handlers.Add(handler);
+
+        public void Unregister(Func<Vector2, bool> handler) => _handlers.Remove(handler);
 
         public void Tick()
         {
@@ -28,7 +35,7 @@ namespace ScramblyFoxDefense.Input
                 ReadTouches();
                 return;
             }
-            if (UnityEngine.Input.GetMouseButtonDown(0)) Tapped?.Invoke(UnityEngine.Input.mousePosition);
+            if (UnityEngine.Input.GetMouseButtonDown(0)) Dispatch(UnityEngine.Input.mousePosition);
         }
 
         void ReadTouches()
@@ -39,7 +46,7 @@ namespace ScramblyFoxDefense.Input
                 if (touch.phase == TouchPhase.Began && _activeFingerId < 0)
                 {
                     _activeFingerId = touch.fingerId;
-                    Tapped?.Invoke(touch.position);
+                    Dispatch(touch.position);
                 }
                 else if (touch.fingerId == _activeFingerId)
                 {
@@ -47,6 +54,13 @@ namespace ScramblyFoxDefense.Input
                     else if (touch.phase == TouchPhase.Ended) _activeFingerId = -1;
                 }
             }
+        }
+
+        void Dispatch(Vector2 screenPoint)
+        {
+            // Copy: a handler may register or unregister others (e.g. a state change).
+            foreach (var handler in _handlers.ToArray())
+                if (handler(screenPoint)) return;
         }
 
         void Cancel()
