@@ -1,17 +1,15 @@
 using System.IO;
 using System.Linq;
-using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace ScramblyFoxDefense.EditorTools
 {
     /// <summary>
     /// Builds the Phase 0 size-test scene (GDD section 8): camera, one kit tower, one animated
-    /// Cube Pet on top, one sprite, one UI button and one text. Reproducible from the menu.
+    /// Cube Pet on top, one sprite and one text. UI uses SpriteRenderer + TextMesh (no uGUI/TMP,
+    /// see docs/rag/decisions.md). Reproducible from the menu.
     /// </summary>
     public static class Phase0SceneBuilder
     {
@@ -20,23 +18,11 @@ namespace ScramblyFoxDefense.EditorTools
         const float PetScale = 0.4f;
 
         static readonly Color Orange = new Color32(0xF5, 0x83, 0x24, 0xFF);
-        static readonly Color Purple = new Color32(0x78, 0x45, 0xD8, 0xFF);
         static readonly Color DeepInk = new Color32(0x20, 0x13, 0x38, 0xFF);
         static readonly Color WarmWhite = new Color32(0xFF, 0xF6, 0xE8, 0xFF);
 
-        [MenuItem("Scrambly/Phase 0/Import TMP Essentials")]
-        public static void ImportTmpEssentials()
-        {
-            TMP_PackageResourceImporter.ImportResources(true, false, false);
-        }
-
         [MenuItem("Scrambly/Phase 0/Build Size-Test Scene")]
-        public static void BuildScene() => BuildScene(useUGui: true);
-
-        [MenuItem("Scrambly/Phase 0/Build Size-Test Scene (no uGUI)")]
-        public static void BuildSceneWithoutUGui() => BuildScene(useUGui: false);
-
-        static void BuildScene(bool useUGui)
+        public static void BuildScene()
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -45,7 +31,8 @@ namespace ScramblyFoxDefense.EditorTools
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.55f, 0.5f, 0.6f);
             RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Custom;
-            RenderSettings.customReflectionTexture = null;
+            // A null custom cubemap falls back to Unity's built-in 0.5 MB one, so point it at a 4x4 flat cubemap.
+            RenderSettings.customReflectionTexture = LoadOrCreateFlatReflection();
 
             var cameraGo = new GameObject("Main Camera") { tag = "MainCamera" };
             var camera = cameraGo.AddComponent<Camera>();
@@ -57,6 +44,7 @@ namespace ScramblyFoxDefense.EditorTools
             var lightGo = new GameObject("Directional Light");
             var light = lightGo.AddComponent<Light>();
             light.type = LightType.Directional;
+            light.shadows = LightShadows.None;
             lightGo.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
 
             var tower = Spawn("Assets/Art/TowerDefense/tower-round-base.glb", Vector3.zero);
@@ -71,8 +59,7 @@ namespace ScramblyFoxDefense.EditorTools
             animation.playAutomatically = true;
             animation.wrapMode = WrapMode.Loop;
 
-            if (useUGui) BuildUi();
-            else BuildWorldUi(cameraGo.transform);
+            BuildWorldUi(cameraGo.transform);
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -85,39 +72,11 @@ namespace ScramblyFoxDefense.EditorTools
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             instance.transform.position = position;
+            KitMaterials.Apply(instance, KitMaterials.ForAsset(assetPath));
             return instance;
         }
 
-        static void BuildUi()
-        {
-            var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasGo.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(390f, 844f);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-
-            var label = CreateText(canvasGo.transform, "Demo coins: 70", 28f, WarmWhite);
-            Place(label.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -60f), new Vector2(360f, 50f));
-
-            var foxImage = new GameObject("Fox Sprite", typeof(Image)).GetComponent<Image>();
-            foxImage.transform.SetParent(canvasGo.transform, false);
-            foxImage.sprite = LoadOrCreatePlaceholderSprite();
-            Place(foxImage.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -150f), new Vector2(96f, 96f));
-
-            var buttonGo = new GameObject("CTA Button", typeof(Image), typeof(Button));
-            buttonGo.transform.SetParent(canvasGo.transform, false);
-            buttonGo.GetComponent<Image>().color = Orange;
-            Place((RectTransform)buttonGo.transform, new Vector2(0.5f, 0f), new Vector2(0f, 110f), new Vector2(280f, 72f));
-            var buttonText = CreateText(buttonGo.transform, "Explore Scrambly", 30f, WarmWhite);
-            buttonText.rectTransform.anchorMin = Vector2.zero;
-            buttonText.rectTransform.anchorMax = Vector2.one;
-            buttonText.rectTransform.sizeDelta = Vector2.zero;
-        }
-
-        /// <summary>UI without uGUI/TMP: legacy TextMesh and SpriteRenderer parented to the camera.</summary>
+        /// <summary>Legacy TextMesh and SpriteRenderer parented to the camera.</summary>
         static void BuildWorldUi(Transform camera)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -144,23 +103,19 @@ namespace ScramblyFoxDefense.EditorTools
             fox.sprite = LoadOrCreatePlaceholderSprite();
         }
 
-        static TextMeshProUGUI CreateText(Transform parent, string text, float size, Color color)
+        static Cubemap LoadOrCreateFlatReflection()
         {
-            var go = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            var tmp = go.GetComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.fontSize = size;
-            tmp.color = color;
-            tmp.alignment = TextAlignmentOptions.Center;
-            return tmp;
-        }
+            const string path = "Assets/Art/Materials/FlatReflection.cubemap";
+            var cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
+            if (cubemap != null) return cubemap;
 
-        static void Place(RectTransform rect, Vector2 anchor, Vector2 position, Vector2 size)
-        {
-            rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
+            cubemap = new Cubemap(4, TextureFormat.RGBA32, false);
+            var pixels = Enumerable.Repeat((Color)DeepInk, 16).ToArray();
+            for (int face = 0; face < 6; face++) cubemap.SetPixels(pixels, (CubemapFace)face);
+            cubemap.Apply();
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            AssetDatabase.CreateAsset(cubemap, path);
+            return cubemap;
         }
 
         static Sprite LoadOrCreatePlaceholderSprite()

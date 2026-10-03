@@ -7,7 +7,6 @@
     "com.unity.modules.jsonserialize": "1.0.0",
     "com.unity.modules.particlesystem": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
-    "com.unity.pipeline": "0.8.0-exp.1",
-    "com.unity.ugui": "2.0.0"
+    "com.unity.pipeline": "0.8.0-exp.1"
   }
 }
