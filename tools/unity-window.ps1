@@ -134,6 +134,13 @@ function Describe-Dialog($hwnd) {
     "DIALOG '$([UnityWin]::Text($hwnd))': $message  buttons: $buttons"
 }
 
+# Progress bars ("Hold on...", "Building Player") are #32770 windows too: no buttons, or only Cancel.
+function IsQuestion($hwnd) {
+    $buttons = @([UnityWin]::Children($hwnd) | Where-Object { [UnityWin]::Class($_) -eq 'Button' -and [UnityWin]::Visible($_) } |
+        ForEach-Object { [UnityWin]::Text($_) -replace '&', '' })
+    return ($buttons.Count -gt 1) -or ($buttons.Count -eq 1 -and $buttons[0] -ne 'Cancel')
+}
+
 # Dialogs that are always safe to answer without a human. Anything else is only logged.
 $SafeAnswers = @(
     @{ Title = '*modified externally*'; Button = 'Reload' }  # git changed the open scene: take the committed version
@@ -163,7 +170,7 @@ if ($Action -eq 'watch') {
                     Add-Content $log "$(Get-Date -Format s) auto [$($rule.Button)] on '$title'"
                 }
             }
-            elseif (-not $seen.ContainsKey([string]$d)) {
+            elseif (-not $seen.ContainsKey([string]$d) -and (IsQuestion $d)) {
                 $seen[[string]$d] = $true
                 Add-Content $log "$(Get-Date -Format s) NEEDS DECISION: $(Describe-Dialog $d)"
             }

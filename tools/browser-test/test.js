@@ -16,7 +16,7 @@ async function open(browser, viewport, label) {
   page.on('requestfailed', r => logs.push(`REQUEST FAILED ${r.url()} ${r.failure() && r.failure().errorText}`));
   page.on('response', r => { if (r.status() >= 400) logs.push(`HTTP ${r.status()} ${r.url()}`); });
   page.on('console', m => logs.push(`${m.type()}: ${m.text()}`));
-  page.on('pageerror', e => logs.push(`PAGEERROR ${e.message}`));
+  page.on('pageerror', e => logs.push(`PAGEERROR ${(e && e.message) || JSON.stringify(e)}`));
   await page.emulate({ viewport, userAgent: (await browser.userAgent()) });
   const t0 = Date.now();
   await page.goto(URL, { waitUntil: 'load' });
@@ -41,6 +41,8 @@ async function setHidden(page, hidden) {
   // 1) Portrait phone 390x844: load, network, touch build, visibility pause.
   const phone = await open(browser, { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, '390x844');
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-start.png') });
+  const audio = () => phone.page.evaluate(() => window.scramblySfx.state() + (window.scramblySfx.isMuted() ? '/muted' : ''));
+  const audioBefore = await audio();
   // Card 0 (Pop Blaster) then slot 0 (top slot), in CSS px.
   await phone.page.touchscreen.tap(73, 766);
   await sleep(300);
@@ -51,10 +53,22 @@ async function setHidden(page, hidden) {
   await sleep(800);
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-built.png') });
 
+  const audioAfterTap = await audio();
   await setHidden(phone.page, true);
-  await sleep(3000);
+  await sleep(1000);
+  const audioHidden = await audio();
+  await sleep(2000);
   await setHidden(phone.page, false);
   await sleep(1000);
+  const audioShown = await audio();
+  await phone.page.touchscreen.tap(112, 26); // mute button
+  await sleep(500);
+  const audioMuted = await audio();
+  await phone.page.touchscreen.tap(46, 26);  // restart: mute must survive the scene reload
+  await sleep(2500);
+  const audioAfterRestart = await audio();
+  await phone.page.screenshot({ path: path.join(OUT, 'b-390-restarted.png') });
+  report.push(`[audio] before tap=${audioBefore} after tap=${audioAfterTap} hidden=${audioHidden} shown=${audioShown} mute=${audioMuted} after restart=${audioAfterRestart}`);
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-resumed.png') });
 
   const foreign = phone.requests.filter(u => !u.startsWith('http://localhost:8080/'));

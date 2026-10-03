@@ -9,7 +9,7 @@ namespace ScramblyFoxDefense.Presentation
     public sealed class CameraFit
     {
         // Reserved bands in reference pixels (GDD section 6: ~90 top, ~150 bottom of 844).
-        const float TopBand = 70f;
+        const float TopBand = 112f;
         const float BottomBand = 160f;
         const float ReferenceHeight = 844f;
 

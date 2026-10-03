@@ -60,6 +60,19 @@ Matches GDD intent: one tower handles wave 1, wave 3 needs 2+ towers or upgrades
 - Correction: a C# string got a raw newline from a Python edit; `console_status.compilationFailed` reported false while the editor kept running the old assembly, so a scene was built with the old builder. Now compile success is checked with `recompile_status` plus a type lookup.
 - Known: the built-in LegacyRuntime font has no em dash ("Demo only — not real earnings" renders without it). The Fredoka font in the art pass fixes it.
 
+## 2026-10-03 — Art pass and sound
+
+- Font: Fredoka (OFL) instanced at weight 600 and subset to ASCII + em dash with fontTools: 21 KB, and the em dash now renders.
+- Palette recolor without new models: `colormap-scrambly.png` remaps the kit colormap by hue (grass -> cream/sand, dirt path -> light orange, tower reds and vault purples -> orange); `colormap-predators.png` turns the pet palette purple (blacks and eye whites kept, polar bear white -> lavender). Both generated with PIL, 19 KB and 5 KB.
+- Rounded UI (brief: warm, rounded): 9-sliced sprite for cards, buttons and panel; padlock closed/open, coin, trophy, medal, basket, speaker and hand sprites drawn in code (all under 3 KB each).
+- Feedback: white hit flash (KitLit `_Flash`), a short poof on defeat, pets play `gesture-positive` when built or upgraded. No ParticleSystem (native module size).
+- Tutorial hand (GDD section 4): card -> slot -> first affordable upgrade, then idle hint after 5 s between waves.
+- DOTween offered by the user; not added: the tweens needed are a few lines on scaled time (pause-safe), and it would add code and another time source to pause.
+- Sound: Web Audio synth in the page (`window.scramblySfx`, 12 cues), bridged by `Sfx.jslib`; no audio files and no Unity audio module. AudioContext is created on the first gesture, suspended while hidden/landscape, master gain 0 when muted; mute lives in the page so it survives in-game restarts. Browser test: locked -> running after tap -> suspended when hidden -> running -> muted survives restart.
+- Correction: a "Build Main Scene" call during a domain reload reported success but saved nothing (scene file timestamp unchanged), which shipped a build with an unassigned field and an abort at startup (exceptions are off). Now the scene file timestamp is checked after building it.
+- Correction: with the watchdog keeping Unity in front, Play Mode advances in real time, which skewed SessionSimulator runs; the editor is now paused right after entering Play Mode.
+- Size after the pass: ZIP 3,103,873 bytes (build 2,714,300).
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

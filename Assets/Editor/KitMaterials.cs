@@ -14,14 +14,14 @@ namespace ScramblyFoxDefense.EditorTools
         const string Folder = "Assets/Art/Materials";
         const string ShaderName = "Scrambly/KitLit";
         const string PetTexture = "Assets/Art/CubePets/Textures/colormap.png";
-        const string TowerTexture = "Assets/Art/TowerDefense/Textures/colormap.png";
+        const string PredatorTexture = "Assets/Art/CubePets/Textures/colormap-predators.png";
+        const string TowerTexture = "Assets/Art/TowerDefense/Textures/colormap-scrambly.png"; // palette remap of the kit colormap
 
-        // Predators read as "the other side": purple tint over the pet palette (GDD section 6).
-        static readonly Color EnemyTint = new Color(0.78f, 0.62f, 1f);
 
         public static Material Pets => GetOrCreate("PetKit", PetTexture, Color.white);
         public static Material Towers => GetOrCreate("TowerKit", TowerTexture, Color.white);
-        public static Material Enemies => GetOrCreate("EnemyKit", PetTexture, EnemyTint);
+        // Predators read as "the other side": purple version of the pet palette (GDD section 6).
+        public static Material Enemies => GetOrCreate("EnemyKit", PredatorTexture, Color.white);
 
         public static Material Tinted(string name, Color color) => GetOrCreate(name, null, color);
 

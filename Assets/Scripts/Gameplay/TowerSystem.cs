@@ -50,6 +50,7 @@ namespace ScramblyFoxDefense.Gameplay
 
         public event Action<Tower> Built;
         public event Action<Tower> Upgraded;
+        public event Action<Tower> Fired;
 
         public TowerSystem(GameConfig config, Economy economy, EnemySystem enemies, Transform towerRoot, GameObject projectilePrefab)
         {
@@ -124,6 +125,7 @@ namespace ScramblyFoxDefense.Gameplay
 
             tower.Cooldown = 1f / stats.fireRate;
             Fire(tower, target, stats);
+            Fired?.Invoke(tower);
         }
 
         /// <summary>The predator furthest along the path within range.</summary>

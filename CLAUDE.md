@@ -22,7 +22,7 @@ Tower defense enxuto de 45–60 s: a raposa lidera Cube Pets contra predadores (
 - Pausar jogo e relógios quando a página fica oculta e retomar sem salto de tempo (usar só tempo escalado).
 - Restart reseta tudo sem timers/listeners/efeitos duplicados.
 - Saldo é demo: nunca prometer ganho real nem pagamento.
-- Áudio: ainda indefinido (hoje, sem áudio). Se entrar, exige início após interação, mute e silêncio com a página oculta.
+- Audio: Web Audio synth in the WebGL template (`window.scramblySfx`) via `Assets/Plugins/WebGL/Sfx.jslib`; no audio files, no Unity audio module. Starts after the first gesture, mute button in the HUD, suspended while the page is hidden or in landscape.
 - Paleta: Orange #F58324, Purple #7845D8, Deep ink #201338, Warm white #FFF6E8.
 
 ## Orçamento de tamanho

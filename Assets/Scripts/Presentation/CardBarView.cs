@@ -34,7 +34,6 @@ namespace ScramblyFoxDefense.Presentation
         readonly Economy _economy;
         readonly HudLayout _layout;
         readonly Camera _camera;
-        readonly MaterialPropertyBlock _block = new MaterialPropertyBlock();
         readonly Vector3[] _rest;
         int _shaking = -1;
         float _shakeTime;
@@ -94,8 +93,7 @@ namespace ScramblyFoxDefense.Presentation
         {
             for (int i = 0; i < _cards.Length; i++)
             {
-                _block.SetColor("_Color", i == index ? Selected : Idle);
-                _cards[i].background.SetPropertyBlock(_block);
+                Tint.Set(_cards[i].background, i == index ? Selected : Idle);
             }
         }
 
