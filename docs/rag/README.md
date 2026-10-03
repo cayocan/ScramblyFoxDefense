@@ -1,9 +1,13 @@
-# Contexto do projeto (RAG)
+# Project context (RAG)
 
-Pasta para documentos que o Claude do VS Code deve consultar: GDD, briefing da Simula, notas de assets, decisões.
+Folder for documents that Claude should consult: GDD, Simula briefing, asset notes, decisions.
 
-Sugestão de arquivos:
-- `briefing-simula.md` — texto completo do briefing do take-home
-- `gdd.md` — GDD exportado (versão atual: Scrambly Fox Defense)
-- `assets.md` — inventário e tamanhos dos modelos escolhidos
-- `decisoes.md` — decisões, correções e saídas de IA rejeitadas (alimenta a nota de projeto)
+## Language rule (mandatory)
+Everything in the project MUST be written in English: code, comments, commit messages, branch names, UI text, documentation, variable names, logs, error messages — absolutely everything. No exceptions.
+
+Files:
+- `gdd.md` — exported GDD (current version: Scrambly Fox Defense; kept verbatim in Portuguese)
+- `architecture.md` — **mandatory** code architecture: state machine with state handlers + dependency injection (composition root)
+- `briefing-simula.md` — full take-home briefing text (pending)
+- `assets.md` — inventory and sizes of the chosen models (pending)
+- `decisions.md` — decisions log (Phase 0 size results, UI approach, tooling); feeds the project note
