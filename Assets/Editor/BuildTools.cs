@@ -38,7 +38,8 @@ namespace ScramblyFoxDefense.EditorTools
 
             PlayerSettings.SplashScreen.show = false;
             PlayerSettings.SplashScreen.showUnityLogo = false; // otherwise the 2.8 MB logo texture ships anyway
-            PlayerSettings.runInBackground = false;
+            // Keep running on focus loss; hiding the page is handled explicitly (visibilitychange -> timeScale 0).
+            PlayerSettings.runInBackground = true;
             PlayerSettings.companyName = "Cayo Aguiar";
             PlayerSettings.productName = "Scrambly Fox Defense";
 

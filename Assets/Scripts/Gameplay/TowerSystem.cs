@@ -1,0 +1,167 @@
+using System;
+using System.Collections.Generic;
+using ScramblyFoxDefense.Config;
+using ScramblyFoxDefense.Core;
+using UnityEngine;
+
+namespace ScramblyFoxDefense.Gameplay
+{
+    public sealed class Tower
+    {
+        public TowerDefinition Definition;
+        public Slot Slot;
+        public Transform Transform;
+        public Transform Pet;
+        public Animation PetAnimation;
+        public int Level;
+        public float Cooldown;
+
+        public TowerLevel Stats => Definition.levels[Level];
+    }
+
+    sealed class Projectile
+    {
+        public GameObject GameObject;
+        public Transform Transform;
+        public Enemy Target;
+        public Vector3 Destination;
+        public float Damage;
+        public float SplashRadius;
+    }
+
+    /// <summary>Builds towers on slots, picks targets and fires pooled projectiles.</summary>
+    public sealed class TowerSystem
+    {
+        const float MuzzleHeight = 0.55f;
+
+        readonly GameConfig _config;
+        readonly Economy _economy;
+        readonly EnemySystem _enemies;
+        readonly Transform _towerRoot;
+        readonly ObjectPool _projectilePool;
+        readonly List<Tower> _towers = new List<Tower>();
+        readonly List<Projectile> _projectiles = new List<Projectile>();
+
+        public IReadOnlyList<Tower> Towers => _towers;
+
+        public event Action<Tower> Built;
+
+        public TowerSystem(GameConfig config, Economy economy, EnemySystem enemies, Transform towerRoot, GameObject projectilePrefab)
+        {
+            _config = config;
+            _economy = economy;
+            _enemies = enemies;
+            _towerRoot = towerRoot;
+            _projectilePool = new ObjectPool(projectilePrefab, towerRoot, 16);
+        }
+
+        public bool TryBuild(Slot slot, int towerIndex)
+        {
+            var definition = _config.towers[towerIndex];
+            if (!slot.IsFree || !_economy.TrySpend(definition.levels[0].cost)) return false;
+
+            var go = UnityEngine.Object.Instantiate(definition.prefab, slot.Transform.position, Quaternion.identity, _towerRoot);
+            var pet = go.transform.Find("Pet");
+            var tower = new Tower
+            {
+                Definition = definition,
+                Slot = slot,
+                Transform = go.transform,
+                Pet = pet,
+                PetAnimation = pet != null ? pet.GetComponentInChildren<Animation>() : null
+            };
+            slot.Tower = tower;
+            _towers.Add(tower);
+            Built?.Invoke(tower);
+            return true;
+        }
+
+        public void Tick(float deltaTime)
+        {
+            foreach (var tower in _towers) TickTower(tower, deltaTime);
+            for (int i = _projectiles.Count - 1; i >= 0; i--)
+                if (TickProjectile(_projectiles[i], deltaTime)) Release(i);
+        }
+
+        void TickTower(Tower tower, float deltaTime)
+        {
+            tower.Cooldown -= deltaTime;
+            var stats = tower.Stats;
+            var target = FindTarget(tower.Transform.position, stats.range);
+            if (target == null) return;
+
+            if (tower.Pet != null)
+            {
+                Vector3 look = target.Transform.position - tower.Pet.position;
+                look.y = 0f;
+                if (look.sqrMagnitude > 0f) tower.Pet.rotation = Quaternion.LookRotation(look);
+            }
+            if (tower.Cooldown > 0f) return;
+
+            tower.Cooldown = 1f / stats.fireRate;
+            Fire(tower, target, stats);
+        }
+
+        /// <summary>The predator furthest along the path within range.</summary>
+        Enemy FindTarget(Vector3 origin, float range)
+        {
+            Enemy best = null;
+            float rangeSqr = range * range;
+            foreach (var enemy in _enemies.Active)
+            {
+                Vector3 offset = enemy.Transform.position - origin;
+                offset.y = 0f;
+                if (offset.sqrMagnitude > rangeSqr) continue;
+                if (best == null || enemy.Distance > best.Distance) best = enemy;
+            }
+            return best;
+        }
+
+        void Fire(Tower tower, Enemy target, TowerLevel stats)
+        {
+            var go = _projectilePool.Get();
+            go.transform.position = tower.Transform.position + Vector3.up * MuzzleHeight;
+            _projectiles.Add(new Projectile
+            {
+                GameObject = go,
+                Transform = go.transform,
+                Target = target,
+                Destination = target.Transform.position,
+                Damage = stats.damage,
+                SplashRadius = stats.splashRadius
+            });
+        }
+
+        /// <summary>Homes on the target; if it died mid-flight, finishes at its last position. True when done.</summary>
+        bool TickProjectile(Projectile projectile, float deltaTime)
+        {
+            if (projectile.Target.Alive) projectile.Destination = projectile.Target.Transform.position + Vector3.up * 0.25f;
+
+            Vector3 position = Vector3.MoveTowards(projectile.Transform.position, projectile.Destination, _config.projectileSpeed * deltaTime);
+            projectile.Transform.position = position;
+            if ((position - projectile.Destination).sqrMagnitude > 0.0025f) return false;
+
+            if (projectile.SplashRadius > 0f) Splash(position, projectile.SplashRadius, projectile.Damage);
+            else if (projectile.Target.Alive) _enemies.Damage(projectile.Target, projectile.Damage);
+            return true;
+        }
+
+        void Splash(Vector3 center, float radius, float damage)
+        {
+            float radiusSqr = radius * radius;
+            var active = _enemies.Active;
+            for (int i = active.Count - 1; i >= 0; i--)
+            {
+                Vector3 offset = active[i].Transform.position - center;
+                offset.y = 0f;
+                if (offset.sqrMagnitude <= radiusSqr) _enemies.Damage(active[i], damage);
+            }
+        }
+
+        void Release(int index)
+        {
+            _projectilePool.Release(_projectiles[index].GameObject);
+            _projectiles.RemoveAt(index);
+        }
+    }
+}
