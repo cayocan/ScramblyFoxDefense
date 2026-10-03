@@ -9,3 +9,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | size-cuts | 2026-10-03 11:30 | 2026-10-03 11:54 | 0h 23min | KitLit shader, colormaps 256 px, own LightingData, PhysX off: ZIP 2,754,552 bytes |
 | core-greybox | 2026-10-03 11:58 | 2026-10-03 12:21 | 0h 23min | State machine + DI, S-path board, 3 waves, towers/projectiles/coins, simulated full session (with and without towers), ZIP 2,903,870 bytes |
 | fix-corner-tiles | 2026-10-03 12:24 | 2026-10-03 12:26 | 0h 01min | Corner path tiles were mirrored (reported by user from screenshot) |
+| cards-upgrades-locks | 2026-10-03 12:27 | 2026-10-03 12:44 | 0h 16min | 3 tower cards, tap-to-upgrade with stacked pieces + cost badge, 3 reward locks, camera fit between HUD bands, balance pass 1 (SessionSimulator), ZIP 2,930,986 bytes |
