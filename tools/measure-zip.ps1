@@ -28,7 +28,8 @@ try {
     foreach ($item in $sourceItems) {
         $p = Join-Path $root $item
         if (-not (Test-Path $p)) { continue }
-        Get-ChildItem $p -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+        Get-ChildItem $p -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -notmatch '\\(node_modules|out)\\' } | ForEach-Object {
             Add-Entry $_.FullName ('source\' + $_.FullName.Substring($root.Length + 1))
         }
     }

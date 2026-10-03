@@ -1,0 +1,7 @@
+{
+  "name": "scrambly-browser-test",
+  "private": true,
+  "description": "Headless Chrome checks for the WebGL build (network, touch, page-hidden pause, rotate prompt, layouts).",
+  "scripts": { "test": "node test.js" },
+  "devDependencies": { "puppeteer-core": "^23.0.0" }
+}

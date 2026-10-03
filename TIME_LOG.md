@@ -11,3 +11,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | fix-corner-tiles | 2026-10-03 12:24 | 2026-10-03 12:26 | 0h 01min | Corner path tiles were mirrored (reported by user from screenshot) |
 | cards-upgrades-locks | 2026-10-03 12:27 | 2026-10-03 12:44 | 0h 16min | 3 tower cards, tap-to-upgrade with stacked pieces + cost badge, 3 reward locks, camera fit between HUD bands, balance pass 1 (SessionSimulator), ZIP 2,930,986 bytes |
 | redeem-endcard-restart | 2026-10-03 12:47 | 2026-10-03 13:11 | 0h 23min | Coins fly to vault, end card (title, collected, rewards, CTA demo-only, Play again, disclaimer), restart x10 verified, ZIP 2,958,015 bytes |
+| robustness | 2026-10-03 13:28 | 2026-10-03 13:45 | 0h 17min | Template, PagePause + jslib, rotate prompt, headless Chrome tests (network, touch, pause, layouts), README/CREDITS, ZIP 2,959,429 bytes |

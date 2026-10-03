@@ -40,7 +40,7 @@ namespace ScramblyFoxDefense.EditorTools
 
         static readonly Vector2Int[] SlotCells =
         {
-            new Vector2Int(2, 1), new Vector2Int(3, 4), new Vector2Int(0, 5), new Vector2Int(2, 8)
+            new Vector2Int(2, 1), new Vector2Int(3, 4), new Vector2Int(2, 5), new Vector2Int(2, 8)
         };
 
         static readonly Color Orange = new Color32(0xF5, 0x83, 0x24, 0xFF);

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>{{{ PRODUCT_NAME }}}</title>
+  <!-- Empty icon: stops the browser from requesting /favicon.ico (no 404s, same-origin only). -->
+  <link rel="icon" href="data:,">
+  <style>
+    :root { --orange: #F58324; --purple: #7845D8; --ink: #201338; --white: #FFF6E8; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      overflow: hidden; overscroll-behavior: none; touch-action: none;
+      background: var(--ink); color: var(--white);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+    /* Portrait column: fills narrow screens, centred 9:16 on wide ones. */
+    #stage {
+      position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: min(100vw, calc(100dvh * 0.5625)); height: 100dvh;
+    }
+    #unity-canvas { display: block; width: 100%; height: 100%; background: var(--ink); outline: none; }
+    #loading {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+    }
+    #loading p { margin: 0; font-size: 16px; letter-spacing: 0.02em; }
+    #bar { width: 60%; height: 10px; border-radius: 5px; background: rgba(255, 246, 232, 0.15); overflow: hidden; }
+    #bar-fill { width: 0; height: 100%; background: var(--orange); transition: width 0.2s; }
+    #rotate {
+      position: fixed; inset: 0; display: none; z-index: 10;
+      flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      background: var(--ink); text-align: center; padding: 24px;
+    }
+    #rotate strong { font-size: 22px; color: var(--orange); }
+    #rotate span { font-size: 15px; opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="loading"><p>Scrambly Fox Defense</p><div id="bar"><div id="bar-fill"></div></div></div>
+  </div>
+  <div id="rotate" role="alert"><strong>Rotate your phone</strong><span>This demo plays in portrait.</span></div>
+
+  <script>
+    // ---- Page state read by the game (Assets/Plugins/WebGL/PageState.jslib) ----
+    // Registered once here: index.html never reloads on in-game restart, so listeners never stack.
+    window.scramblyPaused = false;   // page hidden, or phone held in landscape
+    window.scramblyResumed = false;  // set on pause -> play; the game skips that frame's delta
+
+    var rotateOverlay = document.getElementById("rotate");
+    var coarsePointer = window.matchMedia("(pointer: coarse)");
+
+    function isBlockedLandscape() {
+      return coarsePointer.matches && window.innerWidth > window.innerHeight;
+    }
+
+    function updatePageState() {
+      var landscape = isBlockedLandscape();
+      var paused = document.hidden || landscape;
+      if (window.scramblyPaused && !paused) window.scramblyResumed = true;
+      window.scramblyPaused = paused;
+      rotateOverlay.style.display = landscape ? "flex" : "none";
+    }
+
+    document.addEventListener("visibilitychange", updatePageState);
+    window.addEventListener("resize", updatePageState);
+    window.addEventListener("orientationchange", updatePageState);
+    window.addEventListener("pagehide", updatePageState);
+    window.addEventListener("pageshow", updatePageState);
+    updatePageState();
+
+    // ---- No page scroll, zoom or context menu competing with the game ----
+    var canvas = document.getElementById("unity-canvas");
+    function block(event) { event.preventDefault(); }
+    document.addEventListener("touchmove", block, { passive: false });
+    document.addEventListener("gesturestart", block);
+    canvas.addEventListener("contextmenu", block);
+
+    // ---- Unity loader (local files only, Decompression Fallback build) ----
+    var buildUrl = "Build";
+    var config = {
+      dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+      frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+      codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+      productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+      productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+      // Cap the render resolution: crisp enough, kinder to phone GPUs.
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
+    };
+
+    var loading = document.getElementById("loading");
+    var barFill = document.getElementById("bar-fill");
+    var script = document.createElement("script");
+    script.src = buildUrl + "/{{{ LOADER_FILENAME }}}";
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        barFill.style.width = Math.round(progress * 100) + "%";
+      }).then(function () {
+        loading.style.display = "none";
+      }).catch(function (message) {
+        loading.querySelector("p").textContent = "Could not start the demo.";
+        console.error(message);
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

@@ -28,3 +28,8 @@ sysinfo.txt
 crashlytics-build.properties
 *.zip
 !docs/**/*.zip
+
+# Browser test (dev only)
+tools/browser-test/node_modules/
+tools/browser-test/out/
+tools/browser-test/package-lock.json
