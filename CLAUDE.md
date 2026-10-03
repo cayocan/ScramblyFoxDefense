@@ -4,12 +4,12 @@ Playable web (Unity 6000.3.19f1, C#, WebGL) para o take-home da Simula, anuncian
 Tower defense enxuto de 45–60 s: a raposa lidera Cube Pets contra predadores (leão, tigre, urso-polar) que roubam moedas demo. Fluxo Discover → Play → Redeem, termina com o CTA "Explore Scrambly" (simulado).
 
 ## Fluxo de trabalho (obrigatório)
-- Cada feature vive em `feature/<nome>`. Crie com `.\tools\start-feature.ps1 <nome>`; isso liga o relógio de **tempo ativo**.
-- Toda feature termina em um **commit de merge** na `main` que informa o tempo ativo: `.\tools\finish-feature.ps1 "resumo"` (merge `--no-ff` com "Duracao da feature (tempo ativo): Xh YYmin").
-- Conta só o tempo ativo. Quando o usuário avisar que vai sair, parar ou fazer pausa, rode `.\tools\pause-feature.ps1`; ao voltar, `.\tools\resume-feature.ps1`. `.\tools\status-feature.ps1` mostra o acumulado. Antes de finalizar, confirme que o relógio não ficou ligado durante uma pausa.
+- Cada feature vive em `feature/<nome>`. Crie com `.\tools\start-feature.ps1 <nome>`; isso registra a hora de início.
+- Toda feature termina em um **commit de merge** na `main` que informa a duração (do início ao fim, sem pausas): `.\tools\finish-feature.ps1 "resumo"` (merge `--no-ff` com "Duracao da feature (inicio ate o fim): Xh YYmin").
 - Nunca faça merge de feature sem esse commit. Nunca commite direto na `main`, exceto o setup inicial.
 - Registre também em `TIME_LOG.md` (a entrega pede tempo gasto e decisões de IA).
 - Os scripts usam só ASCII nas mensagens, para evitar texto corrompido no PowerShell 5.
+- O Unity gera arquivos `.meta` ao importar assets; versione-os junto com o asset.
 
 ## Restrições do briefing (não negociáveis)
 - ZIP de produção ≤ 5.000.000 bytes, com `index.html` na raiz, build + código legível + assets + instruções.
@@ -19,7 +19,7 @@ Tower defense enxuto de 45–60 s: a raposa lidera Cube Pets contra predadores (
 - Pausar jogo e relógios quando a página fica oculta e retomar sem salto de tempo (usar só tempo escalado).
 - Restart reseta tudo sem timers/listeners/efeitos duplicados.
 - Saldo é demo: nunca prometer ganho real nem pagamento.
-- Sem áudio (portanto sem mute).
+- Áudio: ainda indefinido (hoje, sem áudio). Se entrar, exige início após interação, mute e silêncio com a página oculta.
 - Paleta: Orange #F58324, Purple #7845D8, Deep ink #201338, Warm white #FFF6E8.
 
 ## Orçamento de tamanho
