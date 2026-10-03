@@ -14,3 +14,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | robustness | 2026-10-03 13:28 | 2026-10-03 13:45 | 0h 17min | Template, PagePause + jslib, rotate prompt, headless Chrome tests (network, touch, pause, layouts), README/CREDITS, ZIP 2,959,429 bytes |
 | unity-remote-tools | 2026-10-03 14:05 | 2026-10-03 14:12 | 0h 06min | Win32 tool to read/click Unity dialogs, focus and capture the editor; watchdog auto-answers scene-reload dialogs, keeps PC awake |
 | art-pass | 2026-10-03 14:15 | 2026-10-03 14:51 | 0h 36min | Fredoka, palette recolor, rounded UI and icons, hit flash/poof/cheer, tutorial hand, Web Audio sound + mute, ZIP 3,103,873 bytes |
+| release-stage1 | 2026-10-03 15:21 | 2026-10-03 15:26 | 0h 05min | PROJECT_NOTE draft, production ZIP verified from a clean folder (full flow + CTA in Chrome), README final numbers, ZIP 3,107,328 bytes |
