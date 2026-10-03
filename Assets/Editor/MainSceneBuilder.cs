@@ -28,7 +28,7 @@ namespace ScramblyFoxDefense.EditorTools
 
         // Yaw that makes each kit tile match the path; tuned by looking at the board.
         const float StraightBaseYaw = 0f;   // tile-straight runs along +Z at yaw 0
-        const float CornerBaseYaw = 0f;     // tile-corner-round joins +Z and +X at yaw 0
+        const float CornerBaseYaw = 270f;   // tile-corner-round joins -X and +Z at yaw 0
 
         // Path corners in (column, row); row 0 is the top of the screen.
         static readonly Vector2Int[] PathCorners =
