@@ -74,7 +74,10 @@ namespace ScramblyFoxDefense.EditorTools
             var hud = CreateHud(camera.transform);
             var cards = CreateCards(camera.transform);
             var locks = CreateLocks(camera.transform);
+            var restart = CreateButton("Restart", camera.transform, new Vector2(76f, 32f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
+            var endCard = CreateEndCard(camera.transform);
             Wire(installer, config, camera, waypoints, slots, prefabs, hud, cards, locks);
+            WireEndCard(installer, vault.transform, restart, endCard);
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -396,6 +399,96 @@ namespace ScramblyFoxDefense.EditorTools
 
                 return new CardView { root = card, background = background, title = title, price = price };
             }).ToArray();
+        }
+
+        sealed class EndCardParts
+        {
+            public Transform Panel;
+            public TextMesh Title, Collected, Toast;
+            public Transform[] Rewards;
+            public HudButton Cta, PlayAgain;
+        }
+
+        /// <summary>Final screen; children in reference pixels around the panel centre.</summary>
+        static EndCardParts CreateEndCard(Transform camera)
+        {
+            var panel = new GameObject("End Card").transform;
+            panel.SetParent(camera, false);
+            Quad("Panel", panel, new Vector3(340f, 520f, 1f), KitMaterials.Tinted("Panel", WarmWhite)).transform.localPosition = new Vector3(0f, 0f, 0.03f);
+
+            TextMesh Label(string text, float y, float height, Color color)
+            {
+                var label = CreateText(text, panel, color);
+                label.text = text;
+                label.transform.localPosition = new Vector3(0f, y, 0f);
+                label.transform.localScale = Vector3.one * (height / 0.064f);
+                return label;
+            }
+
+            var parts = new EndCardParts
+            {
+                Panel = panel,
+                Title = Label("Perfect defense!", 196f, 32f, Orange),
+                Collected = Label("You collected 0 demo coins", 156f, 15f, DeepInk)
+            };
+            Label("Discover games.\nPlay and progress.\nRedeem rewards.", 98f, 17f, DeepInk);
+
+            var rewardNames = new[] { "Trophy", "Medal", "Basket" };
+            var rewardColors = new[] { new Color(1f, 0.78f, 0.25f), Orange, Purple };
+            parts.Rewards = rewardNames.Select((name, i) =>
+            {
+                var reward = new GameObject($"Reward {name}").transform;
+                reward.SetParent(panel, false);
+                reward.localPosition = new Vector3((i - 1) * 100f, 6f, 0f);
+                Quad("Card", reward, new Vector3(88f, 96f, 1f), KitMaterials.Tinted("RewardCard", new Color(1f, 0.9f, 0.78f))).transform.localPosition = new Vector3(0f, 0f, 0.02f);
+                Quad("Icon", reward, new Vector3(44f, 44f, 1f), KitMaterials.Tinted($"Reward{name}", rewardColors[i])).transform.localPosition = new Vector3(0f, 12f, 0.01f);
+                var caption = CreateText(name, reward, DeepInk);
+                caption.transform.localPosition = new Vector3(0f, -32f, 0f);
+                caption.transform.localScale = Vector3.one * (13f / 0.064f);
+                return reward;
+            }).ToArray();
+
+            parts.Cta = CreateButton("Explore Scrambly", panel, new Vector2(270f, 62f), KitMaterials.Tinted("ButtonPrimary", Orange), WarmWhite, 22f);
+            parts.Cta.root.localPosition = new Vector3(0f, -96f, 0f);
+            parts.PlayAgain = CreateButton("Play again", panel, new Vector2(170f, 42f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 16f);
+            parts.PlayAgain.root.localPosition = new Vector3(0f, -160f, 0f);
+            Label("Demo only — not real earnings", -208f, 12f, new Color(0.35f, 0.3f, 0.42f));
+            parts.Toast = Label("CTA clicked — demo only", -238f, 16f, Orange);
+            return parts;
+        }
+
+        static HudButton CreateButton(string text, Transform parent, Vector2 size, Material material, Color textColor, float textHeight)
+        {
+            var root = new GameObject($"Button {text}").transform;
+            root.SetParent(parent, false);
+            var background = Quad("Background", root, new Vector3(size.x, size.y, 1f), material);
+            background.transform.localPosition = new Vector3(0f, 0f, 0.01f);
+            var label = CreateText(text, root, textColor);
+            label.transform.localScale = Vector3.one * (textHeight / 0.064f);
+            return new HudButton { root = root, background = background, label = label, sizePixels = size };
+        }
+
+        static void WireEndCard(GameInstaller installer, Transform vault, HudButton restart, EndCardParts endCard)
+        {
+            var so = new SerializedObject(installer);
+            so.FindProperty("vault").objectReferenceValue = vault;
+            so.FindProperty("endCardPanel").objectReferenceValue = endCard.Panel;
+            so.FindProperty("endTitle").objectReferenceValue = endCard.Title;
+            so.FindProperty("endCollected").objectReferenceValue = endCard.Collected;
+            so.FindProperty("ctaToast").objectReferenceValue = endCard.Toast;
+            SetArray(so.FindProperty("rewardCards"), endCard.Rewards);
+            SetButton(so.FindProperty("restartButton"), restart);
+            SetButton(so.FindProperty("ctaButton"), endCard.Cta);
+            SetButton(so.FindProperty("playAgainButton"), endCard.PlayAgain);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void SetButton(SerializedProperty property, HudButton button)
+        {
+            property.FindPropertyRelative("root").objectReferenceValue = button.root;
+            property.FindPropertyRelative("background").objectReferenceValue = button.background;
+            property.FindPropertyRelative("label").objectReferenceValue = button.label;
+            property.FindPropertyRelative("sizePixels").vector2Value = button.sizePixels;
         }
 
         static Renderer[] CreateLocks(Transform camera)

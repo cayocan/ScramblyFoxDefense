@@ -1,6 +1,7 @@
 using ScramblyFoxDefense.Config;
 using ScramblyFoxDefense.Core;
 using ScramblyFoxDefense.Gameplay;
+using ScramblyFoxDefense.Input;
 using ScramblyFoxDefense.Presentation;
 using UnityEngine;
 
@@ -123,61 +124,88 @@ namespace ScramblyFoxDefense.States
         public void Exit() { }
     }
 
-    /// <summary>Redeem placeholder: the vault sequence arrives in a later feature.</summary>
+    /// <summary>Redeem: coins fly into the Reward Vault; a tap speeds it up. Then the end card.</summary>
     public sealed class RedeemState : IGameState
     {
-        const float Duration = 2f;
-
         readonly GameStateMachine _machine;
-        readonly PlayerActions _build;
+        readonly PlayerActions _actions;
         readonly HudView _hud;
-        float _elapsed;
+        readonly RedeemSequence _sequence;
+        readonly InputRouter _input;
+        readonly CardBarView _cards;
+        readonly TowerBadges _badges;
 
-        public RedeemState(GameStateMachine machine, PlayerActions build, HudView hud)
+        public RedeemState(GameStateMachine machine, PlayerActions actions, HudView hud, RedeemSequence sequence, InputRouter input, CardBarView cards, TowerBadges badges)
         {
+            _badges = badges;
             _machine = machine;
-            _build = build;
+            _actions = actions;
             _hud = hud;
+            _sequence = sequence;
+            _input = input;
+            _cards = cards;
         }
 
         public void Enter()
         {
-            _elapsed = 0f;
-            _build.Enabled = false;
-            _build.ClearSelection();
+            _actions.Enabled = false;
+            _actions.ClearSelection();
+            _cards.SetVisible(false);
+            _badges.HideAll();
             _hud.SetPhase("Redeem");
-            _hud.ShowBanner("Demo rewards unlocked!", Duration);
+            _hud.ShowBanner("Demo rewards unlocked!", 2.5f);
+            _sequence.Begin();
+            _input.Register(OnTap);
         }
 
         public void Tick(float deltaTime)
         {
-            _elapsed += deltaTime;
-            if (_elapsed >= Duration) _machine.Enter<EndCardState>();
+            _sequence.Tick(deltaTime);
+            if (_sequence.Finished) _machine.Enter<EndCardState>();
         }
 
-        public void Exit() { }
+        public void Exit() => _input.Unregister(OnTap);
+
+        bool OnTap(Vector2 screenPoint) => _sequence.SpeedUp();
     }
 
-    /// <summary>End card placeholder: CTA and restart arrive in a later feature.</summary>
+    /// <summary>Invitation: result, rewards, "Explore Scrambly" CTA (demo only) and Play again.</summary>
     public sealed class EndCardState : IGameState
     {
         readonly Economy _economy;
         readonly HudView _hud;
+        readonly EndCardView _endCard;
+        readonly RestartController _restart;
+        readonly InputRouter _input;
 
-        public EndCardState(Economy economy, HudView hud)
+        public EndCardState(Economy economy, HudView hud, EndCardView endCard, RestartController restart, InputRouter input)
         {
             _economy = economy;
             _hud = hud;
+            _endCard = endCard;
+            _restart = restart;
+            _input = input;
         }
 
         public void Enter()
         {
-            _hud.ShowBanner(_economy.Leaks == 0 ? "Perfect defense!" : "Nice defense!", float.MaxValue);
-            Debug.Log($"[Session] Ended. Collected {_economy.Collected} demo coins, {_economy.Leaks} leaks.");
+            _hud.SetPhase("Redeem");
+            _endCard.Show(_economy.Leaks == 0 ? "Perfect defense!" : "Nice defense!", _economy.Collected);
+            _endCard.CtaClicked += OnCta;
+            _endCard.PlayAgainClicked += _restart.Restart;
+            _input.Register(_endCard.HandleTap);
         }
 
         public void Tick(float deltaTime) { }
 
-        public void Exit() { }
+        public void Exit()
+        {
+            _endCard.CtaClicked -= OnCta;
+            _endCard.PlayAgainClicked -= _restart.Restart;
+            _input.Unregister(_endCard.HandleTap);
+        }
+
+        // Brief: local confirmation + console log, never navigate.
+        static void OnCta() => Debug.Log("CTA clicked — demo only");
     }
 }

@@ -33,47 +33,49 @@ namespace ScramblyFoxDefense.Gameplay
             _slots = slots;
             _towers = towers;
             _economy = economy;
-            _input.Tapped += OnTapped;
+            _input.Register(OnTapped);
             _input.Canceled += ClearSelection;
         }
 
         public void Dispose()
         {
-            _input.Tapped -= OnTapped;
+            _input.Unregister(OnTapped);
             _input.Canceled -= ClearSelection;
         }
 
         public void ClearSelection() => Select(-1);
 
-        void OnTapped(Vector2 screenPoint)
+        /// <summary>Board and card taps. Always consumes the tap while enabled.</summary>
+        bool OnTapped(Vector2 screenPoint)
         {
-            if (!Enabled) return;
+            if (!Enabled) return false;
             Acted?.Invoke();
 
             int card = _cards.HitTest(screenPoint);
             if (card >= 0)
             {
                 OnCard(card);
-                return;
+                return true;
             }
 
             var slot = _slots.Pick(screenPoint);
             if (slot == null)
             {
                 ClearSelection();
-                return;
+                return true;
             }
 
             if (!slot.IsFree)
             {
                 _towers.TryUpgrade(slot.Tower);
                 ClearSelection();
-                return;
+                return true;
             }
 
-            if (SelectedCard < 0) return;
+            if (SelectedCard < 0) return true;
             if (_towers.TryBuild(slot, SelectedCard)) ClearSelection();
             else _cards.Shake(SelectedCard);
+            return true;
         }
 
         void OnCard(int card)

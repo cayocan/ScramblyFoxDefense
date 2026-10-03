@@ -52,6 +52,14 @@ The board path is 15 units (GDD assumed ~20), so GDD numbers made the game too e
 
 Matches GDD intent: one tower handles wave 1, wave 3 needs 2+ towers or upgrades, active play lands in 45–60 s. Tap flow (card select/deselect, build, upgrade, shake when broke, cancel on empty) verified with simulated taps at real screen positions.
 
+## 2026-10-03 — Redeem, end card, CTA, restart
+
+- Taps go through a priority chain in `InputRouter` (HUD buttons first, first handler returning true consumes), so Restart never also triggers a board action.
+- CTA shows "CTA clicked — demo only" on the panel and logs the same string; no `Application.OpenURL`. Verified with taps at real screen positions: toast shown, log present, scene unchanged.
+- Restart reloads the scene, guarded against double taps. 10 consecutive restarts mid-wave gave identical state (1 installer, 191 transforms, same enemy count at the same wave time, 0 errors): nothing accumulates.
+- Correction: a C# string got a raw newline from a Python edit; `console_status.compilationFailed` reported false while the editor kept running the old assembly, so a scene was built with the old builder. Now compile success is checked with `recompile_status` plus a type lookup.
+- Known: the built-in LegacyRuntime font has no em dash ("Demo only — not real earnings" renders without it). The Fredoka font in the art pass fixes it.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).
