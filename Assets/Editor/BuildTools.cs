@@ -34,7 +34,7 @@ namespace ScramblyFoxDefense.EditorTools
             PlayerSettings.WebGL.nameFilesAsHashes = false;
             PlayerSettings.WebGL.showDiagnostics = false;
             PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Off;
-            PlayerSettings.WebGL.template = "APPLICATION:Minimal";
+            PlayerSettings.WebGL.template = "PROJECT:Scrambly"; // Assets/WebGLTemplates/Scrambly
 
             PlayerSettings.SplashScreen.show = false;
             PlayerSettings.SplashScreen.showUnityLogo = false; // otherwise the 2.8 MB logo texture ships anyway

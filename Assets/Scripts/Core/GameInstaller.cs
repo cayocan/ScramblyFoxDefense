@@ -62,6 +62,7 @@ namespace ScramblyFoxDefense.Core
         SlotHighlighter _slotHighlighter;
         CameraFit _cameraFit;
         RestartController _restart;
+        PagePause _pagePause;
         RedeemSequence _redeem;
         EndCardView _endCard;
         GameStateMachine _machine;
@@ -75,6 +76,7 @@ namespace ScramblyFoxDefense.Core
             var path = new PathRoute(pathWaypoints);
             var session = new GameSession();
 
+            _pagePause = new PagePause(new WebPageState());
             _input = new InputRouter();
             _enemies = new EnemySystem(config, path, economy, enemyRoot);
             var spawner = new WaveSpawner(_enemies);
@@ -108,7 +110,7 @@ namespace ScramblyFoxDefense.Core
 
         void Update()
         {
-            float deltaTime = Time.deltaTime;
+            float deltaTime = _pagePause.Filter(Time.deltaTime);
             if (_cameraFit.Tick())
             {
                 _layout.Refresh();
@@ -119,7 +121,7 @@ namespace ScramblyFoxDefense.Core
                 _layout.Place(restartButton.root, new Vector2(0f, 1f), new Vector2(46f, -26f), 1f);
             }
 
-            _input.Tick();
+            if (!_pagePause.IsPaused) _input.Tick();
             _machine.Tick(deltaTime);
             _enemies.Tick(deltaTime);
             _towers.Tick(deltaTime);
