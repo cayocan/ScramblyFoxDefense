@@ -6,6 +6,9 @@
 |---|---|---|---|
 | [Tower Defense Kit](https://kenney.nl/assets/tower-defense-kit) | Kenney | CC0 1.0 | Board tiles, path, tower bases, slot markers, vault |
 | [Cube Pets](https://kenney.nl/assets/cube-pets) | Kenney | CC0 1.0 | Fox, dog and cat (defenders); lion, tiger and polar bear (predators) |
+| [Fredoka](https://fonts.google.com/specimen/Fredoka) | The Fredoka Project Authors | SIL OFL 1.1 (`source/Assets/Art/Fonts/OFL.txt`) | All in-game text (weight 600 instance, subset) |
+
+The palette recolors, UI sprites and sound effects are made for this project (generated in code), no third-party files.
 
 The license files ship next to the models in `source/Assets/Art/*/License.txt`. Only the models that are used are included.
 
@@ -17,6 +20,7 @@ The license files ship next to the models in `source/Assets/Art/*/License.txt`. 
 | Unity glTFast (`com.unity.cloud.gltfast`) | Apache 2.0 | Editor import of `.glb` models; its runtime code is stripped from the build |
 | Unity Pipeline package (`com.unity.pipeline`) + Unity CLI | Unity terms | Editor automation only, not part of the build |
 | puppeteer-core | Apache 2.0 | Dev-only browser test (`tools/browser-test`), not shipped |
+| fontTools, Pillow (Python) | MIT / HPND | Dev-only: font subset, palette recolor and sprite generation, not shipped |
 
 No third-party code is reused in the game itself.
 

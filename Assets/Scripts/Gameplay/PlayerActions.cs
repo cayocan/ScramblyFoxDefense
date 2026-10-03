@@ -1,4 +1,5 @@
 using System;
+using ScramblyFoxDefense.Audio;
 using ScramblyFoxDefense.Config;
 using ScramblyFoxDefense.Input;
 using ScramblyFoxDefense.Presentation;
@@ -18,6 +19,7 @@ namespace ScramblyFoxDefense.Gameplay
         readonly SlotManager _slots;
         readonly TowerSystem _towers;
         readonly Economy _economy;
+        readonly IAudioService _audio;
 
         public bool Enabled { get; set; }
         public int SelectedCard { get; private set; } = -1;
@@ -25,8 +27,9 @@ namespace ScramblyFoxDefense.Gameplay
         /// <summary>Raised on any accepted tap; drives the tutorial hand's idle timer.</summary>
         public event Action Acted;
 
-        public PlayerActions(GameConfig config, InputRouter input, CardBarView cards, SlotManager slots, TowerSystem towers, Economy economy)
+        public PlayerActions(GameConfig config, InputRouter input, CardBarView cards, SlotManager slots, TowerSystem towers, Economy economy, IAudioService audio)
         {
+            _audio = audio;
             _config = config;
             _input = input;
             _cards = cards;
@@ -67,14 +70,14 @@ namespace ScramblyFoxDefense.Gameplay
 
             if (!slot.IsFree)
             {
-                _towers.TryUpgrade(slot.Tower);
+                if (!_towers.TryUpgrade(slot.Tower) && !slot.Tower.IsMaxLevel) _audio.Play(Sound.Deny);
                 ClearSelection();
                 return true;
             }
 
             if (SelectedCard < 0) return true;
             if (_towers.TryBuild(slot, SelectedCard)) ClearSelection();
-            else _cards.Shake(SelectedCard);
+            else Deny(SelectedCard);
             return true;
         }
 
@@ -87,11 +90,18 @@ namespace ScramblyFoxDefense.Gameplay
             }
             if (!_economy.CanAfford(_config.towers[card].levels[0].cost))
             {
-                _cards.Shake(card);
+                Deny(card);
                 ClearSelection();
                 return;
             }
             Select(card);
+            _audio.Play(Sound.Select);
+        }
+
+        void Deny(int card)
+        {
+            _cards.Shake(card);
+            _audio.Play(Sound.Deny);
         }
 
         void Select(int card)

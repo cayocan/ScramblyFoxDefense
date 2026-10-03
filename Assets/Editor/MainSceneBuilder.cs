@@ -53,6 +53,7 @@ namespace ScramblyFoxDefense.EditorTools
         {
             // NewScene(Single) unloads unused assets, so create the scene before loading config and prefabs.
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            ArtImports.Ensure();
             var prefabs = BuildPrefabs();
             var config = LoadOrCreateConfig(prefabs);
             SetupRendering();
@@ -76,8 +77,20 @@ namespace ScramblyFoxDefense.EditorTools
             var locks = CreateLocks(camera.transform);
             var restart = CreateButton("Restart", camera.transform, new Vector2(76f, 32f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
             var endCard = CreateEndCard(camera.transform);
+            var mute = CreateButton("", camera.transform, new Vector2(40f, 32f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
+            mute.root.name = "Button Mute";
+            var muteIcon = Icon("Icon", mute.root, ArtImports.Sprite("sound-on"), 22f, WarmWhite);
             Wire(installer, config, camera, waypoints, slots, prefabs, hud, cards, locks);
             WireEndCard(installer, vault.transform, restart, endCard);
+            var wiring = new SerializedObject(installer);
+            SetButton(wiring.FindProperty("muteButton"), mute);
+            wiring.FindProperty("muteIcon").objectReferenceValue = muteIcon;
+            wiring.FindProperty("soundOnSprite").objectReferenceValue = ArtImports.Sprite("sound-on");
+            wiring.FindProperty("soundOffSprite").objectReferenceValue = ArtImports.Sprite("sound-off");
+            var hand = Icon("Tutorial Hand", camera.transform, ArtImports.Sprite("hand"), 64f, Color.white);
+            hand.sortingOrder = 10; // above cards and text
+            wiring.FindProperty("tutorialHand").objectReferenceValue = hand;
+            wiring.ApplyModifiedPropertiesWithoutUndo();
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -184,7 +197,7 @@ namespace ScramblyFoxDefense.EditorTools
 
         sealed class Prefabs
         {
-            public GameObject PopBlaster, PuzzlePulse, RacerZap, Lion, Tiger, Polar, Projectile, Coin, Badge;
+            public GameObject PopBlaster, PuzzlePulse, RacerZap, Lion, Tiger, Polar, Projectile, Coin, Badge, Poof;
         }
 
         static Prefabs BuildPrefabs()
@@ -200,6 +213,7 @@ namespace ScramblyFoxDefense.EditorTools
                 Polar = EnemyPrefab("Enemy_Hauler", "animal-polar", 0.45f),
                 Projectile = PrimitivePrefab("Projectile", PrimitiveType.Sphere, Vector3.one * 0.15f, Quaternion.identity, KitMaterials.Tinted("Projectile", Orange)),
                 Badge = BadgePrefab(),
+                Poof = PoofPrefab(),
                 Coin = PrimitivePrefab("Coin", PrimitiveType.Cylinder, new Vector3(0.28f, 0.03f, 0.28f), Quaternion.Euler(90f, 0f, 0f), KitMaterials.Tinted("Coin", new Color(1f, 0.75f, 0.2f)))
             };
         }
@@ -225,6 +239,13 @@ namespace ScramblyFoxDefense.EditorTools
             model.transform.localScale = Vector3.one * scale;
             KitMaterials.Apply(model, KitMaterials.Enemies);
             return SavePrefab(root);
+        }
+
+        static GameObject PoofPrefab()
+        {
+            var poof = Icon("Poof", null, ArtImports.Sprite("coin"), 64f, WarmWhite);
+            poof.transform.localScale = Vector3.one;
+            return SavePrefab(poof.gameObject);
         }
 
         static GameObject BadgePrefab()
@@ -343,11 +364,13 @@ namespace ScramblyFoxDefense.EditorTools
 
         static TextMesh CreateText(string name, Transform parent, Color color)
         {
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var font = ArtImports.Font;
             var text = new GameObject(name, typeof(TextMesh)).GetComponent<TextMesh>();
             if (parent != null) text.transform.SetParent(parent, false);
             text.font = font;
-            text.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+            var textRenderer = text.GetComponent<MeshRenderer>();
+            textRenderer.sharedMaterial = font.material;
+            textRenderer.sortingOrder = 5; // above rounded sprite backgrounds on the HUD plane
             text.fontSize = 64;
             text.characterSize = 0.01f;
             text.anchor = TextAnchor.MiddleCenter;
@@ -361,6 +384,8 @@ namespace ScramblyFoxDefense.EditorTools
         {
             var root = new GameObject("HUD").transform;
             root.SetParent(camera, false);
+            var coin = Icon("Coin Icon", root, ArtImports.Sprite("coin"), 64f, new Color(1f, 0.78f, 0.25f));
+            coin.name = "Coin Icon";
             return new[]
             {
                 CreateText("Coins", root, WarmWhite),
@@ -380,8 +405,7 @@ namespace ScramblyFoxDefense.EditorTools
                 var card = new GameObject($"Card {i}").transform;
                 card.SetParent(root, false);
 
-                var background = Quad("Background", card, new Vector3(112f, 128f, 1f), KitMaterials.Tinted("CardBackground", Color.white));
-                background.transform.localPosition = new Vector3(0f, 0f, 0.02f);
+                var background = Rounded("Background", card, new Vector2(112f, 128f), Color.white);
 
                 var face = Spawn(Pets + pet + ".glb", card);
                 face.name = "Face";
@@ -414,7 +438,7 @@ namespace ScramblyFoxDefense.EditorTools
         {
             var panel = new GameObject("End Card").transform;
             panel.SetParent(camera, false);
-            Quad("Panel", panel, new Vector3(340f, 520f, 1f), KitMaterials.Tinted("Panel", WarmWhite)).transform.localPosition = new Vector3(0f, 0f, 0.03f);
+            Rounded("Panel", panel, new Vector2(340f, 520f), WarmWhite, -1);
 
             TextMesh Label(string text, float y, float height, Color color)
             {
@@ -440,8 +464,8 @@ namespace ScramblyFoxDefense.EditorTools
                 var reward = new GameObject($"Reward {name}").transform;
                 reward.SetParent(panel, false);
                 reward.localPosition = new Vector3((i - 1) * 100f, 6f, 0f);
-                Quad("Card", reward, new Vector3(88f, 96f, 1f), KitMaterials.Tinted("RewardCard", new Color(1f, 0.9f, 0.78f))).transform.localPosition = new Vector3(0f, 0f, 0.02f);
-                Quad("Icon", reward, new Vector3(44f, 44f, 1f), KitMaterials.Tinted($"Reward{name}", rewardColors[i])).transform.localPosition = new Vector3(0f, 12f, 0.01f);
+                Rounded("Card", reward, new Vector2(88f, 96f), new Color(1f, 0.9f, 0.78f));
+                Icon("Icon", reward, ArtImports.Sprite(name.ToLowerInvariant()), 48f, rewardColors[i]).transform.localPosition = new Vector3(0f, 12f, 0f);
                 var caption = CreateText(name, reward, DeepInk);
                 caption.transform.localPosition = new Vector3(0f, -32f, 0f);
                 caption.transform.localScale = Vector3.one * (13f / 0.064f);
@@ -461,8 +485,7 @@ namespace ScramblyFoxDefense.EditorTools
         {
             var root = new GameObject($"Button {text}").transform;
             root.SetParent(parent, false);
-            var background = Quad("Background", root, new Vector3(size.x, size.y, 1f), material);
-            background.transform.localPosition = new Vector3(0f, 0f, 0.01f);
+            var background = Rounded("Background", root, size, material.color);
             var label = CreateText(text, root, textColor);
             label.transform.localScale = Vector3.one * (textHeight / 0.064f);
             return new HudButton { root = root, background = background, label = label, sizePixels = size };
@@ -491,13 +514,37 @@ namespace ScramblyFoxDefense.EditorTools
             property.FindPropertyRelative("sizePixels").vector2Value = button.sizePixels;
         }
 
-        static Renderer[] CreateLocks(Transform camera)
+        static SpriteRenderer[] CreateLocks(Transform camera)
         {
             var root = new GameObject("Locks").transform;
             root.SetParent(camera, false);
             return Enumerable.Range(0, 3)
-                .Select(i => Quad($"Lock {i + 1}", root, Vector3.one, KitMaterials.Tinted("Lock", Color.white)))
+                .Select(i => Icon($"Lock {i + 1}", root, ArtImports.Sprite("lock-closed"), 64f, Color.white))
                 .ToArray();
+        }
+
+        /// <summary>9-sliced rounded rectangle (the brief asks for rounded, warm shapes); size in reference pixels.</summary>
+        static SpriteRenderer Rounded(string name, Transform parent, Vector2 size, Color color, int sortingOrder = 0)
+        {
+            var sprite = new GameObject(name, typeof(SpriteRenderer)).GetComponent<SpriteRenderer>();
+            sprite.transform.SetParent(parent, false);
+            sprite.sprite = ArtImports.Sprite("rounded");
+            sprite.drawMode = SpriteDrawMode.Sliced;
+            sprite.size = size;
+            sprite.color = color;
+            sprite.sortingOrder = sortingOrder;
+            return sprite;
+        }
+
+        static SpriteRenderer Icon(string name, Transform parent, Sprite icon, float sizePixels, Color color)
+        {
+            var sprite = new GameObject(name, typeof(SpriteRenderer)).GetComponent<SpriteRenderer>();
+            sprite.transform.SetParent(parent, false);
+            sprite.sprite = icon;
+            sprite.color = color;
+            sprite.sortingOrder = 1;
+            sprite.transform.localScale = Vector3.one * (sizePixels / 64f);
+            return sprite;
         }
 
         static Renderer Quad(string name, Transform parent, Vector3 scale, Material material)
@@ -512,7 +559,7 @@ namespace ScramblyFoxDefense.EditorTools
             return renderer;
         }
 
-        static void Wire(GameInstaller installer, GameConfig config, Camera camera, Transform[] waypoints, Transform[] slots, Prefabs prefabs, TextMesh[] hud, CardView[] cards, Renderer[] locks)
+        static void Wire(GameInstaller installer, GameConfig config, Camera camera, Transform[] waypoints, Transform[] slots, Prefabs prefabs, TextMesh[] hud, CardView[] cards, SpriteRenderer[] locks)
         {
             var roots = new[] { "Enemies", "Towers", "Fx" }.Select(n => new GameObject(n).transform).ToArray();
             var so = new SerializedObject(installer);
@@ -524,6 +571,9 @@ namespace ScramblyFoxDefense.EditorTools
             so.FindProperty("projectilePrefab").objectReferenceValue = prefabs.Projectile;
             so.FindProperty("coinPrefab").objectReferenceValue = prefabs.Coin;
             so.FindProperty("badgePrefab").objectReferenceValue = prefabs.Badge;
+            so.FindProperty("poofPrefab").objectReferenceValue = prefabs.Poof;
+            so.FindProperty("lockOpenSprite").objectReferenceValue = ArtImports.Sprite("lock-open");
+            so.FindProperty("coinIcon").objectReferenceValue = camera.transform.Find("HUD/Coin Icon").GetComponent<SpriteRenderer>();
             SetArray(so.FindProperty("locks"), locks);
             var cardsProperty = so.FindProperty("cards");
             cardsProperty.arraySize = cards.Length;

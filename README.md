@@ -20,7 +20,7 @@ Opening `index.html` straight from disk (`file://`) does not work: browsers bloc
 1. Tap a card at the bottom (Pop Blaster, Puzzle Pulse, Racer Zap). The free slots pulse.
 2. Tap a pulsing slot to build. The first build starts wave 1 (it also starts on its own after 8 s).
 3. Tap a tower to upgrade it (up to level 3). The badge above it shows the cost.
-4. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time.
+4. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time; the speaker button next to it mutes the sound.
 
 ## Package contents
 
@@ -52,8 +52,8 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,662,169 |
-| Production ZIP (build + source + docs) | 2,959,429 |
+| Build folder (`index.html` + `Build/`) | 2,714,300 |
+| Production ZIP (build + source + docs) | 3,103,873 |
 | Brief limit | 5,000,000 |
 
 These are the last measured values (`tools/measure-zip.ps1`). The final ZIP is re-measured before submission. How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shader.
@@ -72,6 +72,8 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Input | Touch: card → slot → tower | Emulated touch taps | Card selected, tower built (70 → 40), upgraded (40 → 0), wave started |
 | Input | Card without coins, tap empty area, re-tap card | Editor, simulated taps at real screen positions | Card shakes and nothing is built; selection cleared |
 | Visibility | Hide the tab for 3 s mid-session | Emulated `visibilitychange` | Paused at t=3.76, resumed at t=3.76 (game time does not jump) |
+| Audio | First tap, hide/show, mute, restart | Chrome headless, `scramblySfx.state()` | locked before tap → running → suspended when hidden → running → muted (suspended) → still muted after restart |
+| Tutorial | First card, then slot | Chrome headless screenshots | Hand points at the first card, then at the slot nearest the path start |
 | Flow | No towers at all | Editor, SessionSimulator | Reaches the end card in 78 s, 27 leaks, wallet never below 0 |
 | Flow | Balance plans (1 tower, 2 towers, upgrades) | Editor, SessionSimulator | 57 s / 12 leaks; 54 s / 1 leak; 44 s / 0 leaks |
 | CTA | Tap **Explore Scrambly** | Editor, simulated tap | "CTA clicked — demo only" on screen and in the console; no navigation |
@@ -85,6 +87,5 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 
 ## Known limitations
 
-- No audio, by design. Because of that there is no mute button.
-- The built-in font has no em dash, so "Demo only — not real earnings" renders without it. The Fredoka font in the art pass will fix this.
-- Placeholder art: mint ground, flat reward icons. The art pass is next.
+- Sound is synthesized in the browser (Web Audio); the editor plays nothing. It starts after the first tap, has a mute button (top left) and is silent while the page is hidden or the phone is in landscape.
+- Reward icons and the tutorial hand are simple shapes drawn in code; the 3D art is the Kenney kits recolored to the palette.

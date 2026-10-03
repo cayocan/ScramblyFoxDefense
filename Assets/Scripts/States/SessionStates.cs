@@ -1,3 +1,4 @@
+using ScramblyFoxDefense.Audio;
 using ScramblyFoxDefense.Config;
 using ScramblyFoxDefense.Core;
 using ScramblyFoxDefense.Gameplay;
@@ -62,9 +63,11 @@ namespace ScramblyFoxDefense.States
         readonly WaveSpawner _spawner;
         readonly HudView _hud;
         readonly LockBarView _locks;
+        readonly IAudioService _audio;
 
-        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud, LockBarView locks)
+        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud, LockBarView locks, IAudioService audio)
         {
+            _audio = audio;
             _machine = machine;
             _config = config;
             _session = session;
@@ -79,6 +82,7 @@ namespace ScramblyFoxDefense.States
             _hud.SetPhase("Play");
             _hud.ShowBanner(last ? "Final wave!" : $"Wave {_session.WaveIndex + 1}", 1.5f);
             _spawner.Begin(_config.waves[_session.WaveIndex]);
+            _audio.Play(Sound.Wave);
         }
 
         public void Tick(float deltaTime)
@@ -87,6 +91,7 @@ namespace ScramblyFoxDefense.States
             if (!_spawner.Finished) return;
 
             _locks.Unlock(_session.WaveIndex);
+            _audio.Play(Sound.Unlock);
             if (_session.WaveIndex >= _config.waves.Length - 1) _machine.Enter<RedeemState>();
             else _machine.Enter<BreatherState>();
         }
@@ -134,9 +139,11 @@ namespace ScramblyFoxDefense.States
         readonly InputRouter _input;
         readonly CardBarView _cards;
         readonly TowerBadges _badges;
+        readonly IAudioService _audio;
 
-        public RedeemState(GameStateMachine machine, PlayerActions actions, HudView hud, RedeemSequence sequence, InputRouter input, CardBarView cards, TowerBadges badges)
+        public RedeemState(GameStateMachine machine, PlayerActions actions, HudView hud, RedeemSequence sequence, InputRouter input, CardBarView cards, TowerBadges badges, IAudioService audio)
         {
+            _audio = audio;
             _badges = badges;
             _machine = machine;
             _actions = actions;
@@ -155,6 +162,7 @@ namespace ScramblyFoxDefense.States
             _hud.SetPhase("Redeem");
             _hud.ShowBanner("Demo rewards unlocked!", 2.5f);
             _sequence.Begin();
+            _audio.Play(Sound.Coin);
             _input.Register(OnTap);
         }
 
@@ -177,9 +185,11 @@ namespace ScramblyFoxDefense.States
         readonly EndCardView _endCard;
         readonly RestartController _restart;
         readonly InputRouter _input;
+        readonly IAudioService _audio;
 
-        public EndCardState(Economy economy, HudView hud, EndCardView endCard, RestartController restart, InputRouter input)
+        public EndCardState(Economy economy, HudView hud, EndCardView endCard, RestartController restart, InputRouter input, IAudioService audio)
         {
+            _audio = audio;
             _economy = economy;
             _hud = hud;
             _endCard = endCard;
@@ -191,6 +201,7 @@ namespace ScramblyFoxDefense.States
         {
             _hud.SetPhase("Redeem");
             _endCard.Show(_economy.Leaks == 0 ? "Perfect defense!" : "Nice defense!", _economy.Collected);
+            _audio.Play(Sound.Fanfare);
             _endCard.CtaClicked += OnCta;
             _endCard.PlayAgainClicked += _restart.Restart;
             _input.Register(_endCard.HandleTap);
@@ -206,6 +217,10 @@ namespace ScramblyFoxDefense.States
         }
 
         // Brief: local confirmation + console log, never navigate.
-        static void OnCta() => Debug.Log("CTA clicked — demo only");
+        void OnCta()
+        {
+            _audio.Play(Sound.Cta);
+            Debug.Log("CTA clicked — demo only");
+        }
     }
 }

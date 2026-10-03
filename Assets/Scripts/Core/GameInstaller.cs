@@ -1,3 +1,4 @@
+using ScramblyFoxDefense.Audio;
 using ScramblyFoxDefense.Config;
 using ScramblyFoxDefense.Gameplay;
 using ScramblyFoxDefense.Input;
@@ -25,6 +26,7 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] GameObject projectilePrefab;
         [SerializeField] GameObject coinPrefab;
         [SerializeField] GameObject badgePrefab;
+        [SerializeField] GameObject poofPrefab;
 
         [Header("Scene roots")]
         [SerializeField] Transform enemyRoot;
@@ -35,9 +37,16 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] TextMesh coinsText;
         [SerializeField] TextMesh phaseText;
         [SerializeField] TextMesh bannerText;
+        [SerializeField] SpriteRenderer coinIcon;
+        [SerializeField] SpriteRenderer tutorialHand;
         [SerializeField] CardView[] cards;
-        [SerializeField] Renderer[] locks;
+        [SerializeField] SpriteRenderer[] locks;
+        [SerializeField] Sprite lockOpenSprite;
         [SerializeField] HudButton restartButton;
+        [SerializeField] HudButton muteButton;
+        [SerializeField] SpriteRenderer muteIcon;
+        [SerializeField] Sprite soundOnSprite;
+        [SerializeField] Sprite soundOffSprite;
 
         [Header("Redeem and end card")]
         [SerializeField] Transform vault;
@@ -54,6 +63,8 @@ namespace ScramblyFoxDefense.Core
         TowerSystem _towers;
         PlayerActions _actions;
         CoinPopFx _coinFx;
+        FeedbackFx _feedback;
+        TutorialHand _tutorial;
         HudLayout _layout;
         HudView _hud;
         CardBarView _cardBar;
@@ -63,6 +74,8 @@ namespace ScramblyFoxDefense.Core
         CameraFit _cameraFit;
         RestartController _restart;
         PagePause _pagePause;
+        SoundCues _soundCues;
+        MuteToggle _mute;
         RedeemSequence _redeem;
         EndCardView _endCard;
         GameStateMachine _machine;
@@ -87,23 +100,29 @@ namespace ScramblyFoxDefense.Core
             // HUD buttons first: the first tap handler that accepts a tap consumes it.
             _restart = new RestartController(restartButton, mainCamera);
             _input.Register(_restart.HandleTap);
-            _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText);
+            var audio = new WebAudioService();
+            _mute = new MuteToggle(audio, muteButton, muteIcon, soundOnSprite, soundOffSprite, mainCamera);
+            _input.Register(_mute.HandleTap);
+            _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon);
             _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera);
-            _lockBar = new LockBarView(locks, _layout);
-            _actions = new PlayerActions(config, _input, _cardBar, slots, _towers, economy);
+            _lockBar = new LockBarView(locks, lockOpenSprite, _layout);
+            _actions = new PlayerActions(config, _input, _cardBar, slots, _towers, economy, audio);
             _badges = new TowerBadges(_towers, economy, badgePrefab, mainCamera.transform);
             _slotHighlighter = new SlotHighlighter(slots, _actions);
+            _tutorial = new TutorialHand(tutorialHand, _layout, mainCamera, config, _actions, cards, slots, _towers, _enemies, economy);
             _coinFx = new CoinPopFx(_enemies, coinPrefab, fxRoot);
+            _soundCues = new SoundCues(audio, _enemies, _towers);
+            _feedback = new FeedbackFx(_enemies, _towers, poofPrefab, fxRoot, mainCamera.transform);
             _cameraFit = new CameraFit(mainCamera, boardCenter, boardSize.x, boardSize.y);
             _redeem = new RedeemSequence(coinPrefab, fxRoot, vault, pathWaypoints);
             _endCard = new EndCardView(endCardPanel, endTitle, endCollected, ctaToast, rewardCards, ctaButton, playAgainButton, _layout, mainCamera);
 
             _machine = new GameStateMachine();
             _machine.Register(new IntroState(_machine, config, _towers, _actions, _hud));
-            _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar));
+            _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar, audio));
             _machine.Register(new BreatherState(_machine, config, session));
-            _machine.Register(new RedeemState(_machine, _actions, _hud, _redeem, _input, _cardBar, _badges));
-            _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input));
+            _machine.Register(new RedeemState(_machine, _actions, _hud, _redeem, _input, _cardBar, _badges, audio));
+            _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input, audio));
         }
 
         void Start() => _machine.Enter<IntroState>();
@@ -119,6 +138,7 @@ namespace ScramblyFoxDefense.Core
                 _lockBar.Layout();
                 _endCard.Layout();
                 _layout.Place(restartButton.root, new Vector2(0f, 1f), new Vector2(46f, -26f), 1f);
+                _layout.Place(muteButton.root, new Vector2(0f, 1f), new Vector2(112f, -26f), 1f);
             }
 
             if (!_pagePause.IsPaused) _input.Tick();
@@ -126,10 +146,12 @@ namespace ScramblyFoxDefense.Core
             _enemies.Tick(deltaTime);
             _towers.Tick(deltaTime);
             _coinFx.Tick(deltaTime);
+            _feedback.Tick(deltaTime);
             _hud.Tick(deltaTime);
             _cardBar.Tick(deltaTime);
             _lockBar.Tick(deltaTime);
             _slotHighlighter.Tick(deltaTime);
+            _tutorial.Tick(deltaTime);
             _endCard.Tick(deltaTime);
         }
 
@@ -137,10 +159,14 @@ namespace ScramblyFoxDefense.Core
         {
             _machine?.Stop();
             if (_restart != null) _input.Unregister(_restart.HandleTap);
+            if (_mute != null) _input.Unregister(_mute.HandleTap);
+            _soundCues?.Dispose();
             _actions?.Dispose();
             _badges?.Dispose();
             _cardBar?.Dispose();
             _coinFx?.Dispose();
+            _feedback?.Dispose();
+            _tutorial?.Dispose();
             _hud?.Dispose();
         }
     }

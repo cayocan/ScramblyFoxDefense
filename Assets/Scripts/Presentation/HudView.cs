@@ -11,10 +11,12 @@ namespace ScramblyFoxDefense.Presentation
         readonly TextMesh _coins;
         readonly TextMesh _phase;
         readonly TextMesh _banner;
+        readonly SpriteRenderer _coinIcon;
         float _bannerTimer;
 
-        public HudView(HudLayout layout, Economy economy, TextMesh coins, TextMesh phase, TextMesh banner)
+        public HudView(HudLayout layout, Economy economy, TextMesh coins, TextMesh phase, TextMesh banner, SpriteRenderer coinIcon)
         {
+            _coinIcon = coinIcon;
             _layout = layout;
             _economy = economy;
             _coins = coins;
@@ -38,6 +40,7 @@ namespace ScramblyFoxDefense.Presentation
 
         public void Tick(float deltaTime)
         {
+            PlaceCoinIcon(); // TextMesh rebuilds its bounds a frame after a text change
             if (_bannerTimer <= 0f) return;
             _bannerTimer -= deltaTime;
             if (_bannerTimer <= 0f) _banner.gameObject.SetActive(false);
@@ -47,11 +50,30 @@ namespace ScramblyFoxDefense.Presentation
         {
             _phase.anchor = TextAnchor.MiddleCenter;
             _coins.anchor = TextAnchor.MiddleRight;
-            _layout.PlaceText(_phase, new Vector2(0.5f, 1f), new Vector2(0f, -58f), 14f);
+            _layout.PlaceText(_phase, new Vector2(0.5f, 1f), new Vector2(0f, -94f), 14f);
             _layout.PlaceText(_coins, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f);
+            _layout.Place(_coinIcon.transform, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f / 64f);
+            PlaceCoinIcon();
             _layout.PlaceText(_banner, new Vector2(0.5f, 1f), new Vector2(0f, -120f), 34f);
         }
 
-        void RefreshCoins() => _coins.text = $"Demo coins {_economy.Wallet}";
+        void RefreshCoins()
+        {
+            _coins.text = $"Demo coins {_economy.Wallet}";
+            PlaceCoinIcon();
+        }
+
+        /// <summary>Keeps the coin sprite just left of the right-aligned balance, whatever its width.</summary>
+        void PlaceCoinIcon()
+        {
+            var parent = _coins.transform.parent;
+            var bounds = _coins.GetComponent<Renderer>().bounds;
+            if (bounds.size.x <= 0f) return;
+            float left = parent.InverseTransformPoint(bounds.min).x;
+            var position = _coinIcon.transform.localPosition;
+            position.x = left - 14f * _layout.PixelUnit;
+            position.y = _coins.transform.localPosition.y;
+            _coinIcon.transform.localPosition = position;
+        }
     }
 }

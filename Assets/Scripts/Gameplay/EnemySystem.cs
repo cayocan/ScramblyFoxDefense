@@ -28,6 +28,7 @@ namespace ScramblyFoxDefense.Gameplay
 
         public IReadOnlyList<Enemy> Active => _active;
 
+        public event Action<Enemy> Hit;
         public event Action<Enemy> Killed;
         public event Action<Enemy> Leaked;
 
@@ -80,7 +81,11 @@ namespace ScramblyFoxDefense.Gameplay
         {
             if (!enemy.Alive) return;
             enemy.Health -= amount;
-            if (enemy.Health > 0f) return;
+            if (enemy.Health > 0f)
+            {
+                Hit?.Invoke(enemy);
+                return;
+            }
 
             _economy.Earn(enemy.Definition.coinReward);
             Killed?.Invoke(enemy);

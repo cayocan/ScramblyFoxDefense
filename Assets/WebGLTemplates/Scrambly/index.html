@@ -63,7 +63,79 @@
       if (window.scramblyPaused && !paused) window.scramblyResumed = true;
       window.scramblyPaused = paused;
       rotateOverlay.style.display = landscape ? "flex" : "none";
+      if (window.scramblySfx) window.scramblySfx.refresh();
     }
+
+    // ---- Sound: synthesized with Web Audio (no audio files, no Unity audio module) ----
+    // Brief: starts only after a user interaction, has a mute control, is silent while the page is hidden.
+    window.scramblySfx = (function () {
+      var ctx = null, master = null, muted = false, lastShot = 0;
+
+      function unlock() {
+        if (!ctx) {
+          var AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          ctx = new AudioCtx();
+          master = ctx.createGain();
+          master.connect(ctx.destination);
+        }
+        refresh();
+      }
+
+      // Suspend when hidden/landscape or muted; resume otherwise.
+      function refresh() {
+        if (!ctx) return;
+        master.gain.value = muted ? 0 : 0.5;
+        if (window.scramblyPaused || muted) { if (ctx.state === "running") ctx.suspend(); }
+        else if (ctx.state !== "running") ctx.resume();
+      }
+
+      function tone(freq, start, dur, type, gain, slideTo) {
+        var t = ctx.currentTime + start;
+        var osc = ctx.createOscillator(), env = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+        env.gain.setValueAtTime(0.0001, t);
+        env.gain.exponentialRampToValueAtTime(gain, t + 0.012);
+        env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        osc.connect(env); env.connect(master);
+        osc.start(t); osc.stop(t + dur + 0.03);
+      }
+
+      // Ids match ScramblyFoxDefense.Audio.Sound in C#.
+      var sounds = [
+        /* 0 Select  */ function () { tone(880, 0, 0.06, "triangle", 0.25); },
+        /* 1 Build   */ function () { tone(330, 0, 0.12, "triangle", 0.35, 660); tone(990, 0.08, 0.1, "sine", 0.2); },
+        /* 2 Upgrade */ function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * 0.06, 0.12, "triangle", 0.28); }); },
+        /* 3 Shoot   */ function () { tone(1200, 0, 0.05, "square", 0.05, 600); },
+        /* 4 Defeat  */ function () { tone(600, 0, 0.09, "sine", 0.3, 300); tone(1568, 0.05, 0.12, "triangle", 0.18); },
+        /* 5 Leak    */ function () { tone(220, 0, 0.25, "sawtooth", 0.12, 110); },
+        /* 6 Wave    */ function () { tone(392, 0, 0.14, "triangle", 0.3); tone(587, 0.14, 0.2, "triangle", 0.3); },
+        /* 7 Unlock  */ function () { tone(784, 0, 0.1, "sine", 0.3); tone(1175, 0.09, 0.25, "sine", 0.3); },
+        /* 8 Coin    */ function () { tone(1319, 0, 0.07, "square", 0.08); tone(1976, 0.05, 0.12, "square", 0.08); },
+        /* 9 Cta     */ function () { tone(523, 0, 0.1, "triangle", 0.3); tone(784, 0.08, 0.1, "triangle", 0.3); tone(1047, 0.16, 0.22, "triangle", 0.3); },
+        /* 10 Deny   */ function () { tone(180, 0, 0.12, "square", 0.12); tone(150, 0.1, 0.14, "square", 0.12); },
+        /* 11 Fanfare*/ function () { [523, 659, 784, 1047, 784, 1047].forEach(function (f, i) { tone(f, i * 0.1, 0.18, "triangle", 0.26); }); }
+      ];
+
+      return {
+        unlock: unlock,
+        refresh: refresh,
+        setMuted: function (value) { muted = !!value; refresh(); },
+        isMuted: function () { return muted; },
+        state: function () { return ctx ? ctx.state : "locked"; }, // for tests: locked / running / suspended
+        play: function (id) {
+          if (!ctx || muted || window.scramblyPaused || ctx.state !== "running") return;
+          if (id === 3) { var now = ctx.currentTime; if (now - lastShot < 0.07) return; lastShot = now; } // cap shot spam
+          if (sounds[id]) sounds[id]();
+        }
+      };
+    })();
+    // First interaction unlocks audio (browsers block it before a gesture).
+    ["pointerdown", "touchend", "keydown"].forEach(function (type) {
+      document.addEventListener(type, window.scramblySfx.unlock, { passive: true });
+    });
 
     document.addEventListener("visibilitychange", updatePageState);
     window.addEventListener("resize", updatePageState);

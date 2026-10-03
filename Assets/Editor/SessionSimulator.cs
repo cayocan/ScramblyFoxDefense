@@ -12,6 +12,8 @@ namespace ScramblyFoxDefense.EditorTools
     /// Headless balance check: in Play Mode, ticks the real services with a fixed step and a scripted
     /// player (build/upgrade orders executed as soon as they are affordable). Reports the flow, leaks
     /// and coins. Run from code: SessionSimulator.Run("pop0,pop1,up0").
+    /// Enter Play Mode and pause it right away (editor_play, then editor_pause): with Unity in the
+    /// foreground, real frames would otherwise advance the session before the simulation starts.
     /// </summary>
     public static class SessionSimulator
     {
