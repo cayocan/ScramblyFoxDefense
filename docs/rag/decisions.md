@@ -37,6 +37,21 @@ Findings:
 - uGUI package removed from the project.
 - Next size risk: ParticleSystem module native code when particles are first used. Measure then; fallback is pooled quads.
 
+## 2026-10-03 — Balance pass 1 (SessionSimulator)
+
+The board path is 15 units (GDD assumed ~20), so GDD numbers made the game too easy: one Pop Blaster cleared waves 1–2, two cleared everything, sessions ran 34–39 s. Changes in `GameConfig`: enemy health x1.5 (15/9/60), tower range x0.7 (2.3/2.2/3.2), spawn intervals 1.8/1.3/1.1 s.
+
+`Assets/Editor/SessionSimulator.cs` ticks the real services in Play Mode with a 0.02 s step and a scripted player (`SessionSimulator.Run("pop0,up0,pop1")`). Results after the pass (deterministic, repeated):
+
+| Plan | Session | Leaks (total) |
+|---|---|---|
+| none | 78 s | 27 |
+| pop0 | 57 s | 12 (0 / 3 / 9) |
+| pop0,pop1 | 54 s | 1 |
+| pop0,up0,pop1 | 44 s | 0 |
+
+Matches GDD intent: one tower handles wave 1, wave 3 needs 2+ towers or upgrades, active play lands in 45–60 s. Tap flow (card select/deselect, build, upgrade, shake when broke, cancel on empty) verified with simulated taps at real screen positions.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

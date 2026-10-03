@@ -26,17 +26,17 @@ MonoBehaviour:
     - cost: 30
       damage: 4
       fireRate: 2
-      range: 3.2
+      range: 2.3
       splashRadius: 0
     - cost: 40
       damage: 6
       fireRate: 2.4
-      range: 3.2
+      range: 2.3
       splashRadius: 0
     - cost: 60
       damage: 9
       fireRate: 2.8
-      range: 3.2
+      range: 2.3
       splashRadius: 0
   - displayName: Puzzle Pulse
     prefab: {fileID: 4492201258704696411, guid: 06ee0ba2f7e1399428a14340269e461f, type: 3}
@@ -44,17 +44,17 @@ MonoBehaviour:
     - cost: 45
       damage: 5
       fireRate: 0.9
-      range: 3
+      range: 2.2
       splashRadius: 1.4
     - cost: 50
       damage: 8
       fireRate: 0.9
-      range: 3
+      range: 2.2
       splashRadius: 1.4
     - cost: 70
       damage: 12
       fireRate: 0.9
-      range: 3
+      range: 2.2
       splashRadius: 1.8
   - displayName: Racer Zap
     prefab: {fileID: 3314988925487226172, guid: afef9bd3fdace124491cbb98238f7dcd, type: 3}
@@ -62,45 +62,45 @@ MonoBehaviour:
     - cost: 55
       damage: 14
       fireRate: 0.6
-      range: 4.5
+      range: 3.2
       splashRadius: 0
     - cost: 60
       damage: 20
       fireRate: 0.6
-      range: 4.5
+      range: 3.2
       splashRadius: 0
     - cost: 80
       damage: 28
       fireRate: 0.7
-      range: 4.5
+      range: 3.2
       splashRadius: 0
   enemies:
   - displayName: Snatcher
     prefab: {fileID: 4392959943242693288, guid: 9e1385fef95b13c4a878d9e7b71ee98e, type: 3}
-    health: 10
+    health: 15
     speed: 1.6
     coinReward: 6
   - displayName: Dart
     prefab: {fileID: 2977190006061930877, guid: da252cc5470e4064b975b0a5db265021, type: 3}
-    health: 6
+    health: 9
     speed: 2.8
     coinReward: 7
   - displayName: Hauler
     prefab: {fileID: 3689342531642266020, guid: ac5875210c44e3340854d372aba7758c, type: 3}
-    health: 40
+    health: 60
     speed: 1
     coinReward: 15
   waves:
   - groups:
     - enemyIndex: 0
       count: 6
-    spawnInterval: 1.2
+    spawnInterval: 1.8
   - groups:
     - enemyIndex: 0
       count: 5
     - enemyIndex: 1
       count: 4
-    spawnInterval: 0.9
+    spawnInterval: 1.3
   - groups:
     - enemyIndex: 0
       count: 6
@@ -108,4 +108,4 @@ MonoBehaviour:
       count: 4
     - enemyIndex: 2
       count: 2
-    spawnInterval: 0.8
+    spawnInterval: 1.1

@@ -13,10 +13,14 @@ namespace ScramblyFoxDefense.Gameplay
         public Transform Transform;
         public Transform Pet;
         public Animation PetAnimation;
+        public Transform Base;
+        public float BaseHeight;
         public int Level;
         public float Cooldown;
 
         public TowerLevel Stats => Definition.levels[Level];
+        public bool IsMaxLevel => Level >= Definition.levels.Length - 1;
+        public int NextLevelCost => IsMaxLevel ? 0 : Definition.levels[Level + 1].cost;
     }
 
     sealed class Projectile
@@ -32,7 +36,7 @@ namespace ScramblyFoxDefense.Gameplay
     /// <summary>Builds towers on slots, picks targets and fires pooled projectiles.</summary>
     public sealed class TowerSystem
     {
-        const float MuzzleHeight = 0.55f;
+        const float MuzzleHeight = 0.25f;
 
         readonly GameConfig _config;
         readonly Economy _economy;
@@ -45,6 +49,7 @@ namespace ScramblyFoxDefense.Gameplay
         public IReadOnlyList<Tower> Towers => _towers;
 
         public event Action<Tower> Built;
+        public event Action<Tower> Upgraded;
 
         public TowerSystem(GameConfig config, Economy economy, EnemySystem enemies, Transform towerRoot, GameObject projectilePrefab)
         {
@@ -62,17 +67,36 @@ namespace ScramblyFoxDefense.Gameplay
 
             var go = UnityEngine.Object.Instantiate(definition.prefab, slot.Transform.position, Quaternion.identity, _towerRoot);
             var pet = go.transform.Find("Pet");
+            var towerBase = go.transform.Find("Base");
             var tower = new Tower
             {
                 Definition = definition,
                 Slot = slot,
                 Transform = go.transform,
                 Pet = pet,
-                PetAnimation = pet != null ? pet.GetComponentInChildren<Animation>() : null
+                PetAnimation = pet != null ? pet.GetComponentInChildren<Animation>() : null,
+                Base = towerBase,
+                BaseHeight = pet != null && towerBase != null ? pet.localPosition.y - towerBase.localPosition.y : 0.5f
             };
             slot.Tower = tower;
             _towers.Add(tower);
             Built?.Invoke(tower);
+            return true;
+        }
+
+        /// <summary>One level up: stacks another base piece and lifts the pet (visible progress, GDD section 4).</summary>
+        public bool TryUpgrade(Tower tower)
+        {
+            if (tower.IsMaxLevel || !_economy.TrySpend(tower.NextLevelCost)) return false;
+            tower.Level++;
+            if (tower.Base != null)
+            {
+                var piece = UnityEngine.Object.Instantiate(tower.Base.gameObject, tower.Transform);
+                piece.transform.localPosition = tower.Base.localPosition + Vector3.up * (tower.BaseHeight * tower.Level);
+                piece.transform.localScale = tower.Base.localScale * (1f - 0.12f * tower.Level);
+            }
+            if (tower.Pet != null) tower.Pet.localPosition += Vector3.up * tower.BaseHeight;
+            Upgraded?.Invoke(tower);
             return true;
         }
 
@@ -120,7 +144,7 @@ namespace ScramblyFoxDefense.Gameplay
         void Fire(Tower tower, Enemy target, TowerLevel stats)
         {
             var go = _projectilePool.Get();
-            go.transform.position = tower.Transform.position + Vector3.up * MuzzleHeight;
+            go.transform.position = (tower.Pet != null ? tower.Pet.position : tower.Transform.position) + Vector3.up * MuzzleHeight;
             _projectiles.Add(new Projectile
             {
                 GameObject = go,

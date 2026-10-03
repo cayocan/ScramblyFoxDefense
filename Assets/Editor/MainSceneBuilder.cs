@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using ScramblyFoxDefense.Config;
 using ScramblyFoxDefense.Core;
+using ScramblyFoxDefense.Presentation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -71,7 +72,9 @@ namespace ScramblyFoxDefense.EditorTools
 
             var installer = new GameObject("Game").AddComponent<GameInstaller>();
             var hud = CreateHud(camera.transform);
-            Wire(installer, config, camera, waypoints, slots, prefabs, hud);
+            var cards = CreateCards(camera.transform);
+            var locks = CreateLocks(camera.transform);
+            Wire(installer, config, camera, waypoints, slots, prefabs, hud, cards, locks);
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -178,7 +181,7 @@ namespace ScramblyFoxDefense.EditorTools
 
         sealed class Prefabs
         {
-            public GameObject PopBlaster, PuzzlePulse, RacerZap, Lion, Tiger, Polar, Projectile, Coin;
+            public GameObject PopBlaster, PuzzlePulse, RacerZap, Lion, Tiger, Polar, Projectile, Coin, Badge;
         }
 
         static Prefabs BuildPrefabs()
@@ -193,6 +196,7 @@ namespace ScramblyFoxDefense.EditorTools
                 Tiger = EnemyPrefab("Enemy_Dart", "animal-tiger", 0.32f),
                 Polar = EnemyPrefab("Enemy_Hauler", "animal-polar", 0.45f),
                 Projectile = PrimitivePrefab("Projectile", PrimitiveType.Sphere, Vector3.one * 0.15f, Quaternion.identity, KitMaterials.Tinted("Projectile", Orange)),
+                Badge = BadgePrefab(),
                 Coin = PrimitivePrefab("Coin", PrimitiveType.Cylinder, new Vector3(0.28f, 0.03f, 0.28f), Quaternion.Euler(90f, 0f, 0f), KitMaterials.Tinted("Coin", new Color(1f, 0.75f, 0.2f)))
             };
         }
@@ -201,6 +205,7 @@ namespace ScramblyFoxDefense.EditorTools
         {
             var root = new GameObject(name);
             var tower = Spawn(Kit + "tower-round-base.glb", root.transform);
+            tower.name = "Base"; // TowerSystem stacks copies of it on upgrade
             var petRoot = new GameObject("Pet").transform;
             petRoot.SetParent(root.transform, false);
             petRoot.localPosition = Vector3.up * Top(tower);
@@ -217,6 +222,13 @@ namespace ScramblyFoxDefense.EditorTools
             model.transform.localScale = Vector3.one * scale;
             KitMaterials.Apply(model, KitMaterials.Enemies);
             return SavePrefab(root);
+        }
+
+        static GameObject BadgePrefab()
+        {
+            var text = CreateText("Badge", null, Orange);
+            text.transform.localScale = Vector3.one * 3f;
+            return SavePrefab(text.gameObject);
         }
 
         static GameObject PrimitivePrefab(string name, PrimitiveType type, Vector3 scale, Quaternion rotation, Material material)
@@ -239,7 +251,10 @@ namespace ScramblyFoxDefense.EditorTools
             return prefab;
         }
 
-        /// <summary>Creates the config with GDD values once; later runs only refresh prefab links.</summary>
+        /// <summary>
+        /// Creates the config once (GDD values, tuned for the 15-unit path: health x1.5, range x0.7, slower
+        /// spawns; see docs/rag/decisions.md). Later runs only refresh prefab links.
+        /// </summary>
         static GameConfig LoadOrCreateConfig(Prefabs prefabs)
         {
             var config = AssetDatabase.LoadAssetAtPath<GameConfig>(ConfigPath);
@@ -250,34 +265,34 @@ namespace ScramblyFoxDefense.EditorTools
                 {
                     new TowerDefinition { displayName = "Pop Blaster", levels = new[]
                     {
-                        new TowerLevel { cost = 30, damage = 4, fireRate = 2f, range = 3.2f },
-                        new TowerLevel { cost = 40, damage = 6, fireRate = 2.4f, range = 3.2f },
-                        new TowerLevel { cost = 60, damage = 9, fireRate = 2.8f, range = 3.2f }
+                        new TowerLevel { cost = 30, damage = 4, fireRate = 2f, range = 2.3f },
+                        new TowerLevel { cost = 40, damage = 6, fireRate = 2.4f, range = 2.3f },
+                        new TowerLevel { cost = 60, damage = 9, fireRate = 2.8f, range = 2.3f }
                     }},
                     new TowerDefinition { displayName = "Puzzle Pulse", levels = new[]
                     {
-                        new TowerLevel { cost = 45, damage = 5, fireRate = 0.9f, range = 3f, splashRadius = 1.4f },
-                        new TowerLevel { cost = 50, damage = 8, fireRate = 0.9f, range = 3f, splashRadius = 1.4f },
-                        new TowerLevel { cost = 70, damage = 12, fireRate = 0.9f, range = 3f, splashRadius = 1.8f }
+                        new TowerLevel { cost = 45, damage = 5, fireRate = 0.9f, range = 2.2f, splashRadius = 1.4f },
+                        new TowerLevel { cost = 50, damage = 8, fireRate = 0.9f, range = 2.2f, splashRadius = 1.4f },
+                        new TowerLevel { cost = 70, damage = 12, fireRate = 0.9f, range = 2.2f, splashRadius = 1.8f }
                     }},
                     new TowerDefinition { displayName = "Racer Zap", levels = new[]
                     {
-                        new TowerLevel { cost = 55, damage = 14, fireRate = 0.6f, range = 4.5f },
-                        new TowerLevel { cost = 60, damage = 20, fireRate = 0.6f, range = 4.5f },
-                        new TowerLevel { cost = 80, damage = 28, fireRate = 0.7f, range = 4.5f }
+                        new TowerLevel { cost = 55, damage = 14, fireRate = 0.6f, range = 3.2f },
+                        new TowerLevel { cost = 60, damage = 20, fireRate = 0.6f, range = 3.2f },
+                        new TowerLevel { cost = 80, damage = 28, fireRate = 0.7f, range = 3.2f }
                     }}
                 };
                 config.enemies = new[]
                 {
-                    new EnemyDefinition { displayName = "Snatcher", health = 10, speed = 1.6f, coinReward = 6 },
-                    new EnemyDefinition { displayName = "Dart", health = 6, speed = 2.8f, coinReward = 7 },
-                    new EnemyDefinition { displayName = "Hauler", health = 40, speed = 1f, coinReward = 15 }
+                    new EnemyDefinition { displayName = "Snatcher", health = 15, speed = 1.6f, coinReward = 6 },
+                    new EnemyDefinition { displayName = "Dart", health = 9, speed = 2.8f, coinReward = 7 },
+                    new EnemyDefinition { displayName = "Hauler", health = 60, speed = 1f, coinReward = 15 }
                 };
                 config.waves = new[]
                 {
-                    new WaveDefinition { spawnInterval = 1.2f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 } } },
-                    new WaveDefinition { spawnInterval = 0.9f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 5 }, new SpawnGroup { enemyIndex = 1, count = 4 } } },
-                    new WaveDefinition { spawnInterval = 0.8f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 }, new SpawnGroup { enemyIndex = 1, count = 4 }, new SpawnGroup { enemyIndex = 2, count = 2 } } }
+                    new WaveDefinition { spawnInterval = 1.8f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 } } },
+                    new WaveDefinition { spawnInterval = 1.3f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 5 }, new SpawnGroup { enemyIndex = 1, count = 4 } } },
+                    new WaveDefinition { spawnInterval = 1.1f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 }, new SpawnGroup { enemyIndex = 1, count = 4 }, new SpawnGroup { enemyIndex = 2, count = 2 } } }
                 };
                 Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath));
                 AssetDatabase.CreateAsset(config, ConfigPath);
@@ -323,28 +338,88 @@ namespace ScramblyFoxDefense.EditorTools
             return camera;
         }
 
-        static TextMesh[] CreateHud(Transform camera)
+        static TextMesh CreateText(string name, Transform parent, Color color)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = new GameObject(name, typeof(TextMesh)).GetComponent<TextMesh>();
+            if (parent != null) text.transform.SetParent(parent, false);
+            text.font = font;
+            text.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+            text.fontSize = 64;
+            text.characterSize = 0.01f;
+            text.anchor = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignment.Center;
+            text.color = color;
+            text.text = name;
+            return text;
+        }
+
+        static TextMesh[] CreateHud(Transform camera)
+        {
             var root = new GameObject("HUD").transform;
             root.SetParent(camera, false);
-            return new[] { "Coins", "Phase", "Banner" }.Select(n =>
+            return new[]
             {
-                var text = new GameObject(n, typeof(TextMesh)).GetComponent<TextMesh>();
-                text.transform.SetParent(root, false);
-                text.font = font;
-                text.GetComponent<MeshRenderer>().sharedMaterial = font.material;
-                text.fontSize = 64;
-                text.characterSize = 0.01f;
-                text.anchor = TextAnchor.MiddleCenter;
-                text.alignment = TextAlignment.Center;
-                text.color = n == "Banner" ? Orange : WarmWhite;
-                text.text = n;
-                return text;
+                CreateText("Coins", root, WarmWhite),
+                CreateText("Phase", root, WarmWhite),
+                CreateText("Banner", root, Orange)
+            };
+        }
+
+        /// <summary>Card children are laid out in reference pixels (the root is scaled by HudLayout).</summary>
+        static CardView[] CreateCards(Transform camera)
+        {
+            var root = new GameObject("Cards").transform;
+            root.SetParent(camera, false);
+            var pets = new[] { "animal-dog", "animal-cat", "animal-fox" };
+            return pets.Select((pet, i) =>
+            {
+                var card = new GameObject($"Card {i}").transform;
+                card.SetParent(root, false);
+
+                var background = Quad("Background", card, new Vector3(112f, 128f, 1f), KitMaterials.Tinted("CardBackground", Color.white));
+                background.transform.localPosition = new Vector3(0f, 0f, 0.02f);
+
+                var face = Spawn(Pets + pet + ".glb", card);
+                face.name = "Face";
+                face.transform.localPosition = new Vector3(0f, -14f, -20f);
+                face.transform.localRotation = Quaternion.Euler(-20f, 200f, 0f);
+                face.transform.localScale = Vector3.one * 34f;
+                PlayIdle(face);
+
+                var title = CreateText("Title", card, DeepInk);
+                title.transform.localPosition = new Vector3(0f, -38f, 0f);
+                title.transform.localScale = Vector3.one * (13f / 0.064f);
+                var price = CreateText("Price", card, DeepInk);
+                price.transform.localPosition = new Vector3(0f, -54f, 0f);
+                price.transform.localScale = Vector3.one * (13f / 0.064f);
+
+                return new CardView { root = card, background = background, title = title, price = price };
             }).ToArray();
         }
 
-        static void Wire(GameInstaller installer, GameConfig config, Camera camera, Transform[] waypoints, Transform[] slots, Prefabs prefabs, TextMesh[] hud)
+        static Renderer[] CreateLocks(Transform camera)
+        {
+            var root = new GameObject("Locks").transform;
+            root.SetParent(camera, false);
+            return Enumerable.Range(0, 3)
+                .Select(i => Quad($"Lock {i + 1}", root, Vector3.one, KitMaterials.Tinted("Lock", Color.white)))
+                .ToArray();
+        }
+
+        static Renderer Quad(string name, Transform parent, Vector3 scale, Material material)
+        {
+            var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Object.DestroyImmediate(quad.GetComponent<Collider>()); // physics is stripped from the build
+            quad.name = name;
+            quad.transform.SetParent(parent, false);
+            quad.transform.localScale = scale;
+            var renderer = quad.GetComponent<Renderer>();
+            renderer.sharedMaterial = material;
+            return renderer;
+        }
+
+        static void Wire(GameInstaller installer, GameConfig config, Camera camera, Transform[] waypoints, Transform[] slots, Prefabs prefabs, TextMesh[] hud, CardView[] cards, Renderer[] locks)
         {
             var roots = new[] { "Enemies", "Towers", "Fx" }.Select(n => new GameObject(n).transform).ToArray();
             var so = new SerializedObject(installer);
@@ -352,9 +427,21 @@ namespace ScramblyFoxDefense.EditorTools
             so.FindProperty("mainCamera").objectReferenceValue = camera;
             SetArray(so.FindProperty("pathWaypoints"), waypoints);
             SetArray(so.FindProperty("slotTransforms"), slots);
-            so.FindProperty("boardSize").vector2Value = new Vector2(Columns, Rows);
+            so.FindProperty("boardSize").vector2Value = new Vector2(Columns, Rows + 1); // + vault row
             so.FindProperty("projectilePrefab").objectReferenceValue = prefabs.Projectile;
             so.FindProperty("coinPrefab").objectReferenceValue = prefabs.Coin;
+            so.FindProperty("badgePrefab").objectReferenceValue = prefabs.Badge;
+            SetArray(so.FindProperty("locks"), locks);
+            var cardsProperty = so.FindProperty("cards");
+            cardsProperty.arraySize = cards.Length;
+            for (int i = 0; i < cards.Length; i++)
+            {
+                var element = cardsProperty.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("root").objectReferenceValue = cards[i].root;
+                element.FindPropertyRelative("background").objectReferenceValue = cards[i].background;
+                element.FindPropertyRelative("title").objectReferenceValue = cards[i].title;
+                element.FindPropertyRelative("price").objectReferenceValue = cards[i].price;
+            }
             so.FindProperty("enemyRoot").objectReferenceValue = roots[0];
             so.FindProperty("towerRoot").objectReferenceValue = roots[1];
             so.FindProperty("fxRoot").objectReferenceValue = roots[2];
