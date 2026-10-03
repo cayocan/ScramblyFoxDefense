@@ -53,14 +53,14 @@ The architecture is a state machine with one handler per state plus constructor 
 | Item | Bytes |
 |---|---|
 | Build folder (`index.html` + `Build/`) | 2,714,300 |
-| Production ZIP (build + source + docs) | 3,103,873 |
+| Production ZIP (build + source + docs) | 3,106,800 |
 | Brief limit | 5,000,000 |
 
-These are the last measured values (`tools/measure-zip.ps1`). The final ZIP is re-measured before submission. How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shader.
+Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (the docs in the ZIP can shift it by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shader.
 
 ## Tests
 
-Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) driven by `tools/browser-test` (puppeteer-core), served by `python -m http.server`. Date: 2026-10-03.
+Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) driven by `tools/browser-test` (puppeteer-core), served by `python -m http.server`. Date: 2026-10-03. Run it with `npm install` then `node test.js` in `tools/browser-test` (`TEST_URL=... ` for another server, `FULL=1` for the full session).
 
 | Area | Case | How | Result |
 |---|---|---|---|
@@ -74,6 +74,8 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Visibility | Hide the tab for 3 s mid-session | Emulated `visibilitychange` | Paused at t=3.76, resumed at t=3.76 (game time does not jump) |
 | Audio | First tap, hide/show, mute, restart | Chrome headless, `scramblySfx.state()` | locked before tap → running → suspended when hidden → running → muted (suspended) → still muted after restart |
 | Tutorial | First card, then slot | Chrome headless screenshots | Hand points at the first card, then at the slot nearest the path start |
+| Package | Production ZIP unpacked into an empty folder, served with `python -m http.server` | Chrome headless (`TEST_URL`) | All checks above pass from the unpacked ZIP; `index.html` at the root |
+| Full flow | Whole session with no input, then **Explore Scrambly** and **Play again** | Chrome headless, real touch taps (`FULL=1`) | End card reached; "CTA clicked — demo only" on screen and in the console; URL unchanged; Play again back to Discover with 70 coins |
 | Flow | No towers at all | Editor, SessionSimulator | Reaches the end card in 78 s, 27 leaks, wallet never below 0 |
 | Flow | Balance plans (1 tower, 2 towers, upgrades) | Editor, SessionSimulator | 57 s / 12 leaks; 54 s / 1 leak; 44 s / 0 leaks |
 | CTA | Tap **Explore Scrambly** | Editor, simulated tap | "CTA clicked — demo only" on screen and in the console; no navigation |
@@ -82,7 +84,6 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 ### Not tested yet
 
 - A real phone (Android or iPhone) and a second browser (Firefox or Safari).
-- A full session with real input in the browser (input is covered by emulated taps, the full flow by the simulator).
 - Hiding the page with a real tab switch: the test fakes `document.hidden` and fires `visibilitychange`.
 
 ## Known limitations

@@ -2,7 +2,8 @@
 const puppeteer = require('puppeteer-core');
 const path = require('path');
 
-const URL = 'http://localhost:8080/';
+// Override with TEST_URL to test an unpacked production ZIP served elsewhere.
+const URL = process.env.TEST_URL || 'http://localhost:8080/';
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const OUT = path.join(__dirname, 'out');
 require('fs').mkdirSync(OUT, { recursive: true });
@@ -71,7 +72,8 @@ async function setHidden(page, hidden) {
   report.push(`[audio] before tap=${audioBefore} after tap=${audioAfterTap} hidden=${audioHidden} shown=${audioShown} mute=${audioMuted} after restart=${audioAfterRestart}`);
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-resumed.png') });
 
-  const foreign = phone.requests.filter(u => !u.startsWith('http://localhost:8080/'));
+  const origin = new globalThis.URL(URL).origin;
+  const foreign = phone.requests.filter(u => !u.startsWith(origin + '/') && !u.startsWith('blob:' + origin + '/'));
   report.push(`[390x844] load ${phone.loadMs} ms, ${phone.requests.length} requests, foreign: ${foreign.length ? foreign.join(' ') : 'none'}`);
   report.push(`[390x844] requests: ${phone.requests.map(u => u.replace(URL, '/')).join(' ')}`);
   report.push(`[390x844] logs:\n  ${phone.logs.filter(l => !/^debug/.test(l)).join('\n  ')}`);
@@ -94,6 +96,23 @@ async function setHidden(page, hidden) {
   await desk.page.screenshot({ path: path.join(OUT, 'b-desktop.png') });
   const scrollable = await desk.page.evaluate(() => document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth);
   report.push(`[320x568] load ${small.loadMs} ms; [desktop] load ${desk.loadMs} ms, page scrollable=${scrollable}`);
+
+  // 4) FULL=1: play a whole session with no input, then CTA and Play again (real browser, real input).
+  if (process.env.FULL) {
+    const full = await open(browser, { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, 'full');
+    const urlBefore = full.page.url();
+    await sleep(85000); // no towers: the session reaches the end card in ~78 s
+    await full.page.screenshot({ path: path.join(OUT, 'b-full-endcard.png') });
+    await full.page.touchscreen.tap(195, 508); // Explore Scrambly (panel centre - 10 px, button at -96 px)
+    await sleep(800);
+    await full.page.screenshot({ path: path.join(OUT, 'b-full-cta.png') });
+    const ctaLogged = full.logs.some(l => l.includes('CTA clicked — demo only'));
+    const urlAfter = full.page.url();
+    await full.page.touchscreen.tap(195, 572); // Play again
+    await sleep(2500);
+    await full.page.screenshot({ path: path.join(OUT, 'b-full-again.png') });
+    report.push(`[full] CTA logged=${ctaLogged}, url unchanged=${urlBefore === urlAfter}; screenshots b-full-*.png`);
+  }
 
   console.log(report.join('\n'));
   await browser.close();
