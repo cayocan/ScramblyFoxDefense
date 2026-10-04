@@ -17,3 +17,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | release-stage1 | 2026-10-03 15:21 | 2026-10-03 15:26 | 0h 05min | PROJECT_NOTE draft, production ZIP verified from a clean folder (full flow + CTA in Chrome), README final numbers, ZIP 3,107,328 bytes |
 | synth-music | 2026-10-04 14:32 | 2026-10-04 15:02 | 0h 30min | Synth music loop (Web Audio), editor-only C# synth for Play Mode, PROJECT_NOTE final draft, rebuilt deleted build folder |
 | progression | 2026-10-04 15:03 | 2026-10-04 15:21 | 0h 17min | Wave previews + clear bonus, perfect-wave stars and gold locks, tower targeting/shot identity, balance pass 2 (all towers viable, 48-62 s sessions) |
+| art-polish | 2026-10-04 15:25 | 2026-10-04 15:38 | 0h 12min | Board decoration (kit trees/rocks/crystals, deco palette), HUD band/shadows/banner pill, build burst, leak shake, ZIP 3,187,058 bytes |

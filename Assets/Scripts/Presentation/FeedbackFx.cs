@@ -37,6 +37,9 @@ namespace ScramblyFoxDefense.Presentation
             _towers.Built += Cheer;
             _towers.Upgraded += Cheer;
             _towers.Splashed += OnSplashed;
+            _towers.Built += Burst;
+            _towers.Upgraded += Burst;
+            _enemies.Leaked += OnLeaked;
         }
 
         public void Dispose()
@@ -46,10 +49,26 @@ namespace ScramblyFoxDefense.Presentation
             _towers.Built -= Cheer;
             _towers.Upgraded -= Cheer;
             _towers.Splashed -= OnSplashed;
+            _towers.Built -= Burst;
+            _towers.Upgraded -= Burst;
+            _enemies.Leaked -= OnLeaked;
+            if (_shakeTime > 0f) _camera.localPosition = _cameraRest;
         }
+
+        const float ShakeDuration = 0.28f;
+        float _shakeTime;
+        Vector3 _cameraRest;
 
         public void Tick(float deltaTime)
         {
+            if (_shakeTime > 0f)
+            {
+                _shakeTime -= deltaTime;
+                float strength = Mathf.Max(0f, _shakeTime / ShakeDuration) * 0.08f;
+                _camera.localPosition = _shakeTime > 0f
+                    ? _cameraRest + new Vector3(Mathf.Sin(_shakeTime * 90f), Mathf.Cos(_shakeTime * 70f), 0f) * strength
+                    : _cameraRest;
+            }
             foreach (var pair in _flashes)
             {
                 var flash = pair.Value;
@@ -101,7 +120,7 @@ namespace ScramblyFoxDefense.Presentation
                 foreach (var renderer in flash.Renderers) Tint.Flash(renderer, 0f);
                 _flashes.Remove(enemy);
             }
-            Spawn(enemy.Transform.position + Vector3.up * 0.3f, 0.016f, new Color(1f, 0.96f, 0.91f));
+            Spawn(enemy.Transform.position + Vector3.up * 0.3f, 0.022f, new Color(1f, 0.96f, 0.91f));
         }
 
         /// <summary>Area hit (Puzzle Pulse): a purple ring the size of the blast.</summary>
@@ -109,6 +128,16 @@ namespace ScramblyFoxDefense.Presentation
         {
             // Poof sprite is 64 px at 1 px/unit: diameter = 2 * radius world units.
             Spawn(center + Vector3.up * 0.1f, radius * 2f / 64f, new Color(0.47f, 0.27f, 0.85f, 0.8f));
+        }
+
+        /// <summary>Build / upgrade: an orange ring bursts from the tower base.</summary>
+        void Burst(Tower tower) => Spawn(tower.Transform.position + Vector3.up * 0.2f, 1.8f / 64f, new Color(0.96f, 0.51f, 0.14f, 0.9f));
+
+        /// <summary>A predator reached the vault: a short camera shake sells the loss.</summary>
+        void OnLeaked(Enemy enemy)
+        {
+            if (_shakeTime <= 0f) _cameraRest = _camera.localPosition;
+            _shakeTime = ShakeDuration;
         }
 
         void Spawn(Vector3 position, float size, Color color)

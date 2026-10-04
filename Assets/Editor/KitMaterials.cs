@@ -16,12 +16,14 @@ namespace ScramblyFoxDefense.EditorTools
         const string PetTexture = "Assets/Art/CubePets/Textures/colormap.png";
         const string PredatorTexture = "Assets/Art/CubePets/Textures/colormap-predators.png";
         const string TowerTexture = "Assets/Art/TowerDefense/Textures/colormap-scrambly.png"; // palette remap of the kit colormap
+        const string DecoTexture = "Assets/Art/TowerDefense/Textures/colormap-deco.png";      // autumn foliage, purple crystals
 
 
         public static Material Pets => GetOrCreate("PetKit", PetTexture, Color.white);
         public static Material Towers => GetOrCreate("TowerKit", TowerTexture, Color.white);
         // Predators read as "the other side": purple version of the pet palette (GDD section 6).
         public static Material Enemies => GetOrCreate("EnemyKit", PredatorTexture, Color.white);
+        public static Material Deco => GetOrCreate("DecoKit", DecoTexture, Color.white);
 
         public static Material Tinted(string name, Color color) => GetOrCreate(name, null, color);
 

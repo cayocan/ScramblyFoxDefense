@@ -99,6 +99,15 @@ User feedback: no logical progression, no balance. Changes (all data in `GameCon
 
 - Fix: world sprites (poof, splash ring) drew over the end card because sprites sort by order before distance; world effects now use sorting order -10. The wave banner is 26 px (the longest one fits 390 px) and hides when the end card opens.
 
+## 2026-10-04 — Art polish
+
+User feedback: board looks empty, UI basic, effects weak.
+
+- **Board:** four decoration models from the official Tower Defense Kit 2.1 download (CC0): `detail-tree`, `detail-tree-large`, `detail-rocks`, `detail-crystal` (~65 KB total). The kit's colormap is pixel-identical to ours. Tiles with baked trees (`tile-tree*`) were rejected: their foliage uses the same colormap cells as the grass, so the cream ground remap would also bleach the trees. Decorations use their own `colormap-deco.png` (foliage -> autumn coral/orange, crystals -> brand purple). Scatter is deterministic (seeded) and rule-based: nothing next to a slot, the vault corner stays clear, and only short pieces (rocks, crystals) stand on the camera side of a path cell so predators are never hidden.
+- **HUD:** dark top band behind buttons, balance and locks; card drop shadows; wave banners sit on a dark pill sized to the text and pop in with a small overshoot.
+- **Effects:** orange ring burst on build and upgrade, bigger defeat poof, purple splash ring (progression pass), short camera shake when a predator reaches the vault.
+- Size after the pass: ZIP 3,187,058 bytes (build 2,739,682).
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

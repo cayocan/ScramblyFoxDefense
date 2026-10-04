@@ -12,11 +12,21 @@ namespace ScramblyFoxDefense.Presentation
         readonly TextMesh _phase;
         readonly TextMesh _banner;
         readonly SpriteRenderer _coinIcon;
+        readonly SpriteRenderer _topBand;
+        readonly SpriteRenderer _bannerPill;
         float _bannerTimer;
+        float _bannerAge;
+        Vector3 _bannerScale;
+        Vector3 _pillScale;
 
-        public HudView(HudLayout layout, Economy economy, TextMesh coins, TextMesh phase, TextMesh banner, SpriteRenderer coinIcon)
+        const float BannerPop = 0.25f;
+
+        public HudView(HudLayout layout, Economy economy, TextMesh coins, TextMesh phase, TextMesh banner, SpriteRenderer coinIcon,
+            SpriteRenderer topBand, SpriteRenderer bannerPill)
         {
             _coinIcon = coinIcon;
+            _topBand = topBand;
+            _bannerPill = bannerPill;
             _layout = layout;
             _economy = economy;
             _coins = coins;
@@ -25,6 +35,7 @@ namespace ScramblyFoxDefense.Presentation
             _economy.Changed += RefreshCoins;
             RefreshCoins();
             _banner.gameObject.SetActive(false);
+            _bannerPill.gameObject.SetActive(false);
         }
 
         public void Dispose() => _economy.Changed -= RefreshCoins;
@@ -35,13 +46,16 @@ namespace ScramblyFoxDefense.Presentation
         {
             _banner.text = text;
             _banner.gameObject.SetActive(true);
+            _bannerPill.gameObject.SetActive(true);
             _bannerTimer = seconds;
+            _bannerAge = 0f;
         }
 
         public void HideBanner()
         {
             _bannerTimer = 0f;
             _banner.gameObject.SetActive(false);
+            _bannerPill.gameObject.SetActive(false);
         }
 
         public void Tick(float deltaTime)
@@ -49,7 +63,13 @@ namespace ScramblyFoxDefense.Presentation
             PlaceCoinIcon(); // TextMesh rebuilds its bounds a frame after a text change
             if (_bannerTimer <= 0f) return;
             _bannerTimer -= deltaTime;
-            if (_bannerTimer <= 0f) _banner.gameObject.SetActive(false);
+            _bannerAge += deltaTime;
+            // Pop in with a small overshoot, then hold.
+            float t = Mathf.Clamp01(_bannerAge / BannerPop);
+            float pop = t < 1f ? Mathf.Lerp(0.6f, 1f, t) + Mathf.Sin(t * Mathf.PI) * 0.15f : 1f;
+            _banner.transform.localScale = _bannerScale * pop;
+            FitPill(pop);
+            if (_bannerTimer <= 0f) HideBanner();
         }
 
         public void Layout()
@@ -62,6 +82,21 @@ namespace ScramblyFoxDefense.Presentation
             PlaceCoinIcon();
             // 26 px fits the longest banner ("Demo rewards unlocked!") inside the 390 px reference width.
             _layout.PlaceText(_banner, new Vector2(0.5f, 1f), new Vector2(0f, -124f), 26f);
+            _bannerScale = _banner.transform.localScale;
+            _layout.Place(_bannerPill.transform, new Vector2(0.5f, 1f), new Vector2(0f, -124f), 1f);
+            _pillScale = _bannerPill.transform.localScale;
+            // Band covers the two top rows and bleeds past the screen edges and top.
+            _layout.Place(_topBand.transform, new Vector2(0.5f, 1f), new Vector2(0f, -44f), 1f);
+            _topBand.size = new Vector2(_layout.ScreenWidthPixels + 40f, 136f);
+        }
+
+        /// <summary>Pill hugs the banner text: its width follows the rendered text bounds.</summary>
+        void FitPill(float pop)
+        {
+            var bounds = _banner.GetComponent<Renderer>().bounds;
+            float widthPixels = bounds.size.x / Mathf.Max(_layout.PixelUnit, 1e-5f);
+            _bannerPill.size = new Vector2(Mathf.Max(120f, widthPixels / Mathf.Max(pop, 0.01f) + 36f), 42f);
+            _bannerPill.transform.localScale = _pillScale * pop;
         }
 
         void RefreshCoins()

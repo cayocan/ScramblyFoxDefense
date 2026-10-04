@@ -12,7 +12,8 @@ namespace ScramblyFoxDefense.EditorTools
         static readonly string[] Colormaps =
         {
             "Assets/Art/TowerDefense/Textures/colormap-scrambly.png",
-            "Assets/Art/CubePets/Textures/colormap-predators.png"
+            "Assets/Art/CubePets/Textures/colormap-predators.png",
+            "Assets/Art/TowerDefense/Textures/colormap-deco.png"
         };
 
         static readonly string[] Sprites = { "rounded", "lock-closed", "lock-open", "coin", "trophy", "medal", "basket", "hand", "sound-on", "sound-off" };

@@ -126,6 +126,8 @@ namespace ScramblyFoxDefense.EditorTools
                 tileTop = Mathf.Max(tileTop, Top(tile));
             }
 
+            Decorate(board, pathIndex, tileTop);
+
             var waypointRoot = new GameObject("Path").transform;
             waypointRoot.SetParent(board, false);
             var points = new List<Transform>();
@@ -146,6 +148,41 @@ namespace ScramblyFoxDefense.EditorTools
             }).ToArray();
 
             return tileTop;
+        }
+
+        /// <summary>
+        /// Deterministic scatter of autumn trees, rocks and crystals on the empty cells, so the board does not
+        /// read as a flat plane. Tall trees never stand in front of (camera side of) a path cell, where they
+        /// would hide predators, and nothing is placed next to a build slot.
+        /// </summary>
+        static void Decorate(Transform board, Dictionary<Vector2Int, int> pathIndex, float tileTop)
+        {
+            var root = new GameObject("Decoration").transform;
+            root.SetParent(board, false);
+            var random = new System.Random(7);
+            for (int row = 0; row < Rows; row++)
+            for (int column = 0; column < Columns; column++)
+            {
+                var cell = new Vector2Int(column, row);
+                if (pathIndex.ContainsKey(cell)) continue;
+                if (SlotCells.Any(slot => Mathf.Abs(slot.x - cell.x) <= 1 && Mathf.Abs(slot.y - cell.y) <= 1)) continue;
+                if (row >= Rows - 2 && column <= 2) continue; // keep the vault corner clear
+                if (random.NextDouble() > 0.62) continue;
+
+                // The cell behind on screen is row - 1 (further from the camera).
+                bool shortOnly = pathIndex.ContainsKey(cell + Vector2Int.down);
+                double roll = random.NextDouble();
+                string model = shortOnly
+                    ? (roll < 0.6 ? "detail-rocks" : "detail-crystal")
+                    : (roll < 0.45 ? "detail-tree" : roll < 0.7 ? "detail-tree-large" : roll < 0.87 ? "detail-rocks" : "detail-crystal");
+
+                var deco = Spawn(Kit + model + ".glb", root);
+                KitMaterials.Apply(deco, KitMaterials.Deco);
+                var offset = new Vector3((float)(random.NextDouble() - 0.5) * 0.3f, 0f, (float)(random.NextDouble() - 0.5) * 0.3f);
+                deco.transform.position = CellToWorld(cell) + offset + Vector3.up * tileTop;
+                deco.transform.rotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
+                deco.transform.localScale = Vector3.one * (0.85f + (float)random.NextDouble() * 0.3f);
+            }
         }
 
         static GameObject PathTile(List<Vector2Int> cells, int i, Transform parent)
@@ -412,6 +449,12 @@ namespace ScramblyFoxDefense.EditorTools
             root.SetParent(camera, false);
             var coin = Icon("Coin Icon", root, ArtImports.Sprite("coin"), 64f, new Color(1f, 0.78f, 0.25f));
             coin.name = "Coin Icon";
+            // Top band behind the buttons, balance and locks; laid out by HudView.
+            var band = Rounded("Top Band", root, new Vector2(420f, 140f), new Color(0.18f, 0.11f, 0.32f, 0.92f), -5);
+            band.name = "Top Band";
+            // Pill behind wave banners, resized to the text by HudView.
+            var pill = Rounded("Banner Pill", root, new Vector2(200f, 44f), new Color(0.13f, 0.07f, 0.22f, 0.9f), 4);
+            pill.name = "Banner Pill";
             return new[]
             {
                 CreateText("Coins", root, WarmWhite),
@@ -431,6 +474,8 @@ namespace ScramblyFoxDefense.EditorTools
                 var card = new GameObject($"Card {i}").transform;
                 card.SetParent(root, false);
 
+                var shadow = Rounded("Shadow", card, new Vector2(112f, 128f), new Color(0f, 0f, 0f, 0.35f), -2);
+                shadow.transform.localPosition = new Vector3(0f, -5f, 0f);
                 var background = Rounded("Background", card, new Vector2(112f, 128f), Color.white);
 
                 var face = Spawn(Pets + pet + ".glb", card);
@@ -600,6 +645,8 @@ namespace ScramblyFoxDefense.EditorTools
             so.FindProperty("poofPrefab").objectReferenceValue = prefabs.Poof;
             so.FindProperty("lockOpenSprite").objectReferenceValue = ArtImports.Sprite("lock-open");
             so.FindProperty("coinIcon").objectReferenceValue = camera.transform.Find("HUD/Coin Icon").GetComponent<SpriteRenderer>();
+            so.FindProperty("topBand").objectReferenceValue = camera.transform.Find("HUD/Top Band").GetComponent<SpriteRenderer>();
+            so.FindProperty("bannerPill").objectReferenceValue = camera.transform.Find("HUD/Banner Pill").GetComponent<SpriteRenderer>();
             SetArray(so.FindProperty("locks"), locks);
             var cardsProperty = so.FindProperty("cards");
             cardsProperty.arraySize = cards.Length;
