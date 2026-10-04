@@ -19,8 +19,9 @@ Opening `index.html` straight from disk (`file://`) does not work: browsers bloc
 
 1. Tap a card at the bottom (Pop Blaster, Puzzle Pulse, Racer Zap). The free slots pulse.
 2. Tap a pulsing slot to build. The first build starts wave 1 (it also starts on its own after 8 s).
-3. Tap a tower to upgrade it (up to level 3). The badge above it shows the cost.
-4. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time; the speaker button next to it mutes the sound.
+3. Tap a tower to upgrade it (up to level 3). The badge above it shows the cost. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
+4. Clear a wave with no predator reaching the vault for a gold lock (perfect wave). Each wave pays a bonus, and the breather tells you what comes next.
+5. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time; the speaker button next to it mutes the sound.
 
 ## Package contents
 
@@ -77,8 +78,8 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Tutorial | First card, then slot | Chrome headless screenshots | Hand points at the first card, then at the slot nearest the path start |
 | Package | Production ZIP unpacked into an empty folder, served with `python -m http.server` | Chrome headless (`TEST_URL`) | All checks above pass from the unpacked ZIP; `index.html` at the root |
 | Full flow | Whole session with no input, then **Explore Scrambly** and **Play again** | Chrome headless, real touch taps (`FULL=1`) | End card reached; "CTA clicked — demo only" on screen and in the console; URL unchanged; Play again back to Discover with 70 coins |
-| Flow | No towers at all | Editor, SessionSimulator | Reaches the end card in 78 s, 27 leaks, wallet never below 0 |
-| Flow | Balance plans (1 tower, 2 towers, upgrades) | Editor, SessionSimulator | 57 s / 12 leaks; 54 s / 1 leak; 44 s / 0 leaks |
+| Flow | No towers at all | Editor, SessionSimulator | Reaches the end card in 83 s, 29 leaks, wallet never below 0 |
+| Flow | Balance plans (each tower alone, pairs, three towers) | Editor, SessionSimulator | Alone: 58–70 s, 9–15 leaks; pairs: 54–61 s, 1–4 leaks; three towers or two + upgrade: 48–51 s, 0 leaks (details in `docs/rag/decisions.md`) |
 | CTA | Tap **Explore Scrambly** | Editor, simulated tap | "CTA clicked — demo only" on screen and in the console; no navigation |
 | Restart | 10 restarts in a row mid-wave | Editor | Identical state each time (1 installer, same object count), 0 errors |
 

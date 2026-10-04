@@ -16,7 +16,7 @@ namespace ScramblyFoxDefense.Presentation
         const float PoofTime = 0.3f;
 
         sealed class Flash { public Renderer[] Renderers; public float Time; }
-        sealed class Poof { public GameObject GameObject; public float Time; }
+        sealed class Poof { public GameObject GameObject; public float Time; public float Size; public Color Color; }
 
         readonly EnemySystem _enemies;
         readonly TowerSystem _towers;
@@ -36,6 +36,7 @@ namespace ScramblyFoxDefense.Presentation
             _enemies.Killed += OnKilled;
             _towers.Built += Cheer;
             _towers.Upgraded += Cheer;
+            _towers.Splashed += OnSplashed;
         }
 
         public void Dispose()
@@ -44,6 +45,7 @@ namespace ScramblyFoxDefense.Presentation
             _enemies.Killed -= OnKilled;
             _towers.Built -= Cheer;
             _towers.Upgraded -= Cheer;
+            _towers.Splashed -= OnSplashed;
         }
 
         public void Tick(float deltaTime)
@@ -72,10 +74,10 @@ namespace ScramblyFoxDefense.Presentation
                 }
                 var transform = poof.GameObject.transform;
                 transform.rotation = _camera.rotation;
-                transform.localScale = Vector3.one * Mathf.Lerp(0.004f, 0.016f, 1f - (1f - t) * (1f - t));
+                transform.localScale = Vector3.one * poof.Size * Mathf.Lerp(0.25f, 1f, 1f - (1f - t) * (1f - t));
                 var sprite = poof.GameObject.GetComponent<SpriteRenderer>();
-                var color = sprite.color;
-                color.a = 1f - t;
+                var color = poof.Color;
+                color.a *= 1f - t;
                 sprite.color = color;
             }
         }
@@ -99,9 +101,23 @@ namespace ScramblyFoxDefense.Presentation
                 foreach (var renderer in flash.Renderers) Tint.Flash(renderer, 0f);
                 _flashes.Remove(enemy);
             }
+            Spawn(enemy.Transform.position + Vector3.up * 0.3f, 0.016f, new Color(1f, 0.96f, 0.91f));
+        }
+
+        /// <summary>Area hit (Puzzle Pulse): a purple ring the size of the blast.</summary>
+        void OnSplashed(Vector3 center, float radius)
+        {
+            // Poof sprite is 64 px at 1 px/unit: diameter = 2 * radius world units.
+            Spawn(center + Vector3.up * 0.1f, radius * 2f / 64f, new Color(0.47f, 0.27f, 0.85f, 0.8f));
+        }
+
+        void Spawn(Vector3 position, float size, Color color)
+        {
             var go = _poofPool.Get();
-            go.transform.position = enemy.Transform.position + Vector3.up * 0.3f;
-            _poofs.Add(new Poof { GameObject = go });
+            go.transform.position = position;
+            // Sprites sort by order before distance: keep world effects under every HUD element.
+            go.GetComponent<SpriteRenderer>().sortingOrder = -10;
+            _poofs.Add(new Poof { GameObject = go, Size = size, Color = color });
         }
 
         static void Cheer(Tower tower)

@@ -295,15 +295,15 @@ namespace ScramblyFoxDefense.EditorTools
                     }},
                     new TowerDefinition { displayName = "Puzzle Pulse", levels = new[]
                     {
-                        new TowerLevel { cost = 45, damage = 5, fireRate = 0.9f, range = 2.2f, splashRadius = 1.4f },
-                        new TowerLevel { cost = 50, damage = 8, fireRate = 0.9f, range = 2.2f, splashRadius = 1.4f },
-                        new TowerLevel { cost = 70, damage = 12, fireRate = 0.9f, range = 2.2f, splashRadius = 1.8f }
+                        new TowerLevel { cost = 40, damage = 7, fireRate = 1f, range = 2.4f, splashRadius = 1.5f },
+                        new TowerLevel { cost = 50, damage = 10, fireRate = 1f, range = 2.4f, splashRadius = 1.6f },
+                        new TowerLevel { cost = 70, damage = 14, fireRate = 1.1f, range = 2.4f, splashRadius = 1.9f }
                     }},
                     new TowerDefinition { displayName = "Racer Zap", levels = new[]
                     {
-                        new TowerLevel { cost = 55, damage = 14, fireRate = 0.6f, range = 3.2f },
-                        new TowerLevel { cost = 60, damage = 20, fireRate = 0.6f, range = 3.2f },
-                        new TowerLevel { cost = 80, damage = 28, fireRate = 0.7f, range = 3.2f }
+                        new TowerLevel { cost = 55, damage = 16, fireRate = 0.7f, range = 3.6f },
+                        new TowerLevel { cost = 60, damage = 24, fireRate = 0.75f, range = 3.8f },
+                        new TowerLevel { cost = 80, damage = 34, fireRate = 0.85f, range = 4f }
                     }}
                 };
                 config.enemies = new[]
@@ -315,13 +315,14 @@ namespace ScramblyFoxDefense.EditorTools
                 config.waves = new[]
                 {
                     new WaveDefinition { spawnInterval = 1.8f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 } } },
-                    new WaveDefinition { spawnInterval = 1.3f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 5 }, new SpawnGroup { enemyIndex = 1, count = 4 } } },
-                    new WaveDefinition { spawnInterval = 1.1f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 }, new SpawnGroup { enemyIndex = 1, count = 4 }, new SpawnGroup { enemyIndex = 2, count = 2 } } }
+                    new WaveDefinition { spawnInterval = 1.3f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 5 }, new SpawnGroup { enemyIndex = 1, count = 5 } } },
+                    new WaveDefinition { spawnInterval = 1.1f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 }, new SpawnGroup { enemyIndex = 1, count = 4 }, new SpawnGroup { enemyIndex = 2, count = 3 } } }
                 };
                 Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath));
                 AssetDatabase.CreateAsset(config, ConfigPath);
             }
 
+            ApplyFeelDefaults(config);
             config.towers[0].prefab = prefabs.PopBlaster;
             config.towers[1].prefab = prefabs.PuzzlePulse;
             config.towers[2].prefab = prefabs.RacerZap;
@@ -331,6 +332,31 @@ namespace ScramblyFoxDefense.EditorTools
             EditorUtility.SetDirty(config);
             AssetDatabase.SaveAssets();
             return config;
+        }
+
+        /// <summary>Tower feel and wave pacing (progression pass); only fills fields that are still unset.</summary>
+        static void ApplyFeelDefaults(GameConfig config)
+        {
+            if (string.IsNullOrEmpty(config.waves[1].intro))
+            {
+                config.waves[0].intro = "Lions want the coins!"; config.waves[0].clearBonus = 15;
+                config.waves[1].intro = "Next: Tigers — fast!"; config.waves[1].clearBonus = 20;
+                config.waves[2].intro = "Next: Polar bears — tough!";
+            }
+            if (config.towers[0].projectileSpeed <= 0f)
+            {
+                SetFeel(config.towers[0], TargetMode.First, new Color(0.96f, 0.51f, 0.14f), 0.8f, 11f);
+                SetFeel(config.towers[1], TargetMode.First, new Color(0.55f, 0.35f, 0.95f), 1.6f, 6f);
+                SetFeel(config.towers[2], TargetMode.Strongest, new Color(1f, 0.85f, 0.2f), 0.7f, 18f);
+            }
+        }
+
+        static void SetFeel(TowerDefinition tower, TargetMode targeting, Color color, float scale, float speed)
+        {
+            tower.targeting = targeting;
+            tower.projectileColor = color;
+            tower.projectileScale = scale;
+            tower.projectileSpeed = speed;
         }
 
         // ---------- Scene plumbing ----------

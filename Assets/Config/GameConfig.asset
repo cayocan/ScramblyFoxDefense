@@ -15,7 +15,7 @@ MonoBehaviour:
   startingCoins: 70
   leakPenalty: 5
   introMaxSeconds: 8
-  breatherSeconds: 3
+  breatherSeconds: 4
   maxDeltaTime: 0.1
   pickRadiusCssPixels: 44
   projectileSpeed: 9
@@ -38,42 +38,54 @@ MonoBehaviour:
       fireRate: 2.8
       range: 2.3
       splashRadius: 0
+    targeting: 0
+    projectileColor: {r: 0.96, g: 0.51, b: 0.14, a: 1}
+    projectileScale: 0.8
+    projectileSpeed: 11
   - displayName: Puzzle Pulse
     prefab: {fileID: 4492201258704696411, guid: 06ee0ba2f7e1399428a14340269e461f, type: 3}
     levels:
-    - cost: 45
-      damage: 5
-      fireRate: 0.9
-      range: 2.2
-      splashRadius: 1.4
+    - cost: 40
+      damage: 7
+      fireRate: 1
+      range: 2.4
+      splashRadius: 1.5
     - cost: 50
-      damage: 8
-      fireRate: 0.9
-      range: 2.2
-      splashRadius: 1.4
+      damage: 10
+      fireRate: 1
+      range: 2.4
+      splashRadius: 1.6
     - cost: 70
-      damage: 12
-      fireRate: 0.9
-      range: 2.2
-      splashRadius: 1.8
+      damage: 14
+      fireRate: 1.1
+      range: 2.4
+      splashRadius: 1.9
+    targeting: 0
+    projectileColor: {r: 0.55, g: 0.35, b: 0.95, a: 1}
+    projectileScale: 1.6
+    projectileSpeed: 6
   - displayName: Racer Zap
     prefab: {fileID: 3314988925487226172, guid: afef9bd3fdace124491cbb98238f7dcd, type: 3}
     levels:
     - cost: 55
-      damage: 14
-      fireRate: 0.6
-      range: 3.2
+      damage: 16
+      fireRate: 0.7
+      range: 3.6
       splashRadius: 0
     - cost: 60
-      damage: 20
-      fireRate: 0.6
-      range: 3.2
+      damage: 24
+      fireRate: 0.75
+      range: 3.8
       splashRadius: 0
     - cost: 80
-      damage: 28
-      fireRate: 0.7
-      range: 3.2
+      damage: 34
+      fireRate: 0.85
+      range: 4
       splashRadius: 0
+    targeting: 1
+    projectileColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+    projectileScale: 0.7
+    projectileSpeed: 18
   enemies:
   - displayName: Snatcher
     prefab: {fileID: 4392959943242693288, guid: 9e1385fef95b13c4a878d9e7b71ee98e, type: 3}
@@ -95,17 +107,23 @@ MonoBehaviour:
     - enemyIndex: 0
       count: 6
     spawnInterval: 1.8
+    intro: Lions want the coins!
+    clearBonus: 15
   - groups:
     - enemyIndex: 0
       count: 5
     - enemyIndex: 1
-      count: 4
+      count: 5
     spawnInterval: 1.3
+    intro: "Next: Tigers \u2014 fast!"
+    clearBonus: 20
   - groups:
     - enemyIndex: 0
       count: 6
     - enemyIndex: 1
       count: 4
     - enemyIndex: 2
-      count: 2
+      count: 3
     spawnInterval: 1.1
+    intro: "Next: Polar bears \u2014 tough!"
+    clearBonus: 0

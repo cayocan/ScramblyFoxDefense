@@ -38,6 +38,12 @@ namespace ScramblyFoxDefense.Presentation
             _bannerTimer = seconds;
         }
 
+        public void HideBanner()
+        {
+            _bannerTimer = 0f;
+            _banner.gameObject.SetActive(false);
+        }
+
         public void Tick(float deltaTime)
         {
             PlaceCoinIcon(); // TextMesh rebuilds its bounds a frame after a text change
@@ -54,7 +60,8 @@ namespace ScramblyFoxDefense.Presentation
             _layout.PlaceText(_coins, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f);
             _layout.Place(_coinIcon.transform, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f / 64f);
             PlaceCoinIcon();
-            _layout.PlaceText(_banner, new Vector2(0.5f, 1f), new Vector2(0f, -120f), 34f);
+            // 26 px fits the longest banner ("Demo rewards unlocked!") inside the 390 px reference width.
+            _layout.PlaceText(_banner, new Vector2(0.5f, 1f), new Vector2(0f, -124f), 26f);
         }
 
         void RefreshCoins()

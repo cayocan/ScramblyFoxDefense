@@ -12,6 +12,8 @@ namespace ScramblyFoxDefense.States
     public sealed class GameSession
     {
         public int WaveIndex;
+        /// <summary>Waves cleared with no predator reaching the vault (one star each).</summary>
+        public int PerfectWaves;
     }
 
     /// <summary>Discover: wave 1 starts on the first build or after the intro timeout.</summary>
@@ -64,10 +66,13 @@ namespace ScramblyFoxDefense.States
         readonly HudView _hud;
         readonly LockBarView _locks;
         readonly IAudioService _audio;
+        readonly Economy _economy;
+        int _leaksAtStart;
 
-        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud, LockBarView locks, IAudioService audio)
+        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud, LockBarView locks, IAudioService audio, Economy economy)
         {
             _audio = audio;
+            _economy = economy;
             _machine = machine;
             _config = config;
             _session = session;
@@ -81,6 +86,7 @@ namespace ScramblyFoxDefense.States
             bool last = _session.WaveIndex == _config.waves.Length - 1;
             _hud.SetPhase("Play");
             _hud.ShowBanner(last ? "Final wave!" : $"Wave {_session.WaveIndex + 1}", 1.5f);
+            _leaksAtStart = _economy.Leaks;
             _spawner.Begin(_config.waves[_session.WaveIndex]);
             _audio.Play(Sound.Wave);
         }
@@ -90,8 +96,15 @@ namespace ScramblyFoxDefense.States
             _spawner.Tick(deltaTime);
             if (!_spawner.Finished) return;
 
-            _locks.Unlock(_session.WaveIndex);
-            _audio.Play(Sound.Unlock);
+            // Reward that grows with skill: a perfect wave earns a star (gold lock) on top of the clear bonus.
+            bool perfect = _economy.Leaks == _leaksAtStart;
+            if (perfect) _session.PerfectWaves++;
+            var wave = _config.waves[_session.WaveIndex];
+            if (wave.clearBonus > 0) _economy.Earn(wave.clearBonus);
+            string bonus = wave.clearBonus > 0 ? $"  +{wave.clearBonus}" : "";
+            _hud.ShowBanner(perfect ? $"Perfect wave!{bonus}" : $"Wave cleared{bonus}", 1.6f);
+            _locks.Unlock(_session.WaveIndex, perfect);
+            _audio.Play(perfect ? Sound.Upgrade : Sound.Unlock);
             if (_session.WaveIndex >= _config.waves.Length - 1) _machine.Enter<RedeemState>();
             else _machine.Enter<BreatherState>();
         }
@@ -105,24 +118,35 @@ namespace ScramblyFoxDefense.States
         readonly GameStateMachine _machine;
         readonly GameConfig _config;
         readonly GameSession _session;
+        readonly HudView _hud;
         float _elapsed;
+        bool _previewShown;
 
-        public BreatherState(GameStateMachine machine, GameConfig config, GameSession session)
+        public BreatherState(GameStateMachine machine, GameConfig config, GameSession session, HudView hud)
         {
             _machine = machine;
             _config = config;
             _session = session;
+            _hud = hud;
         }
 
         public void Enter()
         {
             _elapsed = 0f;
+            _previewShown = false;
             _session.WaveIndex++;
         }
 
         public void Tick(float deltaTime)
         {
             _elapsed += deltaTime;
+            // After the clear banner: tell the player what the next wave brings, so they can prepare.
+            if (!_previewShown && _elapsed >= 1.6f)
+            {
+                _previewShown = true;
+                string intro = _config.waves[_session.WaveIndex].intro;
+                if (!string.IsNullOrEmpty(intro)) _hud.ShowBanner(intro, _config.breatherSeconds - 1.6f);
+            }
             if (_elapsed >= _config.breatherSeconds) _machine.Enter<WaveState>();
         }
 
@@ -187,8 +211,13 @@ namespace ScramblyFoxDefense.States
         readonly InputRouter _input;
         readonly IAudioService _audio;
 
-        public EndCardState(Economy economy, HudView hud, EndCardView endCard, RestartController restart, InputRouter input, IAudioService audio)
+        readonly GameSession _session;
+        readonly int _waveCount;
+
+        public EndCardState(Economy economy, HudView hud, EndCardView endCard, RestartController restart, InputRouter input, IAudioService audio, GameSession session, int waveCount)
         {
+            _session = session;
+            _waveCount = waveCount;
             _audio = audio;
             _economy = economy;
             _hud = hud;
@@ -200,7 +229,10 @@ namespace ScramblyFoxDefense.States
         public void Enter()
         {
             _hud.SetPhase("Redeem");
-            _endCard.Show(_economy.Leaks == 0 ? "Perfect defense!" : "Nice defense!", _economy.Collected);
+            _hud.HideBanner(); // the end card panel takes over the centre of the screen
+            int stars = _session.PerfectWaves;
+            string title = stars == _waveCount ? "Perfect defense!" : stars > 0 ? "Great defense!" : "Nice defense!";
+            _endCard.Show(title, _economy.Collected, stars, _waveCount);
             _audio.Play(Sound.Fanfare);
             _endCard.CtaClicked += OnCta;
             _endCard.PlayAgainClicked += _restart.Restart;

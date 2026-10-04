@@ -13,7 +13,7 @@ namespace ScramblyFoxDefense.Config
 
         [Header("Flow (seconds of scaled time)")]
         public float introMaxSeconds = 8f;
-        public float breatherSeconds = 3f;
+        public float breatherSeconds = 4f;
         public float maxDeltaTime = 0.1f;
 
         [Header("Input")]
@@ -35,7 +35,17 @@ namespace ScramblyFoxDefense.Config
         public string displayName;
         public GameObject prefab;
         public TowerLevel[] levels = Array.Empty<TowerLevel>();
+
+        [Header("Feel")]
+        public TargetMode targeting = TargetMode.First;
+        public Color projectileColor = new Color(0.96f, 0.51f, 0.14f);
+        public float projectileScale = 1f;
+        [Tooltip("0 = GameConfig.projectileSpeed.")]
+        public float projectileSpeed;
     }
+
+    /// <summary>First = furthest along the path (stops leaks); Strongest = most health left (sniper).</summary>
+    public enum TargetMode { First, Strongest }
 
     [Serializable]
     public sealed class TowerLevel
@@ -63,6 +73,10 @@ namespace ScramblyFoxDefense.Config
     {
         public SpawnGroup[] groups = Array.Empty<SpawnGroup>();
         public float spawnInterval = 1f;
+        [Tooltip("Shown in the breather before this wave: what is new.")]
+        public string intro = "";
+        [Tooltip("Demo coins paid when the wave is cleared.")]
+        public int clearBonus;
     }
 
     [Serializable]
