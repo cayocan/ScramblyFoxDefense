@@ -1,3 +1,5 @@
+using System;
+using ScramblyFoxDefense.Config;
 using ScramblyFoxDefense.Gameplay;
 
 namespace ScramblyFoxDefense.Audio
@@ -8,9 +10,11 @@ namespace ScramblyFoxDefense.Audio
         readonly IAudioService _audio;
         readonly EnemySystem _enemies;
         readonly TowerSystem _towers;
+        readonly GameConfig _config;
 
-        public SoundCues(IAudioService audio, EnemySystem enemies, TowerSystem towers)
+        public SoundCues(IAudioService audio, EnemySystem enemies, TowerSystem towers, GameConfig config)
         {
+            _config = config;
             _audio = audio;
             _enemies = enemies;
             _towers = towers;
@@ -34,6 +38,11 @@ namespace ScramblyFoxDefense.Audio
         void OnLeaked(Enemy enemy) => _audio.Play(Sound.Leak);
         void OnBuilt(Tower tower) => _audio.Play(Sound.Build);
         void OnUpgraded(Tower tower) => _audio.Play(Sound.Upgrade);
-        void OnFired(Tower tower) => _audio.Play(Sound.Shoot);
+        /// <summary>Each tower has its own shot: quick pop, deep pulse, sharp zap.</summary>
+        void OnFired(Tower tower)
+        {
+            int index = Array.IndexOf(_config.towers, tower.Definition);
+            _audio.Play(index == 1 ? Sound.ShootPulse : index == 2 ? Sound.ShootZap : Sound.ShootPop);
+        }
     }
 }

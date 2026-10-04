@@ -69,7 +69,7 @@
     // ---- Sound: synthesized with Web Audio (no audio files, no Unity audio module) ----
     // Brief: starts only after a user interaction, has a mute control, is silent while the page is hidden.
     window.scramblySfx = (function () {
-      var ctx = null, master = null, muted = false, lastShot = 0;
+      var ctx = null, master = null, muted = false, lastShot = {};
 
       function unlock() {
         if (!ctx) {
@@ -166,7 +166,10 @@
         /* 8 Coin    */ function () { tone(1319, 0, 0.07, "square", 0.08); tone(1976, 0.05, 0.12, "square", 0.08); },
         /* 9 Cta     */ function () { tone(523, 0, 0.1, "triangle", 0.3); tone(784, 0.08, 0.1, "triangle", 0.3); tone(1047, 0.16, 0.22, "triangle", 0.3); },
         /* 10 Deny   */ function () { tone(180, 0, 0.12, "square", 0.12); tone(150, 0.1, 0.14, "square", 0.12); },
-        /* 11 Fanfare*/ function () { [523, 659, 784, 1047, 784, 1047].forEach(function (f, i) { tone(f, i * 0.1, 0.18, "triangle", 0.26); }); }
+        /* 11 Fanfare*/ function () { [523, 659, 784, 1047, 784, 1047].forEach(function (f, i) { tone(f, i * 0.1, 0.18, "triangle", 0.26); }); },
+        /* 12 ShootPop  */ function () { tone(1400, 0, 0.07, "square", 0.14, 700); tone(2100, 0, 0.04, "triangle", 0.1); },
+        /* 13 ShootPulse*/ function () { tone(320, 0, 0.2, "sine", 0.4, 150); tone(640, 0, 0.12, "triangle", 0.15, 300); },
+        /* 14 ShootZap  */ function () { tone(2400, 0, 0.1, "sawtooth", 0.12, 800); tone(1200, 0.02, 0.08, "square", 0.08, 2400); }
       ];
 
       return {
@@ -178,7 +181,11 @@
         musicStep: function () { return musicTimer ? musicStep : -1; }, // for tests: advances only while audible
         play: function (id) {
           if (!ctx || muted || window.scramblyPaused || ctx.state !== "running") return;
-          if (id === 3) { var now = ctx.currentTime; if (now - lastShot < 0.07) return; lastShot = now; } // cap shot spam
+          if (id === 3 || id >= 12) { // cap shot spam per sound
+            var now = ctx.currentTime;
+            if (now - (lastShot[id] || 0) < 0.06) return;
+            lastShot[id] = now;
+          }
           if (sounds[id]) sounds[id]();
         }
       };

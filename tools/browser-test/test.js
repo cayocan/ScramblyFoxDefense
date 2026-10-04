@@ -112,7 +112,7 @@ async function setHidden(page, hidden) {
     await full.page.touchscreen.tap(73, 766);  // tutorial step 1: first card
     await sleep(300);
     await full.page.touchscreen.tap(165, 182); // tutorial step 2: first slot -> wave 1 starts
-    await sleep(75000); // one tower: the session reaches the end card in ~65 s
+    await sleep(70000); // one tower: the fox falls in wave 3 (~60 s) and the end card opens
     await full.page.screenshot({ path: path.join(OUT, 'b-full-endcard.png') });
     await full.page.touchscreen.tap(195, 508); // Explore Scrambly (panel centre - 10 px, button at -96 px)
     await sleep(800);

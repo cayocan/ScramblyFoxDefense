@@ -33,11 +33,10 @@ namespace ScramblyFoxDefense.Gameplay
             Changed?.Invoke();
         }
 
-        /// <summary>A predator reached the vault: lose coins, never below zero.</summary>
-        public void Leak(int penalty)
+        /// <summary>A predator reached the vault. Coins already earned are never taken away.</summary>
+        public void RegisterLeak()
         {
             Leaks++;
-            Wallet = Math.Max(0, Wallet - penalty);
             Changed?.Invoke();
         }
     }

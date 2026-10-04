@@ -1,5 +1,6 @@
 using ScramblyFoxDefense.Config;
 using ScramblyFoxDefense.Gameplay;
+using ScramblyFoxDefense.States;
 using UnityEngine;
 
 namespace ScramblyFoxDefense.Presentation
@@ -24,13 +25,18 @@ namespace ScramblyFoxDefense.Presentation
         readonly TowerSystem _towers;
         readonly EnemySystem _enemies;
         readonly Economy _economy;
+        readonly GameSession _session;
         bool _upgradeHintDone;
+
+        // The first waves are free play (build more towers); upgrades are taught from wave 3.
+        const int UpgradeHintFromWave = 2;
         float _idle;
         float _time;
 
         public TutorialHand(SpriteRenderer hand, HudLayout layout, Camera camera, GameConfig config, PlayerActions actions,
-            CardView[] cards, SlotManager slots, TowerSystem towers, EnemySystem enemies, Economy economy)
+            CardView[] cards, SlotManager slots, TowerSystem towers, EnemySystem enemies, Economy economy, GameSession session)
         {
+            _session = session;
             _hand = hand;
             _layout = layout;
             _camera = camera;
@@ -78,7 +84,7 @@ namespace ScramblyFoxDefense.Presentation
                 return _slots.Slots[0].Transform.position;
             }
 
-            var upgradable = CheapestAffordableUpgrade();
+            var upgradable = _session.WaveIndex >= UpgradeHintFromWave ? CheapestAffordableUpgrade() : null;
             if (!_upgradeHintDone && upgradable != null) return upgradable.Transform.position + Vector3.up * 0.6f;
 
             // Idle hint between waves: the best affordable action.

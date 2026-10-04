@@ -9,7 +9,8 @@ namespace ScramblyFoxDefense.Config
     {
         [Header("Economy")]
         public int startingCoins = 70;
-        public int leakPenalty = 5;
+        [Tooltip("Predators that reach the vault hurt the fox (demo coins are never taken).")]
+        public int foxHealth = 10;
 
         [Header("Flow (seconds of scaled time)")]
         public float introMaxSeconds = 8f;
@@ -66,6 +67,8 @@ namespace ScramblyFoxDefense.Config
         public float health;
         public float speed;
         public int coinReward;
+        [Tooltip("Fox health lost when this predator reaches the vault.")]
+        public int foxDamage = 1;
     }
 
     [Serializable]

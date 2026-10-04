@@ -46,10 +46,10 @@ namespace ScramblyFoxDefense.Presentation
 
         public bool IsShown => _panel.gameObject.activeSelf;
 
-        public void Show(string title, int collected, int perfectWaves, int waves)
+        public void Show(string title, string details)
         {
             _title.text = title;
-            _collected.text = $"You collected {collected} demo coins\nPerfect waves: {perfectWaves}/{waves}";
+            _collected.text = details;
             _panel.gameObject.SetActive(true);
             foreach (var reward in _rewards) reward.localScale = Vector3.zero;
             _time = 0f;

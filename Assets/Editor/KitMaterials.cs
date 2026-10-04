@@ -24,6 +24,8 @@ namespace ScramblyFoxDefense.EditorTools
         // Predators read as "the other side": purple version of the pet palette (GDD section 6).
         public static Material Enemies => GetOrCreate("EnemyKit", PredatorTexture, Color.white);
         public static Material Deco => GetOrCreate("DecoKit", DecoTexture, Color.white);
+        // Ground outside the play area: same palette, slightly darker so the board still reads as the arena.
+        public static Material OuterGround => GetOrCreate("OuterGround", TowerTexture, new Color(0.84f, 0.77f, 0.7f));
 
         public static Material Tinted(string name, Color color) => GetOrCreate(name, null, color);
 

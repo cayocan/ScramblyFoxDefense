@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::ScramblyFoxDefense.Config.GameConfig
   startingCoins: 70
-  leakPenalty: 5
+  foxHealth: 10
   introMaxSeconds: 8
   breatherSeconds: 4
   maxDeltaTime: 0.1
@@ -92,16 +92,19 @@ MonoBehaviour:
     health: 15
     speed: 1.6
     coinReward: 6
+    foxDamage: 1
   - displayName: Dart
     prefab: {fileID: 2977190006061930877, guid: da252cc5470e4064b975b0a5db265021, type: 3}
     health: 9
     speed: 2.8
     coinReward: 7
+    foxDamage: 1
   - displayName: Hauler
     prefab: {fileID: 3689342531642266020, guid: ac5875210c44e3340854d372aba7758c, type: 3}
     health: 60
     speed: 1
     coinReward: 15
+    foxDamage: 3
   waves:
   - groups:
     - enemyIndex: 0
@@ -126,4 +129,14 @@ MonoBehaviour:
       count: 3
     spawnInterval: 1.1
     intro: "Next: Polar bears \u2014 tough!"
+    clearBonus: 25
+  - groups:
+    - enemyIndex: 0
+      count: 8
+    - enemyIndex: 1
+      count: 6
+    - enemyIndex: 2
+      count: 4
+    spawnInterval: 0.9
+    intro: 'Final wave: everyone at once!'
     clearBonus: 0

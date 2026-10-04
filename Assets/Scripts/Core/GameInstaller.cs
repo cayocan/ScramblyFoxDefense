@@ -30,6 +30,7 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] Sprite sparkSprite;
         [SerializeField] Sprite ringSprite;
         [SerializeField] Sprite arrowSprite;
+        [SerializeField] Sprite roundedSprite;
 
         [Header("Scene roots")]
         [SerializeField] Transform enemyRoot;
@@ -70,6 +71,8 @@ namespace ScramblyFoxDefense.Core
         CoinPopFx _coinFx;
         FeedbackFx _feedback;
         SparkFx _sparks;
+        FoxHealthBar _foxBar;
+        TutorialFocus _tutorialFocus;
         TutorialHand _tutorial;
         HudLayout _layout;
         HudView _hud;
@@ -97,7 +100,8 @@ namespace ScramblyFoxDefense.Core
 
             _pagePause = new PagePause(new WebPageState());
             _input = new InputRouter();
-            _enemies = new EnemySystem(config, path, economy, enemyRoot);
+            var fox = new FoxHealth(config.foxHealth);
+            _enemies = new EnemySystem(config, path, economy, fox, enemyRoot);
             var spawner = new WaveSpawner(_enemies);
             _towers = new TowerSystem(config, economy, _enemies, towerRoot, projectilePrefab);
             var slots = new SlotManager(slotTransforms, mainCamera, config.pickRadiusCssPixels);
@@ -117,9 +121,11 @@ namespace ScramblyFoxDefense.Core
             _actions = new PlayerActions(config, _input, _cardBar, slots, _towers, economy, audio, tutorialGate);
             _badges = new TowerBadges(_towers, economy, badgePrefab, ringSprite, arrowSprite, mainCamera.transform);
             _slotHighlighter = new SlotHighlighter(slots, _actions);
-            _tutorial = new TutorialHand(tutorialHand, _layout, mainCamera, config, _actions, cards, slots, _towers, _enemies, economy);
+            _tutorial = new TutorialHand(tutorialHand, _layout, mainCamera, config, _actions, cards, slots, _towers, _enemies, economy, session);
+            _tutorialFocus = new TutorialFocus(tutorialGate, _cardBar, slots, restartButton);
             _coinFx = new CoinPopFx(_enemies, coinPrefab, fxRoot);
-            _soundCues = new SoundCues(audio, _enemies, _towers);
+            _soundCues = new SoundCues(audio, _enemies, _towers, config);
+            _foxBar = new FoxHealthBar(fox, vault.Find("animal-fox"), roundedSprite, mainCamera.transform);
             _feedback = new FeedbackFx(_enemies, _towers, poofPrefab, fxRoot, mainCamera.transform);
             _sparks = new SparkFx(_towers, sparkSprite, fxRoot, mainCamera.transform);
             _cameraFit = new CameraFit(mainCamera, boardCenter, boardSize.x, boardSize.y);
@@ -128,10 +134,10 @@ namespace ScramblyFoxDefense.Core
 
             _machine = new GameStateMachine();
             _machine.Register(new IntroState(_machine, config, _towers, _actions, _hud));
-            _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar, audio, economy));
+            _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar, audio, economy, fox));
             _machine.Register(new BreatherState(_machine, config, session, _hud));
             _machine.Register(new RedeemState(_machine, _actions, _hud, _redeem, _input, _cardBar, _badges, audio));
-            _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input, audio, session, config.waves.Length));
+            _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input, audio, session, config.waves.Length, fox, _enemies, _actions, _cardBar, _badges));
         }
 
         void Start() => _machine.Enter<IntroState>();
@@ -157,6 +163,8 @@ namespace ScramblyFoxDefense.Core
             _coinFx.Tick(deltaTime);
             _feedback.Tick(deltaTime);
             _sparks.Tick(deltaTime);
+            _foxBar.Tick(deltaTime);
+            _tutorialFocus.Tick();
             _badges.Tick(deltaTime);
             _hud.Tick(deltaTime);
             _cardBar.Tick(deltaTime);
@@ -178,6 +186,7 @@ namespace ScramblyFoxDefense.Core
             _coinFx?.Dispose();
             _feedback?.Dispose();
             _sparks?.Dispose();
+            _foxBar?.Dispose();
             _tutorial?.Dispose();
             _hud?.Dispose();
         }
