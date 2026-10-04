@@ -73,6 +73,12 @@ Matches GDD intent: one tower handles wave 1, wave 3 needs 2+ towers or upgrades
 - Correction: with the watchdog keeping Unity in front, Play Mode advances in real time, which skewed SessionSimulator runs; the editor is now paused right after entering Play Mode.
 - Size after the pass: ZIP 3,103,873 bytes (build 2,714,300).
 
+## 2026-10-04 — Synth music and editor audio
+
+- User asked for synthesized audio only, with music. Added a soft 4-bar loop (C pentatonic melody over I-vi-IV-V, 100 BPM) to the page synth, scheduled on the AudioContext clock with a lookahead timer, so it freezes in place whenever the context is suspended (hidden, landscape, muted). Browser test: music step advances after the first tap and stays frozen while hidden.
+- The user heard nothing because they tested in the editor, where the page synth does not exist. Added `EditorSynth` (C# port of the same cues and loop, `OnAudioFilterRead`), compiled only under `UNITY_EDITOR`; `com.unity.modules.audio` is in the manifest for the editor, and the linker report confirms no Audio module in the WebGL build. The AudioListener is added at runtime in the editor only (a scene listener would pull audio into the build). The two synth tables must be kept in sync.
+- The interrupted batchmode build had already deleted `Builds/WebGL`; builds now go through the Pipeline while the editor is open. Stray `Assets/Resources/PerformanceTestRun*` files (performance test framework, generated during builds) are gitignored so they never ship.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

@@ -15,3 +15,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | unity-remote-tools | 2026-10-03 14:05 | 2026-10-03 14:12 | 0h 06min | Win32 tool to read/click Unity dialogs, focus and capture the editor; watchdog auto-answers scene-reload dialogs, keeps PC awake |
 | art-pass | 2026-10-03 14:15 | 2026-10-03 14:51 | 0h 36min | Fredoka, palette recolor, rounded UI and icons, hit flash/poof/cheer, tutorial hand, Web Audio sound + mute, ZIP 3,103,873 bytes |
 | release-stage1 | 2026-10-03 15:21 | 2026-10-03 15:26 | 0h 05min | PROJECT_NOTE draft, production ZIP verified from a clean folder (full flow + CTA in Chrome), README final numbers, ZIP 3,107,328 bytes |
+| synth-music | 2026-10-04 14:32 | 2026-10-04 15:02 | 0h 30min | Synth music loop (Web Audio), editor-only C# synth for Play Mode, PROJECT_NOTE final draft, rebuilt deleted build folder |

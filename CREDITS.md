@@ -8,7 +8,7 @@
 | [Cube Pets](https://kenney.nl/assets/cube-pets) | Kenney | CC0 1.0 | Fox, dog and cat (defenders); lion, tiger and polar bear (predators) |
 | [Fredoka](https://fonts.google.com/specimen/Fredoka) | The Fredoka Project Authors | SIL OFL 1.1 (`source/Assets/Art/Fonts/OFL.txt`) | All in-game text (weight 600 instance, subset) |
 
-The palette recolors, UI sprites and sound effects are made for this project (generated in code), no third-party files.
+The palette recolors, UI sprites, sound effects and music loop are made for this project (generated in code, the audio synthesized at runtime), no third-party files.
 
 The license files ship next to the models in `source/Assets/Art/*/License.txt`. Only the models that are used are included.
 
