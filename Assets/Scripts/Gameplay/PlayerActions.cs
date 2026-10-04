@@ -20,6 +20,7 @@ namespace ScramblyFoxDefense.Gameplay
         readonly TowerSystem _towers;
         readonly Economy _economy;
         readonly IAudioService _audio;
+        readonly TutorialGate _tutorial;
 
         public bool Enabled { get; set; }
         public int SelectedCard { get; private set; } = -1;
@@ -27,8 +28,9 @@ namespace ScramblyFoxDefense.Gameplay
         /// <summary>Raised on any accepted tap; drives the tutorial hand's idle timer.</summary>
         public event Action Acted;
 
-        public PlayerActions(GameConfig config, InputRouter input, CardBarView cards, SlotManager slots, TowerSystem towers, Economy economy, IAudioService audio)
+        public PlayerActions(GameConfig config, InputRouter input, CardBarView cards, SlotManager slots, TowerSystem towers, Economy economy, IAudioService audio, TutorialGate tutorial)
         {
+            _tutorial = tutorial;
             _audio = audio;
             _config = config;
             _input = input;
@@ -52,6 +54,7 @@ namespace ScramblyFoxDefense.Gameplay
         bool OnTapped(Vector2 screenPoint)
         {
             if (!Enabled) return false;
+            if (_tutorial.Active) return TutorialTap(screenPoint);
             Acted?.Invoke();
 
             int card = _cards.HitTest(screenPoint);
@@ -78,6 +81,31 @@ namespace ScramblyFoxDefense.Gameplay
             if (SelectedCard < 0) return true;
             if (_towers.TryBuild(slot, SelectedCard)) ClearSelection();
             else Deny(SelectedCard);
+            return true;
+        }
+
+        /// <summary>
+        /// Opening tutorial: only the hand's target reacts (first card, then the first slot). Every other tap is
+        /// swallowed so nothing else can happen until the first tower stands.
+        /// </summary>
+        bool TutorialTap(Vector2 screenPoint)
+        {
+            if (SelectedCard != TutorialGate.Card)
+            {
+                if (_cards.HitTest(screenPoint) == TutorialGate.Card)
+                {
+                    Acted?.Invoke();
+                    Select(TutorialGate.Card);
+                    _audio.Play(Sound.Select);
+                }
+                return true;
+            }
+            var slot = _slots.Pick(screenPoint);
+            if (slot == _slots.Slots[TutorialGate.SlotIndex])
+            {
+                Acted?.Invoke();
+                if (_towers.TryBuild(slot, TutorialGate.Card)) ClearSelection();
+            }
             return true;
         }
 

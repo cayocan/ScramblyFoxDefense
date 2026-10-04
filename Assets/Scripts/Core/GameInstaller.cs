@@ -27,6 +27,9 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] GameObject coinPrefab;
         [SerializeField] GameObject badgePrefab;
         [SerializeField] GameObject poofPrefab;
+        [SerializeField] Sprite sparkSprite;
+        [SerializeField] Sprite ringSprite;
+        [SerializeField] Sprite arrowSprite;
 
         [Header("Scene roots")]
         [SerializeField] Transform enemyRoot;
@@ -66,6 +69,7 @@ namespace ScramblyFoxDefense.Core
         PlayerActions _actions;
         CoinPopFx _coinFx;
         FeedbackFx _feedback;
+        SparkFx _sparks;
         TutorialHand _tutorial;
         HudLayout _layout;
         HudView _hud;
@@ -98,9 +102,11 @@ namespace ScramblyFoxDefense.Core
             _towers = new TowerSystem(config, economy, _enemies, towerRoot, projectilePrefab);
             var slots = new SlotManager(slotTransforms, mainCamera, config.pickRadiusCssPixels);
 
+            var tutorialGate = new TutorialGate(_towers);
             _layout = new HudLayout(mainCamera);
             // HUD buttons first: the first tap handler that accepts a tap consumes it.
             _restart = new RestartController(restartButton, mainCamera);
+            _restart.BlockDuring(tutorialGate);
             _input.Register(_restart.HandleTap);
             var audio = new WebAudioService();
             _mute = new MuteToggle(audio, muteButton, muteIcon, soundOnSprite, soundOffSprite, mainCamera);
@@ -108,13 +114,14 @@ namespace ScramblyFoxDefense.Core
             _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon, topBand, bannerPill);
             _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera);
             _lockBar = new LockBarView(locks, lockOpenSprite, _layout);
-            _actions = new PlayerActions(config, _input, _cardBar, slots, _towers, economy, audio);
-            _badges = new TowerBadges(_towers, economy, badgePrefab, mainCamera.transform);
+            _actions = new PlayerActions(config, _input, _cardBar, slots, _towers, economy, audio, tutorialGate);
+            _badges = new TowerBadges(_towers, economy, badgePrefab, ringSprite, arrowSprite, mainCamera.transform);
             _slotHighlighter = new SlotHighlighter(slots, _actions);
             _tutorial = new TutorialHand(tutorialHand, _layout, mainCamera, config, _actions, cards, slots, _towers, _enemies, economy);
             _coinFx = new CoinPopFx(_enemies, coinPrefab, fxRoot);
             _soundCues = new SoundCues(audio, _enemies, _towers);
             _feedback = new FeedbackFx(_enemies, _towers, poofPrefab, fxRoot, mainCamera.transform);
+            _sparks = new SparkFx(_towers, sparkSprite, fxRoot, mainCamera.transform);
             _cameraFit = new CameraFit(mainCamera, boardCenter, boardSize.x, boardSize.y);
             _redeem = new RedeemSequence(coinPrefab, fxRoot, vault, pathWaypoints);
             _endCard = new EndCardView(endCardPanel, endTitle, endCollected, ctaToast, rewardCards, ctaButton, playAgainButton, _layout, mainCamera);
@@ -149,6 +156,8 @@ namespace ScramblyFoxDefense.Core
             _towers.Tick(deltaTime);
             _coinFx.Tick(deltaTime);
             _feedback.Tick(deltaTime);
+            _sparks.Tick(deltaTime);
+            _badges.Tick(deltaTime);
             _hud.Tick(deltaTime);
             _cardBar.Tick(deltaTime);
             _lockBar.Tick(deltaTime);
@@ -168,6 +177,7 @@ namespace ScramblyFoxDefense.Core
             _cardBar?.Dispose();
             _coinFx?.Dispose();
             _feedback?.Dispose();
+            _sparks?.Dispose();
             _tutorial?.Dispose();
             _hud?.Dispose();
         }

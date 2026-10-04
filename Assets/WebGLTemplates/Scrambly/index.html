@@ -77,7 +77,12 @@
           if (!AudioCtx) return;
           ctx = new AudioCtx();
           master = ctx.createGain();
-          master.connect(ctx.destination);
+          // Louder mix (user request) without clipping: a gentle compressor before the speakers.
+          var limiter = ctx.createDynamicsCompressor();
+          limiter.threshold.value = -10; limiter.knee.value = 8; limiter.ratio.value = 6;
+          limiter.attack.value = 0.003; limiter.release.value = 0.15;
+          master.connect(limiter);
+          limiter.connect(ctx.destination);
           startMusic();
         }
         refresh();
@@ -114,7 +119,7 @@
 
       function startMusic() {
         musicBus = ctx.createGain();
-        musicBus.gain.value = 0.22; // under the sound effects
+        musicBus.gain.value = 0.32; // under the sound effects
         musicBus.connect(master);
         musicNext = ctx.currentTime + 0.1;
         musicTimer = setInterval(function () {
@@ -130,7 +135,7 @@
       // Suspend when hidden/landscape or muted; resume otherwise.
       function refresh() {
         if (!ctx) return;
-        master.gain.value = muted ? 0 : 0.5;
+        master.gain.value = muted ? 0 : 0.9;
         if (window.scramblyPaused || muted) { if (ctx.state === "running") ctx.suspend(); }
         else if (ctx.state !== "running") ctx.resume();
       }

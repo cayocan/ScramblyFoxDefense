@@ -18,3 +18,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | synth-music | 2026-10-04 14:32 | 2026-10-04 15:02 | 0h 30min | Synth music loop (Web Audio), editor-only C# synth for Play Mode, PROJECT_NOTE final draft, rebuilt deleted build folder |
 | progression | 2026-10-04 15:03 | 2026-10-04 15:21 | 0h 17min | Wave previews + clear bonus, perfect-wave stars and gold locks, tower targeting/shot identity, balance pass 2 (all towers viable, 48-62 s sessions) |
 | art-polish | 2026-10-04 15:25 | 2026-10-04 15:38 | 0h 12min | Board decoration (kit trees/rocks/crystals, deco palette), HUD band/shadows/banner pill, build burst, leak shake, ZIP 3,187,058 bytes |
+| tutorial-feedback-particles | 2026-10-04 16:13 | 2026-10-04 16:31 | 0h 17min | Tutorial gate (blocks progress and other taps), upgrade-ready ring/arrow/pulse, SparkFx particles on shots and hits, louder audio + limiter, ZIP 3,194,083 bytes |

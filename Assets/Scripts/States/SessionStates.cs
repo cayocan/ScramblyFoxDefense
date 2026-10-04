@@ -48,7 +48,8 @@ namespace ScramblyFoxDefense.States
         public void Tick(float deltaTime)
         {
             _elapsed += deltaTime;
-            if (_startRequested || _elapsed >= _config.introMaxSeconds) _machine.Enter<WaveState>();
+            // The opening tutorial must be completed: wave 1 starts with the first tower, never on a timer.
+            if (_startRequested) _machine.Enter<WaveState>();
         }
 
         public void Exit() => _towers.Built -= OnBuilt;
