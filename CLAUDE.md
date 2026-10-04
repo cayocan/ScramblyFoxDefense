@@ -1,41 +1,41 @@
 # Scrambly Fox Defense
 
-Playable web (Unity 6000.3.19f1, C#, WebGL) para o take-home da Simula, anunciante Scrambly. Limite de 6 h de trabalho.
+Web playable (Unity 6000.3.19f1, C#, WebGL) for the Simula take-home, advertiser Scrambly. 6-hour work limit.
 
 ## Language rule (mandatory)
 Everything in the project MUST be written in English: code, comments, commit messages, branch names, UI text, documentation, variable names, logs, error messages — absolutely everything. No exceptions.
-Tower defense enxuto de 45–60 s: a raposa lidera Cube Pets contra predadores (leão, tigre, urso-polar) que roubam moedas demo. Fluxo Discover → Play → Redeem, termina com o CTA "Explore Scrambly" (simulado).
+Lean 45–60 s tower defense: the fox leads Cube Pets against predators (lion, tiger, polar bear) that steal demo coins. Flow Discover → Play → Redeem, ending with the "Explore Scrambly" CTA (simulated).
 
-## Fluxo de trabalho (obrigatório)
-- Cada feature vive em `feature/<nome>`. Crie com `.\tools\start-feature.ps1 <nome>`; isso registra a hora de início.
-- Toda feature termina em um **commit de merge** na `main` que informa a duração (do início ao fim, sem pausas): `.\tools\finish-feature.ps1 "resumo"` (merge `--no-ff` com "Duracao da feature (inicio ate o fim): Xh YYmin").
-- Nunca faça merge de feature sem esse commit. Nunca commite direto na `main`, exceto o setup inicial.
-- Registre também em `TIME_LOG.md` (a entrega pede tempo gasto e decisões de IA).
-- Os scripts usam só ASCII nas mensagens, para evitar texto corrompido no PowerShell 5.
-- O Unity gera arquivos `.meta` ao importar assets; versione-os junto com o asset.
+## Workflow (mandatory)
+- Each feature lives on `feature/<name>`. Create it with `.\tools\start-feature.ps1 <name>`; this records the start time.
+- Every feature ends in a **merge commit** on `main` that states its duration (start to end, no pauses): `.\tools\finish-feature.ps1 "summary"` (`--no-ff` merge with "Duracao da feature (inicio ate o fim): Xh YYmin").
+- Never merge a feature without that commit. Never commit directly to `main`, except the initial setup.
+- Also record it in `TIME_LOG.md` (the submission asks for time spent and AI decisions).
+- The scripts use ASCII-only messages, to avoid garbled text in PowerShell 5.
+- Unity generates `.meta` files when importing assets; version them together with the asset.
 
-## Restrições do briefing (não negociáveis)
-- ZIP de produção ≤ 5.000.000 bytes, com `index.html` na raiz, build + código legível + assets + instruções.
-- Roda em servidor HTTP estático, sem requisições externas, login ou backend. Sem Decompression headers: usar Decompression Fallback.
-- Toque e mouse. Testar 320×568 e 390×844 (retrato) com prompt de rotação em paisagem. Sem scroll de página.
-- CTA com rótulo claro; ao clicar mostra "CTA clicked — demo only", loga no console e não navega.
-- Pausar jogo e relógios quando a página fica oculta e retomar sem salto de tempo (usar só tempo escalado).
-- Restart reseta tudo sem timers/listeners/efeitos duplicados.
-- Saldo é demo: nunca prometer ganho real nem pagamento.
+## Brief constraints (non-negotiable)
+- Production ZIP ≤ 5,000,000 bytes, with `index.html` at the root, build + readable code + assets + instructions.
+- Runs on a static HTTP server, with no external requests, login or backend. No Decompression headers: use Decompression Fallback.
+- Touch and mouse. Test 320×568 and 390×844 (portrait) with a rotate prompt in landscape. No page scroll.
+- CTA with a clear label; on click it shows "CTA clicked — demo only", logs to the console and does not navigate.
+- Pause the game and clocks when the page is hidden and resume with no time jump (use scaled time only).
+- Restart resets everything with no duplicated timers/listeners/effects.
+- The balance is demo: never promise real earnings or payment.
 - Audio: Web Audio synth in the WebGL template (`window.scramblySfx`) via `Assets/Plugins/WebGL/Sfx.jslib`; no audio files, no Unity audio module. Starts after the first gesture, mute button in the HUD, suspended while the page is hidden or in landscape.
-- Paleta: Orange #F58324, Purple #7845D8, Deep ink #201338, Warm white #FFF6E8.
+- Palette: Orange #F58324, Purple #7845D8, Deep ink #201338, Warm white #FFF6E8.
 
-## Orçamento de tamanho
-Build alvo ≤ 2,8 MB (duro 3,5), código ≤ 0,4 MB, assets brutos ≤ ~1 MB, margem ≥ 0,5 MB. Fase 0: medir um build WebGL vazio nos primeiros 45 min. Se passar de 3,8 MB, plano B: TypeScript + Three.js.
+## Size budget
+Build target ≤ 2.8 MB (hard limit 3.5), code ≤ 0.4 MB, raw assets ≤ ~1 MB, margin ≥ 0.5 MB. Phase 0: measure an empty WebGL build in the first 45 min. If it goes over 3.8 MB, plan B: TypeScript + Three.js.
 
 ## Assets (Kenney, CC0): Tower Defense Kit, Cube Pets, UI Pack, Game Icons
-- Já importados em `Assets/Art/`: Cube Pets (raposa, cachorro, gato, leão, tigre, urso-polar) e Tower Defense Kit (tile, tile-straight, tile-corner-round, tile-spawn, tile-end, tower-round-base, tower-square-bottom-a, selection-a). UI Pack e Game Icons ainda não.
-- Os arquivos são `.glb`. O Unity 6 não importa glTF/GLB sozinho: é preciso um importador (por exemplo o pacote glTFast, só no editor) ou converter para FBX. Decidir e medir o efeito no tamanho na Fase 0.
-- Cada GLB usa a textura única `colormap.png`; trocar a textura recolore o kit.
-- Defensores: `animal-fox`, `animal-dog`, `animal-cat`, cada um **em cima de uma base de torre** (animal visível sobre a torre).
-- Inimigos: `animal-lion` (padrão), `animal-tiger` (rápido), `animal-polar` (tanque). Não usar os UFOs do kit.
-- Cortes de tamanho, em ordem: gato, detalhes do cenário.
-- Os pacotes originais ficam fora do repositório; só os arquivos usados entram em `Assets/`.
+- Already imported into `Assets/Art/`: Cube Pets (fox, dog, cat, lion, tiger, polar bear) and Tower Defense Kit (tile, tile-straight, tile-corner-round, tile-spawn, tile-end, tower-round-base, tower-square-bottom-a, selection-a). UI Pack and Game Icons not yet.
+- The files are `.glb`. Unity 6 does not import glTF/GLB on its own: an importer is needed (for example the glTFast package, editor only) or a conversion to FBX. Decide and measure the size impact in Phase 0.
+- Each GLB uses the single `colormap.png` texture; swapping the texture recolors the kit.
+- Defenders: `animal-fox`, `animal-dog`, `animal-cat`, each **on top of a tower base** (animal visible on the tower).
+- Enemies: `animal-lion` (default), `animal-tiger` (fast), `animal-polar` (tank). Do not use the kit's UFOs.
+- Size cuts, in order: cat, scenery details.
+- The original packs stay outside the repository; only the files in use go into `Assets/`.
 
 ## Unity editor automation (unattended / remote sessions)
 - Drive the open editor with the Unity CLI + Pipeline: `unity --no-banner command <name> ...` (`recompile`, `recompile_status`, `menu --path "Scrambly/Build Main Scene"`, `build --target WebGL --outputPath Builds/WebGL --confirm true` then poll `build_status`, `eval`/`eval_file`, `editor_play`/`editor_stop`, `capture_game_view`).
@@ -44,8 +44,8 @@ Build alvo ≤ 2,8 MB (duro 3,5), código ≤ 0,4 MB, assets brutos ≤ ~1 MB, m
 - During long or unattended sessions run `tools/unity-window.ps1 watch keepfocus` in the background: it auto-answers known-safe dialogs (scene modified externally → Reload), logs any other dialog to `Logs/unity-window-watch.log` as NEEDS DECISION, keeps Unity in front every 30 s and keeps the PC awake. Never auto-click unknown dialogs: read them with `status`/`shot` and decide.
 - Play Mode does not advance frames while Unity is in the background; for logic checks use `Assets/Editor/SessionSimulator.cs` (ticks the real services) and `tools/browser-test` (headless Chrome against `python -m http.server 8080` in `Builds/WebGL`).
 
-## Contexto adicional
-Coloque documentos de contexto (GDD, notas, referências) em `docs/rag/`. Leia `docs/rag/README.md` antes de decidir escopo.
+## Additional context
+Put context documents (GDD, notes, references) in `docs/rag/`. Read `docs/rag/README.md` before deciding scope.
 
 # context-mode — MANDATORY routing rules
 

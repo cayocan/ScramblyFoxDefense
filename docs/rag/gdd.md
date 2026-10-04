@@ -2,435 +2,435 @@
 
 Oct 1, 2026 · @Cayo
 
-> Source document kept verbatim (Portuguese) as RAG context. All in-game text, code and project docs are in English.
+> English translation of the original design document (written in Portuguese before development). This is the plan as designed; the shipped game diverges where playtesting changed it (5 waves, fox health instead of coin theft, mandatory tutorial). Those changes are logged in `decisions.md`.
 
-Tower defense enxuto em Unity/C#, de 45 a 60 segundos e com uma mão só: a raposa lidera Cube Pets contra predadores selvagens (leão, tigre e urso-polar) que roubam moedas, seguindo o fluxo Discover → Play → Redeem do Scrambly, com assets do Kenney recoloridos na paleta laranja–roxo.
+A lean tower defense in Unity/C#, 45 to 60 seconds long and played with one hand: the fox leads Cube Pets against wild predators (lion, tiger and polar bear) that steal coins, following Scrambly's Discover → Play → Redeem flow, with Kenney assets recolored to the orange–purple palette.
 
-## 1. Visão geral
+## 1. Overview
 
-**Pitch:** a raposa do Scrambly lidera um esquadrão de Cube Pets que protege o **Reward Vault** de predadores selvagens que querem roubar as moedas. O jogador escolhe "cartões de jogo" (cada um com um pet, que vira a torre), posiciona e melhora em 3 ondas curtas, junta moedas de demonstração, destrava 3 recompensas e termina com um convite claro: **Explore Scrambly**.
+**Pitch:** Scrambly's fox leads a squad of Cube Pets that protects the **Reward Vault** from wild predators who want to steal the coins. The player picks "game cards" (each one with a pet, which becomes the tower), places and upgrades them over 3 short waves, collects demonstration coins, unlocks 3 rewards and ends with a clear invitation: **Explore Scrambly**.
 
-**Pilares de design**
+**Design pillars**
 
-1. **Entendível em 3 segundos.** Uma ação só (tocar), uma mão, sem texto longo. Uma mão-guia ensina os dois primeiros toques.
-2. **Progresso que se vê.** A torre cresce por peças, o saldo demo sobe e 3 cadeados de recompensa destravam a cada onda.
-3. **O produto é a estrutura.** Cada fase da sessão corresponde a um passo do Scrambly (Discover, Play, Redeem), não é um enfeite sobre um TD genérico.
-4. **Promessa honesta.** Todo saldo é "demo". Nenhum valor em dinheiro, nenhuma marca real.
+1. **Understandable in 3 seconds.** A single action (tap), one hand, no long text. A guide hand teaches the first two taps.
+2. **Visible progress.** The tower grows piece by piece, the demo balance goes up and 3 reward locks open, one per wave.
+3. **The product is the structure.** Each phase of the session matches a step of Scrambly (Discover, Play, Redeem); it is not decoration on top of a generic TD.
+4. **Honest promise.** Every balance is "demo". No money amounts, no real brands.
 
-**Público e meta (do briefing):** adultos que curtem jogos casuais de celular e têm curiosidade sobre recompensas por descobrir e jogar. A meta é deixar a ligação entre jogar, progredir e o Scrambly fácil de entender.
+**Audience and goal (from the brief):** adults who enjoy casual mobile games and are curious about rewards for discovering and playing. The goal is to make the link between playing, progressing and Scrambly easy to understand.
 
-**Escopo em uma linha:** 1 mapa, 1 caminho, 4 slots, 3 torres (Cube Pets), 3 predadores (leão, tigre, urso-polar), 3 ondas, 3 recompensas a destravar, 1 final, 1 CTA, 1 restart. Sem áudio, sem tela de derrota, sem menus. **Assets:** só os 4 pacotes do Kenney escolhidos (Tower Defense Kit, Cube Pets, UI Pack, Game Icons, todos CC0); detalhes na seção 6.
+**Scope in one line:** 1 map, 1 path, 4 slots, 3 towers (Cube Pets), 3 predators (lion, tiger, polar bear), 3 waves, 3 rewards to unlock, 1 ending, 1 CTA, 1 restart. No audio, no defeat screen, no menus. **Assets:** only the 4 chosen Kenney packs (Tower Defense Kit, Cube Pets, UI Pack, Game Icons, all CC0); details in section 6.
 
-**Idioma:** este GDD em português; todo texto dentro do jogo em inglês (o Scrambly opera em US, UK e Canadá).
+**Language:** this GDD was written in Portuguese; all in-game text is in English (Scrambly operates in the US, UK and Canada).
 
-## 2. Conexão com o Scrambly
+## 2. Connection to Scrambly
 
-O briefing define o produto em três passos. A sessão inteira é organizada nesses mesmos três passos, e cada um tem uma mecânica própria e uma tela que o jogador reconhece.
+The brief defines the product in three steps. The whole session is organized around those same three steps, and each has its own mechanic and a screen the player recognizes.
 
-| Passo do Scrambly | Fase da sessão | O que o jogador faz | O que ele vê |
+| Scrambly step | Session phase | What the player does | What they see |
 | --- | --- | --- | --- |
-| **Discover** | Escolha dos cartões (0–10 s) | Escolhe entre 3 "cartões de jogo" (cada um com um pet e um ícone de gênero) e posiciona o primeiro | Cartões com rosto de pet; rótulo "Discover" na faixa de fase |
-| **Play and progress** | Ondas 1 a 3 (10–45 s) | Constrói e melhora torres, derrota os predadores, junta moedas demo | 3 cadeados no topo; a torre ganha peças e o pet comemora |
-| **Redeem** | Reward Vault (45–55 s) | Assiste e toca para acelerar | Moedas voam para o Vault, os cadeados destravam e surgem 3 cartões de recompensa genéricos (troféu, medalha, cesta) |
-| **Convite** | Tela final | Toca em **Explore Scrambly** | Botão grande; ao clicar, mensagem local "CTA clicked — demo only" |
+| **Discover** | Card choice (0–10 s) | Picks among 3 "game cards" (each with a pet and a genre icon) and places the first one | Cards with pet faces; "Discover" label on the phase strip |
+| **Play and progress** | Waves 1 to 3 (10–45 s) | Builds and upgrades towers, defeats the predators, collects demo coins | 3 locks at the top; the tower gains pieces and the pet celebrates |
+| **Redeem** | Reward Vault (45–55 s) | Watches and taps to speed up | Coins fly to the Vault, the locks open and 3 generic reward cards appear (trophy, medal, basket) |
+| **Invitation** | End screen | Taps **Explore Scrambly** | Big button; on click, local message "CTA clicked — demo only" |
 
-**Por que um tower defense encaixa.** Em um TD, "jogar bem" já significa evoluir (mais torres, torres melhores), então o progresso é o próprio jogo. Os cadeados que destravam são a recompensa tangível e a raposa dá o rosto da marca. Predadores que tentam roubar moedas dão um motivo para proteger o saldo demo.
+**Why a tower defense fits.** In a TD, "playing well" already means growing (more towers, better towers), so progress is the game itself. The unlocking locks are the tangible reward and the fox gives the brand a face. Predators trying to steal coins give a reason to protect the demo balance.
 
-**Regras de promessa honesta (do briefing)**
+**Honest-promise rules (from the brief)**
 
-- Todo saldo aparece como **Demo coins** e a tela final traz a linha "Demo only — not real earnings".
-- Nenhum valor em dinheiro, nenhuma frase de ganho garantido, nenhum prazo de saque.
-- Cartões de recompensa são ícones genéricos (troféu, medalha, cesta), sem logos de varejistas ou meios de pagamento.
-- Os "jogos" dos cartões são fictícios. Nenhum jogo real é citado.
-- Não usar números de marketing do site (bônus, média diária, número de usuários), porque o briefing não os fornece e eles poderiam soar como promessa.
+- Every balance appears as **Demo coins** and the end screen carries the line "Demo only — not real earnings".
+- No money amounts, no guaranteed-earnings claims, no payout deadlines.
+- Reward cards are generic icons (trophy, medal, basket), with no retailer or payment-method logos.
+- The "games" on the cards are fictional. No real game is named.
+- Do not use marketing numbers from the website (bonus, daily average, number of users), because the brief does not provide them and they could read as a promise.
 
-## 3. Loop e fluxo da sessão
+## 3. Loop and session flow
 
-A sessão dura cerca de 55 segundos e sempre chega ao final, mesmo que o jogador não construa nada. Isso evita jogo travado na revisão.
+The session lasts about 55 seconds and always reaches the end, even if the player builds nothing. This avoids a stuck game during review.
 
-| Tempo aprox. | Estado | O que acontece | Entrada do jogador |
+| Approx. time | State | What happens | Player input |
 | --- | --- | --- | --- |
-| 0–8 s | **Intro / Discover** | A raposa entra no Reward Vault, 70 demo coins, 3 cartões de jogo (cada um com um pet) na base, mão-guia aponta o primeiro cartão | Tocar um cartão, tocar um slot brilhante |
-| ~8–20 s | **Onda 1** | 6 Snatchers (leões) seguem o caminho; os pets atiram; moedas pulam dos predadores | Construir mais torres |
-| ~20–23 s | Respiro | O cadeado 1 destrava, faixa "Wave 2"; mão-guia aponta o primeiro upgrade se houver moedas | Melhorar torre (tocar nela) |
-| ~23–37 s | **Onda 2** | 5 Snatchers + 4 Darts (tigres) | Construir/melhorar |
-| ~37–40 s | Respiro | O cadeado 2 destrava, faixa "Final wave" | Melhorar |
-| ~40–54 s | **Onda 3** | 6 Snatchers + 4 Darts + 2 Haulers (ursos-polares) | Construir/melhorar |
-| ~54–60 s | **Redeem** | O cadeado 3 destrava, as moedas voam para o Vault, que brilha, e surgem 3 cartões de recompensa genéricos | Opcional: tocar para acelerar |
-| fim | **End card** | "Discover games. Play and progress. Redeem rewards." + botão **Explore Scrambly** + **Play again** | Tocar no CTA ou reiniciar |
+| 0–8 s | **Intro / Discover** | The fox enters the Reward Vault, 70 demo coins, 3 game cards (each with a pet) at the bottom, the guide hand points at the first card | Tap a card, tap a glowing slot |
+| ~8–20 s | **Wave 1** | 6 Snatchers (lions) follow the path; the pets shoot; coins pop out of the predators | Build more towers |
+| ~20–23 s | Breather | Lock 1 opens, "Wave 2" banner; the guide hand points at the first upgrade if there are coins | Upgrade a tower (tap it) |
+| ~23–37 s | **Wave 2** | 5 Snatchers + 4 Darts (tigers) | Build/upgrade |
+| ~37–40 s | Breather | Lock 2 opens, "Final wave" banner | Upgrade |
+| ~40–54 s | **Wave 3** | 6 Snatchers + 4 Darts + 2 Haulers (polar bears) | Build/upgrade |
+| ~54–60 s | **Redeem** | Lock 3 opens, the coins fly to the Vault, which glows, and 3 generic reward cards appear | Optional: tap to speed up |
+| end | **End card** | "Discover games. Play and progress. Redeem rewards." + **Explore Scrambly** button + **Play again** | Tap the CTA or restart |
 
-**Regras do ritmo**
+**Pacing rules**
 
-- **A onda 1 começa** quando o primeiro slot é ocupado ou após 8 s de tempo de jogo na intro, o que vier primeiro. Assim a sessão nunca espera o jogador indefinidamente.
-- **Cada onda termina** quando todos os inimigos gerados morreram ou chegaram ao Vault. Não há contagem regressiva, então não existe caso de "tempo esgotado".
-- **Inatividade:** se o jogador ficar 5 s sem tocar durante um respiro, a mão-guia reaparece apontando a melhor ação.
-- **Tempo do jogo = tempo escalado** (`Time.deltaTime` com `timeScale`). Isso permite pausar tudo de uma vez quando a página fica oculta.
+- **Wave 1 starts** when the first slot is filled or after 8 s of game time in the intro, whichever comes first. This way the session never waits for the player indefinitely.
+- **Each wave ends** when every spawned enemy has died or reached the Vault. There is no countdown, so there is no "time's up" case.
+- **Inactivity:** if the player goes 5 s without tapping during a breather, the guide hand reappears pointing at the best action.
+- **Game time = scaled time** (`Time.deltaTime` with `timeScale`). This allows pausing everything at once when the page is hidden.
 
-## 4. Mecânicas e controles
+## 4. Mechanics and controls
 
-Uma única primitiva de entrada: **toque (ou clique) em um ponto**. Nada de arrastar, segurar, hover ou gestos, para funcionar igual em touch e mouse.
+A single input primitive: **tap (or click) on a point**. No dragging, holding, hover or gestures, so it works the same on touch and mouse.
 
-**Construir (Discover)**
+**Build (Discover)**
 
-1. Tocar em um cartão de jogo na base seleciona a torre. Os slots livres pulsam em roxo.
-2. Tocar em um slot pulsante constrói a torre (animação de "pop") e desconta as moedas.
-3. Tocar de novo no cartão, em área vazia ou perder o ponteiro cancela a seleção.
-4. Sem moedas suficientes: o cartão treme e o preço pisca. Nada é construído.
+1. Tapping a game card at the bottom selects the tower. The free slots pulse in purple.
+2. Tapping a pulsing slot builds the tower ("pop" animation) and deducts the coins.
+3. Tapping the card again, an empty area, or losing the pointer cancels the selection.
+4. Not enough coins: the card shakes and the price flashes. Nothing is built.
 
-**Melhorar (Play and progress)**
+**Upgrade (Play and progress)**
 
-- Tocar em uma torre sobe um nível (níveis 1 a 3), se houver moedas. O custo aparece em um selo com o ícone de chave inglesa acima da torre; sem saldo, o selo fica cinza.
-- A torre ganha uma peça modular nova (mais alta) e um anel, e o pet comemora com confete curto. É o feedback principal de progresso.
-- Vender e mover torres ficam **fora do escopo**.
+- Tapping a tower raises it one level (levels 1 to 3), if there are coins. The cost appears on a badge with a wrench icon above the tower; without enough balance, the badge turns grey.
+- The tower gains a new (taller) modular piece and a ring, and the pet celebrates with a short confetti burst. This is the main progress feedback.
+- Selling and moving towers are **out of scope**.
 
-**Mão-guia (tutorial sem texto)**
+**Guide hand (text-free tutorial)**
 
-1. Passo 1: aponta o primeiro cartão.
-2. Passo 2: aponta o slot mais próximo do início do caminho.
-3. Passo 3: na primeira vez que o saldo cobrir um upgrade, aponta a torre. Depois disso nunca mais aparece, exceto no aviso de inatividade.
+1. Step 1: points at the first card.
+2. Step 2: points at the slot closest to the start of the path.
+3. Step 3: the first time the balance covers an upgrade, points at the tower. After that it never appears again, except for the inactivity hint.
 
-**Sem tela de derrota.** Um predador que chega ao Vault leva 5 demo coins (nunca abaixo de zero) e foge do mapa. O final é sempre o mesmo caminho até o Redeem; só a frase de abertura da tela final muda ("Perfect defense!" sem vazamentos, "Nice defense!" com vazamentos). Isso simplifica estados, reduz casos extremos e mantém o tom acolhedor do briefing.
+**No defeat screen.** A predator that reaches the Vault takes 5 demo coins (never below zero) and runs off the map. The ending is always the same path to Redeem; only the opening line of the end screen changes ("Perfect defense!" with no leaks, "Nice defense!" with leaks). This simplifies states, reduces edge cases and keeps the warm tone of the brief.
 
-**Feedback de resposta (clareza e sensação)**
+**Response feedback (clarity and feel)**
 
-- Toque aceito: cartão e slot reagem em até 1 frame (escala + brilho).
-- Acerto: flash branco curto no predador. Morte: estouro de partículas e moeda que salta até o contador.
-- Onda: faixa animada no topo. Marco: o cadeado destrava com pulso e brilho.
-- Alvos de toque com no mínimo 48×48 px CSS; seleção de slot por raio de 44 px em volta do slot.
+- Accepted tap: card and slot react within 1 frame (scale + glow).
+- Hit: short white flash on the predator. Death: particle burst and a coin that jumps to the counter.
+- Wave: animated banner at the top. Milestone: the lock opens with a pulse and a glow.
+- Touch targets of at least 48×48 CSS px; slot selection by a 44 px radius around the slot.
 
-**Entrada interrompida:** apenas o primeiro ponteiro conta. Cancelamento de ponteiro, perda de foco ou saída da janela descartam a seleção atual sem construir nada.
+**Interrupted input:** only the first pointer counts. Pointer cancel, focus loss or leaving the window discard the current selection without building anything.
 
-## 5. Conteúdo e balanceamento inicial
+## 5. Content and initial balance
 
-Valores de partida, todos em um `GameConfig` (ScriptableObject) para ajustar sem mexer em código. Reserve cerca de 1 h de playtest para afinar.
+Starting values, all in a `GameConfig` (ScriptableObject) so they can be tuned without touching code. Reserve about 1 h of playtesting to tune.
 
-**Torres ("Pet Posts": cada uma é um cartão de jogo fictício, com um Cube Pet como artilheiro)**
+**Towers ("Pet Posts": each one is a fictional game card, with a Cube Pet as the gunner)**
 
-| Torre / cartão | Pet | Papel | Custo | Dano | Cadência (tiros/s) | Alcance (u) | Nível 2 / Nível 3 |
+| Tower / card | Pet | Role | Cost | Damage | Fire rate (shots/s) | Range (u) | Level 2 / Level 3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Pop Blaster** | Cão (citado nas tags do pacote) | Tiro único rápido | 30 | 4 | 2,0 | 3,2 | custo 40: dano 6, 2,4/s · custo 60: dano 9, 2,8/s |
-| **Puzzle Pulse** | Gato (citado nas tags do pacote) | Dano em área | 45 | 5 (raio 1,4) | 0,9 | 3,0 | custo 50: dano 8 · custo 70: dano 12, raio 1,8 |
-| **Racer Zap** | Qualquer outro pet do pacote | Tiro longo e forte | 55 | 14 | 0,6 | 4,5 | custo 60: dano 20 · custo 80: dano 28, 0,7/s |
+| **Pop Blaster** | Dog (named in the pack tags) | Fast single shot | 30 | 4 | 2.0 | 3.2 | cost 40: damage 6, 2.4/s · cost 60: damage 9, 2.8/s |
+| **Puzzle Pulse** | Cat (named in the pack tags) | Area damage | 45 | 5 (radius 1.4) | 0.9 | 3.0 | cost 50: damage 8 · cost 70: damage 12, radius 1.8 |
+| **Racer Zap** | Any other pet from the pack | Long, strong shot | 55 | 14 | 0.6 | 4.5 | cost 60: damage 20 · cost 80: damage 28, 0.7/s |
 
-**Inimigos (predadores do Cube Pets: leão, tigre e urso-polar, recoloridos em roxo)**
+**Enemies (Cube Pets predators: lion, tiger and polar bear, recolored purple)**
 
-| Inimigo | Vida | Velocidade (u/s) | Moedas ao morrer | Função | Visual (variante do kit a definir ao abrir o pacote) |
+| Enemy | Health | Speed (u/s) | Coins on death | Role | Visual (kit variant to define when opening the pack) |
 | --- | --- | --- | --- | --- | --- |
-| Snatcher | 10 | 1,6 | 6 | Base | Leão, animal-lion (padrão) |
-| Dart | 6 | 2,8 | 7 | Rápido, testa alcance e cadência | Tigre, animal-tiger (rápido e frágil) |
-| Hauler | 40 | 1,0 | 15 | Pesado, recompensa upgrade | Urso-polar, animal-polar (tanque lento, escala maior) |
+| Snatcher | 10 | 1.6 | 6 | Basic | Lion, animal-lion (default) |
+| Dart | 6 | 2.8 | 7 | Fast, tests range and fire rate | Tiger, animal-tiger (fast and fragile) |
+| Hauler | 40 | 1.0 | 15 | Heavy, rewards upgrades | Polar bear, animal-polar (slow tank, larger scale) |
 
-**Ondas**
+**Waves**
 
-| Onda | Composição | Intervalo entre inimigos | Vida total |
+| Wave | Composition | Interval between enemies | Total health |
 | --- | --- | --- | --- |
-| 1 | 6 Snatchers | 1,2 s | 60 |
-| 2 | 5 Snatchers + 4 Darts | 0,9 s | 74 |
-| 3 | 6 Snatchers + 4 Darts + 2 Haulers | 0,8 s | 164 |
+| 1 | 6 Snatchers | 1.2 s | 60 |
+| 2 | 5 Snatchers + 4 Darts | 0.9 s | 74 |
+| 3 | 6 Snatchers + 4 Darts + 2 Haulers | 0.8 s | 164 |
 
-**Economia**
+**Economy**
 
-- Saldo inicial: **70 demo coins** (cobre uma torre e sobra para quase uma segunda).
-- Quatro slots no mapa. Construir tudo e melhorar tudo não cabe no orçamento, então há escolhas reais.
-- Dois contadores: **Wallet** (gastável, no HUD) e **Collected** (soma de tudo que caiu, usado nas moedas que voam para o Vault e na tela final).
-- Vazamento: −5 na Wallet por predador que chega ao Vault, mínimo 0.
-- Curva pretendida: uma torre nível 1 quase limpa a onda 1; a onda 3 exige duas ou três torres, ou upgrades.
-- Caminho de cerca de 20 u, então um Snatcher leva cerca de 12 s para atravessar.
+- Starting balance: **70 demo coins** (covers one tower with almost enough left for a second).
+- Four slots on the map. Building and upgrading everything does not fit the budget, so there are real choices.
+- Two counters: **Wallet** (spendable, in the HUD) and **Collected** (sum of everything that dropped, used for the coins flying to the Vault and on the end screen).
+- Leak: −5 from the Wallet per predator that reaches the Vault, minimum 0.
+- Intended curve: one level-1 tower almost clears wave 1; wave 3 needs two or three towers, or upgrades.
+- Path of about 20 u, so a Snatcher takes about 12 s to cross.
 
-## 6. Tema, direção de arte e UI
+## 6. Theme, art direction and UI
 
-O briefing pede um tratamento **quente, expressivo e acolhedor**, com formas arredondadas e contraste laranja–roxo. A raposa e as cores fornecidas são ponto de partida, não layout obrigatório. Eu ainda não vi o kit de referência (`Scrambly-Assessment-Reference-Kit-v3.zip`, 20,1 KiB), então os detalhes da raposa dependem dele.
+The brief asks for a **warm, expressive and welcoming** treatment, with rounded shapes and orange–purple contrast. The provided fox and colors are a starting point, not a mandatory layout. I have not seen the reference kit yet (`Scrambly-Assessment-Reference-Kit-v3.zip`, 20.1 KiB), so the fox details depend on it.
 
-**Tema escolhido para casar com os 4 pacotes.** A raposa do Scrambly lidera um esquadrão de **Cube Pets** que protege o **Reward Vault** de **predadores selvagens**, que invadem o Cantinho dos Bichos para roubar as moedas e fugir com elas. Nada agressivo: **predadores desajeitados e fofos (leão, tigre e urso-polar do Cube Pets), sem sangue nem mordida. Laranja = o seu lado (raposa, pets, Vault), roxo = os predadores**. É o contraste que o briefing sugere, lido sem texto.
+**Theme chosen to match the 4 packs.** Scrambly's fox leads a squad of **Cube Pets** that protects the **Reward Vault** from **wild predators**, who invade the Pet Corner to steal the coins and run off with them. Nothing aggressive: **clumsy, cute predators (lion, tiger and polar bear from Cube Pets), no blood or biting. Orange = your side (fox, pets, Vault), purple = the predators**. It is the contrast the brief suggests, readable without text.
 
-**Mapa de assets (os 4 pacotes escolhidos, todos CC0)**
+**Asset map (the 4 chosen packs, all CC0)**
 
-| Pacote | Uso no jogo | O que as páginas confirmam | O que conferir ao abrir o ZIP |
+| Pack | Use in the game | What the pages confirm | What to check when opening the ZIP |
 | --- | --- | --- | --- |
-| [Tower Defense Kit](https://kenney.nl/assets/tower-defense-kit) | Tabuleiro e caminho (tiles), base das torres (peças modulares), arma como origem do tiro, **predadores do Cube Pets como inimigos (o kit não fornece inimigos animais)**, peças de castelo para o Vault | 160 objetos; tiles, peças modulares de torre e armas (os UFOs do kit não são usados); FBX, OBJ e glTF | Verificado: o kit tem 4 UFOs (não usados), feixe, marcadores de seleção e cristais; todos os modelos usam uma textura de paleta compartilhada (colormap.png). Não há peça de portão ou baú |
-| [Cube Pets](https://kenney.nl/assets/cube-pets) | 3 **artilheiros** (um por torre) e o rosto de cada cartão de jogo | Versão 2.0, 24 arquivos, modelos 3D **animados**; as tags citam cão e gato | Lista completa de pets (há raposa? se houver, pode ser a raposa 3D do jogo), nomes dos clipes (idle, ataque ou dança), formato, peso |
-| [UI Pack](https://kenney.nl/assets/ui-pack) | Cartões, painéis, barra de progresso, botões **Explore Scrambly** e **Play again** | 430 assets: botões, painéis, sliders | Se o estilo é arredondado e tingível pela paleta, se há estrelas ou moedas |
-| [Game Icons](https://kenney.nl/assets/game-icons) | Cadeados das 3 recompensas, troféu e medalha nos cartões de recompensa, chave inglesa para upgrade, checkmark, play | Ícones monocromáticos. A lista abaixo vem de uma cópia de terceiros do pacote ([Korge](https://store.korge.org/gfx/kenney_game_icons/)): cadeado e destrava, checkmark, troféu, medalha, cesta, chave inglesa, setas, play, pause, alvo, engrenagem | A contagem diverge (105 na página do Kenney, "125+" na cópia): conferir no ZIP oficial. Não vi moeda, presente nem estrela: **desenhar como formas simples** |
+| [Tower Defense Kit](https://kenney.nl/assets/tower-defense-kit) | Board and path (tiles), tower bases (modular pieces), weapon as the shot origin, **Cube Pets predators as enemies (the kit has no animal enemies)**, castle pieces for the Vault | 160 objects; tiles, modular tower pieces and weapons (the kit's UFOs are not used); FBX, OBJ and glTF | Verified: the kit has 4 UFOs (not used), a beam, selection markers and crystals; all models use a shared palette texture (colormap.png). There is no gate or chest piece |
+| [Cube Pets](https://kenney.nl/assets/cube-pets) | 3 **gunners** (one per tower) and the face of each game card | Version 2.0, 24 files, **animated** 3D models; the tags name dog and cat | Full pet list (is there a fox? if so, it can be the game's 3D fox), clip names (idle, attack or dance), format, weight |
+| [UI Pack](https://kenney.nl/assets/ui-pack) | Cards, panels, progress bar, **Explore Scrambly** and **Play again** buttons | 430 assets: buttons, panels, sliders | Whether the style is rounded and tintable to the palette, whether there are stars or coins |
+| [Game Icons](https://kenney.nl/assets/game-icons) | Locks for the 3 rewards, trophy and medal on the reward cards, wrench for upgrade, checkmark, play | Monochrome icons. The list below comes from a third-party copy of the pack ([Korge](https://store.korge.org/gfx/kenney_game_icons/)): lock and unlock, checkmark, trophy, medal, basket, wrench, arrows, play, pause, target, gear | The count differs (105 on Kenney's page, "125+" on the copy): check the official ZIP. I did not see a coin, gift or star: **draw them as simple shapes** |
 
-**Recolor com uma textura só.** Os kits do Kenney costumam usar uma pequena textura de paleta compartilhada. Se for o caso, trocar essa única textura por outra com as cores do briefing recolore o kit inteiro sem retexturizar nada. Se não for o caso, sobrescrever os materiais por cor chapada. Confirmar na Fase 0.
+**Recolor with a single texture.** Kenney kits usually share a small palette texture. If that is the case, replacing that one texture with one in the brief's colors recolors the whole kit without retexturing anything. If not, override the materials with flat colors. Confirm in Phase 0.
 
-**Paleta (do briefing) e uso**
+**Palette (from the brief) and usage**
 
-| Cor | Hex | Uso no jogo |
+| Color | Hex | Use in the game |
 | --- | --- | --- |
-| Orange | `#F58324` | Raposa, torres, Vault, caminho (versão mais clara), botão do CTA, moedas |
-| Purple | `#7845D8` | Predadores, anéis dos slots, destaques de UI secundários |
-| Deep ink | `#201338` | Fundo fora do tabuleiro, texto sobre claro, detalhes das torres |
-| Warm white | `#FFF6E8` | Chão do tabuleiro, painéis, olhos e detalhes dos predadores, texto sobre escuro |
+| Orange | `#F58324` | Fox, towers, Vault, path (lighter version), CTA button, coins |
+| Purple | `#7845D8` | Predators, slot rings, secondary UI highlights |
+| Deep ink | `#201338` | Background outside the board, text on light, tower details |
+| Warm white | `#FFF6E8` | Board ground, panels, predators' eyes and details, text on dark |
 
-**Peças do jogo**
+**Game pieces**
 
-- **Pet Post (torre):** nível 1 = base modular do kit; nível 2 = mais uma peça; nível 3 = mais uma peça e arma maior. O pet fica na plataforma do topo, em idle, e toca o clipe de ataque (ou dança) quando atira. Se os clipes não tiverem nomes úteis, o pet recebe squash and stretch por código.
-- **Predador:** tint roxo no Cube Pets (animações walk e run). Morrer = gesture-negative, estouro de partículas e moeda que salta. Vazar = o predador foge com a moeda sobre a cabeça e a Wallet cai 5.
-- **Reward Vault:** montado com peças de torre ou castelo do kit em laranja e creme, com a raposa em cima. O kit pode não ter baú, então a recompensa **não depende de animar uma tampa**: o Vault brilha, os cadeados destravam e os cartões de recompensa surgem.
-- **Moedas e gemas:** primitivas do Unity (cilindro achatado), sem custo de tamanho.
-- **Raposa:** é a mascote e o rosto do final. Usar a do kit de referência: se for arte 2D, aparece como sprite ou billboard no Vault, no HUD e na tela final, animada por tween; se for modelo, versão low-poly simples. Não inventar outra mascote.
+- **Pet Post (tower):** level 1 = kit modular base; level 2 = one more piece; level 3 = one more piece and a bigger weapon. The pet stands on the top platform, idling, and plays its attack (or dance) clip when it shoots. If the clips have no useful names, the pet gets squash and stretch in code.
+- **Predator:** purple tint on the Cube Pet (walk and run animations). Dying = gesture-negative, particle burst and a jumping coin. Leaking = the predator runs off with the coin over its head and the Wallet drops by 5.
+- **Reward Vault:** built from kit tower or castle pieces in orange and cream, with the fox on top. The kit may have no chest, so the reward **does not depend on animating a lid**: the Vault glows, the locks open and the reward cards appear.
+- **Coins and gems:** Unity primitives (flattened cylinder), no size cost.
+- **Fox:** the mascot and the face of the ending. Use the one from the reference kit: if it is 2D art, it appears as a sprite or billboard on the Vault, in the HUD and on the end screen, animated by tween; if it is a model, a simple low-poly version. Do not invent another mascot.
 
-**Fonte:** Fredoka (SIL OFL 1.1, [licença no repositório do Google Fonts](https://github.com/google/fonts/blob/main/ofl/fredoka/OFL.txt)), empacotada no projeto, sem requisição externa, só os caracteres necessários.
+**Font:** Fredoka (SIL OFL 1.1, [license in the Google Fonts repository](https://github.com/google/fonts/blob/main/ofl/fredoka/OFL.txt)), bundled in the project, no external request, only the needed characters.
 
-**Câmera e layout (retrato, referência 390×844):**
+**Camera and layout (portrait, 390×844 reference):**
 
-- Câmera fixa em perspectiva leve (cerca de 55° de inclinação), tabuleiro ocupando a largura.
-- **Faixa superior** (~90 px): **3 cadeados** de recompensa que destravam a cada onda, saldo **Demo coins**, botão de restart pequeno.
-- **Meio:** tabuleiro com caminho em S, de cima para baixo. Spawn dos predadores no topo, Reward Vault com a raposa embaixo.
-- **Base** (~150 px, respeitando safe area): 3 cartões de jogo, cada um com o rosto de um pet e um ícone de gênero.
-- Em celular deitado: aviso "Rotate your phone" e jogo pausado. Em janela larga de desktop: o jogo fica em coluna retrato centralizada, com fundo Deep ink dos lados.
+- Fixed camera in light perspective (about 55° tilt), board filling the width.
+- **Top band** (~90 px): **3 reward locks** that open one per wave, **Demo coins** balance, small restart button.
+- **Middle:** board with an S-shaped path, top to bottom. Predators spawn at the top, the Reward Vault with the fox at the bottom.
+- **Bottom** (~150 px, respecting the safe area): 3 game cards, each with a pet face and a genre icon.
+- Phone in landscape: "Rotate your phone" notice and the game paused. In a wide desktop window: the game sits in a centered portrait column, with Deep ink on the sides.
 
-**Textos na tela (em inglês)**
+**On-screen text (in English)**
 
-| Onde | Texto |
+| Where | Text |
 | --- | --- |
-| Faixa de fase | Discover · Play · Redeem |
-| Saldo | Demo coins |
-| Faixas de onda | Wave 1 · Wave 2 · Final wave! |
-| Cartões | Pop Blaster · Puzzle Pulse · Racer Zap |
-| Abertura do Vault | Demo rewards unlocked! |
-| Título final | Perfect defense! / Nice defense! |
-| Frase final | Discover games. Play and progress. Redeem rewards. |
+| Phase strip | Discover · Play · Redeem |
+| Balance | Demo coins |
+| Wave banners | Wave 1 · Wave 2 · Final wave! |
+| Cards | Pop Blaster · Puzzle Pulse · Racer Zap |
+| Vault opening | Demo rewards unlocked! |
+| End title | Perfect defense! / Nice defense! |
+| End line | Discover games. Play and progress. Redeem rewards. |
 | CTA | Explore Scrambly |
-| Secundário | Play again |
-| Rodapé | Demo only — not real earnings |
-| Confirmação do CTA | CTA clicked — demo only |
+| Secondary | Play again |
+| Footer | Demo only — not real earnings |
+| CTA confirmation | CTA clicked — demo only |
 
-Acessibilidade básica: texto Deep ink sobre Warm white (contraste alto), significado nunca só pela cor (cada cartão tem pet, ícone e forma própria; cada recompensa tem cadeado).
+Basic accessibility: Deep ink text on Warm white (high contrast), meaning never by color alone (each card has its own pet, icon and shape; each reward has a lock).
 
-## 7. Arquitetura técnica (Unity/C#, WebGL)
+## 7. Technical architecture (Unity/C#, WebGL)
 
-Uma cena (`Main`), poucos scripts, nenhuma dependência de pacote que não seja necessária. Cada pacote a mais custa megabytes do orçamento (seção 8).
+One scene (`Main`), few scripts, no package dependency that is not needed. Each extra package costs megabytes of the budget (section 8).
 
-**Módulos (scripts)**
+**Modules (scripts)**
 
-| Script | Responsabilidade |
+| Script | Responsibility |
 | --- | --- |
-| `GameConfig` (ScriptableObject) | Todos os números das seções 3 e 5, nada fixo no código |
-| `GameFlow` | Máquina de estados: Intro → Wave → Breather → Redeem → EndCard |
-| `WaveSpawner` | Gera inimigos por onda, avisa quando a onda termina |
-| `EnemyAgent` | Segue os pontos do caminho, vida, morte, vazamento |
-| `Tower` | Escolhe alvo, atira, níveis 1–3 (cada nível acrescenta uma peça modular) e comanda o pet que anima o disparo |
-| `Projectile` | Projétil simples, vindo de um pool |
-| `Economy` | Wallet e Collected, custos, eventos de mudança |
-| `SlotManager` | Slots, estado livre/ocupado, seleção por distância em tela |
-| `InputRouter` | Um ponteiro por vez, cancelamento, filtro de toque duplicado |
-| `HudView` / `TutorialHand` | Barra de progresso, saldo, cartões, mão-guia |
-| `RedeemSequence` / `EndCard` | Moedas voando, Vault, tela final, CTA e restart |
-| `PageVisibility` (+ `.jslib`) | Recebe "página oculta/visível" do navegador e pausa o jogo |
-| `ObjectPool` | Inimigos, projéteis, moedas, partículas: nada de `Instantiate` durante a onda |
+| `GameConfig` (ScriptableObject) | All the numbers from sections 3 and 5, nothing hard-coded |
+| `GameFlow` | State machine: Intro → Wave → Breather → Redeem → EndCard |
+| `WaveSpawner` | Spawns enemies per wave, reports when the wave ends |
+| `EnemyAgent` | Follows the path points, health, death, leak |
+| `Tower` | Picks a target, shoots, levels 1–3 (each level adds a modular piece) and drives the pet that animates the shot |
+| `Projectile` | Simple projectile, from a pool |
+| `Economy` | Wallet and Collected, costs, change events |
+| `SlotManager` | Slots, free/occupied state, selection by screen distance |
+| `InputRouter` | One pointer at a time, cancellation, double-tap filter |
+| `HudView` / `TutorialHand` | Progress bar, balance, cards, guide hand |
+| `RedeemSequence` / `EndCard` | Flying coins, Vault, end screen, CTA and restart |
+| `PageVisibility` (+ `.jslib`) | Receives "page hidden/visible" from the browser and pauses the game |
+| `ObjectPool` | Enemies, projectiles, coins, particles: no `Instantiate` during a wave |
 
-**Entrada.** Botões de UI usam o `EventSystem`, que já trata mouse e toque. Escolha de slot e de torre usa **distância em tela** (projetar a posição do slot e comparar com o ponteiro), sem Physics, o que dispensa o módulo de física no build. Só o primeiro ponteiro é aceito, e `pointer cancel` descarta a seleção.
+**Input.** UI buttons use the `EventSystem`, which already handles mouse and touch. Slot and tower picking uses **screen distance** (project the slot position and compare it with the pointer), without Physics, which removes the physics module from the build. Only the first pointer is accepted, and `pointer cancel` discards the selection.
 
-**Tempo e pausa.** Todo movimento, spawn e animação usa tempo escalado (`Time.deltaTime`), e tweens são coroutines próprias, sem biblioteca de tween. O template HTML registra **uma vez** o `visibilitychange` e avisa o jogo; o jogo põe `Time.timeScale = 0` ao ocultar e volta a 1 ao exibir. Além disso, `Time.maximumDeltaTime = 0.1` para que nunca haja salto de tempo na volta.
+**Time and pause.** All movement, spawning and animation use scaled time (`Time.deltaTime`), and tweens are our own coroutines, with no tween library. The HTML template registers `visibilitychange` **once** and notifies the game; the game sets `Time.timeScale = 0` when hidden and back to 1 when shown. In addition, `Time.maximumDeltaTime = 0.1` so there is never a time jump on return.
 
-**Restart.** Recarregar a cena (`SceneManager.LoadScene`) com o botão desabilitado durante a recarga. Regras para não duplicar nada:
+**Restart.** Reload the scene (`SceneManager.LoadScene`) with the button disabled during the reload. Rules so nothing is duplicated:
 
-- sem campos `static` com estado (ou resetados no `Awake`);
-- todo evento assinado em `OnEnable` é cancelado em `OnDisable`;
-- `timeScale` volta a 1 no início da cena;
-- os listeners de JavaScript ficam no `index.html`, que não recarrega, então não se acumulam.
+- no `static` fields holding state (or reset them in `Awake`);
+- every event subscribed in `OnEnable` is unsubscribed in `OnDisable`;
+- `timeScale` goes back to 1 at the start of the scene;
+- the JavaScript listeners live in `index.html`, which does not reload, so they do not stack.
 
-**Resize e layout.** Canvas Scaler em "Scale With Screen Size" (referência 390×844). A câmera recalcula o enquadramento quando a proporção muda. O template coloca o canvas em um contêiner retrato centralizado (largura = `min(100vw, 100dvh × 0,5625)`), com fundo Deep ink.
+**Resize and layout.** Canvas Scaler in "Scale With Screen Size" (390×844 reference). The camera recomputes the framing when the aspect ratio changes. The template places the canvas in a centered portrait container (width = `min(100vw, 100dvh × 0.5625)`), with a Deep ink background.
 
-**Template WebGL (`index.html` próprio)**
+**WebGL template (own `index.html`)**
 
-- `html, body { overflow: hidden; overscroll-behavior: none; touch-action: none; }` e `viewport` com `user-scalable=no, viewport-fit=cover`.
-- `touchmove` com `preventDefault` no canvas e menu de contexto desabilitado, para a página não rolar durante o jogo.
-- Aviso "Rotate your phone" quando o ponteiro é grosso (celular) e a tela está deitada.
-- Sem logos, fontes ou scripts de CDN: **nenhuma requisição externa**.
+- `html, body { overflow: hidden; overscroll-behavior: none; touch-action: none; }` and a `viewport` with `user-scalable=no, viewport-fit=cover`.
+- `touchmove` with `preventDefault` on the canvas and the context menu disabled, so the page does not scroll during play.
+- "Rotate your phone" notice when the pointer is coarse (phone) and the screen is in landscape.
+- No logos, fonts or scripts from a CDN: **no external requests**.
 
-**CTA.** Botão no `EndCard`. No clique: mensagem na tela "CTA clicked — demo only" e `Debug.Log` (que o Unity WebGL envia ao console do navegador). Nenhuma chamada a `Application.OpenURL` nem navegação.
+**CTA.** Button on the `EndCard`. On click: on-screen message "CTA clicked — demo only" and `Debug.Log` (which Unity WebGL sends to the browser console). No `Application.OpenURL` call and no navigation.
 
-**Áudio.** Não haverá. Pelo briefing, sem áudio não precisa de botão de mudo, e o módulo de áudio pode ser desabilitado para economizar tamanho.
+**Audio.** There will be none. Per the brief, with no audio there is no need for a mute button, and the audio module can be disabled to save size.
 
-**Configurações de build para tamanho (verificar cada uma no teste da seção 8)**
+**Build settings for size (verify each one in the section 8 test)**
 
-- Pipeline simples (Built-in RP com shaders Unlit/Standard simples; URP tende a aumentar o build, então comparar).
-- IL2CPP, Managed Stripping Level alto, Engine Code Stripping ligado, exceções desligadas.
-- Compressão com **Decompression Fallback** ligado, porque um servidor estático simples não envia os cabeçalhos de compressão.
-- Módulos nativos que o jogo não usa (física, áudio, vídeo, etc.) desativados no Package Manager.
-- Texturas ≤ 512 px, malhas low-poly, sem mipmaps onde não precisa.
+- Simple pipeline (Built-in RP with simple Unlit/Standard shaders; URP tends to grow the build, so compare).
+- IL2CPP, high Managed Stripping Level, Engine Code Stripping on, exceptions off.
+- Compression with **Decompression Fallback** on, because a simple static server does not send the compression headers.
+- Native modules the game does not use (physics, audio, video, etc.) disabled in the Package Manager.
+- Textures ≤ 512 px, low-poly meshes, no mipmaps where not needed.
 
-## 8. Orçamento de 5 MB e teste de tamanho
+## 8. 5 MB budget and size test
 
-O briefing limita o **ZIP inteiro** a 5.000.000 bytes, e esse ZIP precisa conter o build, o código-fonte legível, bibliotecas, fontes, assets, instruções e créditos. O risco real de Unity WebGL é o tamanho, não a jogabilidade. Os números abaixo são minhas metas de trabalho, **não medições**; o teste decide.
+The brief caps the **whole ZIP** at 5,000,000 bytes, and that ZIP must contain the build, readable source code, libraries, fonts, assets, instructions and credits. The real risk of Unity WebGL is size, not gameplay. The numbers below are my working targets, **not measurements**; the test decides.
 
-| Parte do ZIP | Meta | Limite |
+| ZIP part | Target | Limit |
 | --- | --- | --- |
-| Build WebGL (arquivos já comprimidos) | ≤ 2,8 MB | 3,5 MB |
-| Código-fonte (scripts, cena, prefabs, template, ajustes essenciais) | ≤ 0,3 MB | 0,4 MB |
-| Assets originais incluídos como fonte (malhas, texturas, fonte, raposa) | ≤ 0,5 MB | 0,6 MB |
-| README, CREDITS, nota do projeto, registro de testes | ≤ 0,05 MB | 0,1 MB |
-| **Folga** | ≥ 0,5 MB |  |
+| WebGL build (files already compressed) | ≤ 2.8 MB | 3.5 MB |
+| Source code (scripts, scene, prefabs, template, essential settings) | ≤ 0.3 MB | 0.4 MB |
+| Original assets included as source (meshes, textures, font, fox) | ≤ 0.5 MB | 0.6 MB |
+| README, CREDITS, project note, test log | ≤ 0.05 MB | 0.1 MB |
+| **Margin** | ≥ 0.5 MB |  |
 
-Dois cuidados: arquivos `.br`/`.gz` do build não encolhem de novo no ZIP, e os assets aparecem **duas vezes** (empacotados no build e crus na pasta de fonte), então cada 100 KB de asset custa cerca de 200 KB.
+Two cautions: the build's `.br`/`.gz` files do not shrink again in the ZIP, and the assets appear **twice** (packed in the build and raw in the source folder), so every 100 KB of assets costs about 200 KB.
 
-**Cube Pets pesam mais que o resto.** Eles são animados (malha com esqueleto e clipes), ao contrário das peças estáticas do kit. Importar só 3 pets e só os clipes usados (idle e ataque ou dança), e medir a Fase 0 com um pet animado dentro, não só com um cubo.
+**Cube Pets weigh more than the rest.** They are animated (skeletal mesh and clips), unlike the static kit pieces. Import only 3 pets and only the clips used (idle and attack or dance), and measure Phase 0 with an animated pet inside, not just a cube.
 
-**Fase 0 — teste de tamanho (primeiros 30 minutos, antes de qualquer arte)**
+**Phase 0 — size test (first 30 minutes, before any art)**
 
-1. Projeto com uma cena: câmera, 1 torre do kit, 1 Cube Pet animado, 1 sprite (a raposa), 1 botão de UI, 1 texto, tudo com as configurações da seção 7.
-2. Build WebGL, zipar junto com a pasta de fonte e medir em bytes.
-3. Servir com `python3 -m http.server` (o servidor simples do briefing, sem cabeçalhos especiais) e abrir no navegador. Conferir na aba Network que **só há requisições do mesmo domínio**.
-4. Medir também o tempo até a primeira interação em um celular, se tiver um.
+1. Project with one scene: camera, 1 kit tower, 1 animated Cube Pet, 1 sprite (the fox), 1 UI button, 1 text, all with the section 7 settings.
+2. WebGL build, zip it together with the source folder and measure it in bytes.
+3. Serve it with `python3 -m http.server` (the brief's simple server, no special headers) and open it in the browser. Check in the Network tab that **there are only same-origin requests**.
+4. Also measure the time to first interaction on a phone, if one is available.
 
-**Regra de decisão (às 0:45 no máximo)**
+**Decision rule (at 0:45 at the latest)**
 
-| Resultado do teste | Decisão |
+| Test result | Decision |
 | --- | --- |
-| ZIP ≤ 3,0 MB | Seguir em Unity, com orçamento folgado |
-| 3,0 a 3,8 MB | Seguir em Unity cortando: sem TextMeshPro (fonte própria mais simples), sem URP, menos malhas |
-| > 3,8 MB, ou não abre em servidor estático | **Plano B:** mesmo GDD em TypeScript + Three.js (ou Canvas 2D), um bundle com Vite. A tabela de módulos da seção 7 vira módulos TS quase um para um |
+| ZIP ≤ 3.0 MB | Continue in Unity, with a comfortable budget |
+| 3.0 to 3.8 MB | Continue in Unity with cuts: no TextMesh Pro (simpler own font), no URP, fewer meshes |
+| > 3.8 MB, or does not open on a static server | **Plan B:** the same GDD in TypeScript + Three.js (or Canvas 2D), one bundle with Vite. The section 7 module table maps almost one to one onto TS modules |
 
-O sample de playable ads da Unity só vale se passar nesse mesmo teste e gerar `index.html` na raiz. Qualquer código reaproveitado precisa constar em `CREDITS.md`.
+Unity's playable ads sample only counts if it passes this same test and produces `index.html` at the root. Any reused code must be listed in `CREDITS.md`.
 
-## 9. Requisitos do briefing e como cada um é atendido
+## 9. Brief requirements and how each one is met
 
-Cada linha vem do texto do briefing (Technical requirements e Stage 1). A coluna da direita é o que você deve conseguir mostrar na gravação.
+Each row comes from the brief text (Technical requirements and Stage 1). The right column is what you must be able to show in the recording.
 
-| Requisito do briefing | Como atendemos | Como verificar |
+| Brief requirement | How we meet it | How to verify |
 | --- | --- | --- |
-| **Production ZIP** com `index.html` na raiz, build completo, código legível, bibliotecas, fontes, assets, instruções | Estrutura da seção 12; template WebGL próprio gera `index.html` na raiz | Abrir o ZIP em outra pasta e rodar do zero |
-| **Tamanho** ≤ 5.000.000 bytes | Orçamento e Fase 0 (seção 8) | Medir o ZIP final em bytes, anotar no README |
-| **Runtime**: servidor estático simples, sem requisições externas, login, backend ou chaves | Decompression Fallback; nenhuma fonte, script ou imagem de CDN | `python3 -m http.server`; aba Network só com mesmo domínio |
-| **Layout**: toque e mouse; retrato 320×568 e 390×844; sem rolagem competindo | Canvas Scaler 390×844, CSS sem rolagem, `preventDefault` no toque; aviso de rotação em celular deitado | Emular os dois tamanhos e testar em mouse e toque |
-| **CTA**: confirmação local e log no console, sem sair da página | Mensagem "CTA clicked — demo only" + `Debug.Log`; sem `OpenURL` | Clicar e abrir o console; confirmar que a URL não muda |
-| **Visibilidade**: pausar jogo e relógios com a página oculta; voltar sem salto | `visibilitychange` → `timeScale = 0`; tempo escalado em tudo; `maximumDeltaTime` 0,1 | Ocultar a aba no meio de uma onda, esperar 10 s, voltar |
-| **Confiabilidade**: resize, entrada interrompida, desfechos do design, restart limpo | Seções 4 e 7; recarga de cena sem estado estático | Matriz de testes (seção 11) |
-| **Handoff**: instruções, navegadores e dispositivos testados (real ou emulado), limitações, o que não foi testado | `README.md` com tabela de testes | Preencher durante os testes, não no fim |
-| **Interação entendível e responsiva** | Uma primitiva de toque, mão-guia, feedback em 1 frame | Alguém que nunca viu joga sem explicação |
-| **Progressão com propósito e fim claro** | Três ondas, três cadeados, Redeem, end card | Jogar do início ao fim sem tocar em nada: ainda chega ao fim |
-| **Conexão significativa com o Scrambly** | Seção 2 | Dizer em uma frase como cada fase mapeia um passo do produto |
-| **Restart fácil de revisar** | Botão pequeno sempre visível no topo, mais "Play again" na tela final | Reiniciar 10 vezes seguidas, inclusive no meio de uma onda |
+| **Production ZIP** with `index.html` at the root, full build, readable code, libraries, fonts, assets, instructions | Section 12 structure; own WebGL template produces `index.html` at the root | Open the ZIP in another folder and run it from scratch |
+| **Size** ≤ 5,000,000 bytes | Budget and Phase 0 (section 8) | Measure the final ZIP in bytes, note it in the README |
+| **Runtime**: simple static server, no external requests, login, backend or keys | Decompression Fallback; no font, script or image from a CDN | `python3 -m http.server`; Network tab with same-origin only |
+| **Layout**: touch and mouse; portrait 320×568 and 390×844; no competing scroll | Canvas Scaler 390×844, no-scroll CSS, `preventDefault` on touch; rotate notice on a phone in landscape | Emulate both sizes and test with mouse and touch |
+| **CTA**: local confirmation and console log, without leaving the page | "CTA clicked — demo only" message + `Debug.Log`; no `OpenURL` | Click and open the console; confirm the URL does not change |
+| **Visibility**: pause the game and clocks when the page is hidden; resume with no jump | `visibilitychange` → `timeScale = 0`; scaled time everywhere; `maximumDeltaTime` 0.1 | Hide the tab in the middle of a wave, wait 10 s, come back |
+| **Reliability**: resize, interrupted input, design outcomes, clean restart | Sections 4 and 7; scene reload with no static state | Test matrix (section 11) |
+| **Handoff**: instructions, browsers and devices tested (real or emulated), limitations, what was not tested | `README.md` with a test table | Fill it in during testing, not at the end |
+| **Understandable, responsive interaction** | One tap primitive, guide hand, feedback within 1 frame | Someone who has never seen it plays without explanation |
+| **Purposeful progression and a clear end** | Three waves, three locks, Redeem, end card | Play from start to end without touching anything: it still reaches the end |
+| **Meaningful connection to Scrambly** | Section 2 | Say in one sentence how each phase maps to a product step |
+| **Restart easy to review** | Small button always visible at the top, plus "Play again" on the end screen | Restart 10 times in a row, including in the middle of a wave |
 
-**Requisitos condicionais (o briefing diz que só valem se o design os usa):** sem áudio, **não há botão de mudo**; sem contagem regressiva, **não há caso de tempo esgotado**. Os relógios de spawn e de onda ainda são pausados pela regra de visibilidade.
+**Conditional requirements (the brief says they only apply if the design uses them):** no audio, so **no mute button**; no countdown, so **no time's-up case**. The spawn and wave clocks are still paused by the visibility rule.
 
-## 10. Plano de 6 horas, pontos de decisão e cortes
+## 10. 6-hour plan, decision points and cuts
 
-O limite é de 6 horas de trabalho. Tempos abaixo contam do início do projeto, com a gravação de tela ligada desde o minuto 0 (o briefing quer ver desde a interpretação do briefing).
+The limit is 6 hours of work. Times below count from the start of the project, with screen recording on from minute 0 (the brief wants to see everything from the interpretation of the brief onward).
 
-| Janela | Entrega | Ponto de decisão |
+| Window | Deliverable | Decision point |
 | --- | --- | --- |
-| 0:00–0:45 | Fase 0: teste de tamanho (seção 8) com raposa, 1 torre, 1 pet animado, UI e build em servidor estático | **G0:** ZIP dentro da meta? Se não, Plano B (TS + Three.js) já |
-| 0:45–1:45 | Núcleo em cinza: tabuleiro, caminho, leão andando, slots, 1 torre atirando, moedas | Toque funciona em mouse e em toque emulado |
-| 1:45–2:45 | 3 torres, upgrades, 3 ondas, economia, barra de progresso, vazamento | **G1:** do início ao fim, jogável em cinza |
-| 2:45–3:45 | Arte: materiais da paleta, raposa, UI final, partículas, feedback de acerto e de upgrade | Legível em 320×568? |
-| 3:45–4:30 | Redeem, end card, CTA, restart, mão-guia | Fluxo completo em uma jogada |
-| 4:30–5:30 | Endurecimento: visibilidade, resize, entrada interrompida, testes 320×568 e 390×844, ZIP final medido | Matriz de testes verde |
-| 5:30–6:00 | README, `CREDITS.md`, nota do projeto, registro de testes, conferir a lista "Before you submit" | Entregar o que existe e anotar o que falta |
+| 0:00–0:45 | Phase 0: size test (section 8) with fox, 1 tower, 1 animated pet, UI and a build on a static server | **G0:** ZIP within target? If not, Plan B (TS + Three.js) right away |
+| 0:45–1:45 | Greybox core: board, path, walking lion, slots, 1 shooting tower, coins | Tapping works with mouse and emulated touch |
+| 1:45–2:45 | 3 towers, upgrades, 3 waves, economy, progress bar, leak | **G1:** playable start to end in greybox |
+| 2:45–3:45 | Art: palette materials, fox, final UI, particles, hit and upgrade feedback | Readable at 320×568? |
+| 3:45–4:30 | Redeem, end card, CTA, restart, guide hand | Full flow in one playthrough |
+| 4:30–5:30 | Hardening: visibility, resize, interrupted input, 320×568 and 390×844 tests, final ZIP measured | Test matrix green |
+| 5:30–6:00 | README, `CREDITS.md`, project note, test log, check the "Before you submit" list | Deliver what exists and note what is missing |
 
-**G1 em detalhe.** Se na marca de 2:45 o loop não estiver divertido, ajuste números por até 30 minutos. Se ainda não funcionar, **simplifique** (2 torres, 2 ondas) em vez de trocar de jogo: com as exigências de ZIP, gravações e testes, uma troca depois do G1 não é realista. Eu havia sugerido o runner como plano B de jogo; ele só vale antes do G1.
+**G1 in detail.** If the loop is not fun at the 2:45 mark, tune numbers for up to 30 minutes. If it still does not work, **simplify** (2 towers, 2 waves) instead of changing games: with the ZIP, recording and testing requirements, a switch after G1 is not realistic. I had suggested the runner as a game plan B; it only applies before G1.
 
-**Ordem de cortes se atrasar (de cima para baixo)**
+**Cut order if running late (top to bottom)**
 
-1. Terceira torre (Racer Zap): ficam duas.
-2. Nível 3 das torres: ficam dois níveis.
-3. Partículas extras e tremor de tela.
-4. Animação elaborada do Vault: troca por brilho simples com fade.
-5. Urso-polar (Hauler): a onda 3 usa só leões e tigres.
-6. Passo 3 da mão-guia.
+1. Third tower (Racer Zap): two remain.
+2. Tower level 3: two levels remain.
+3. Extra particles and screen shake.
+4. Elaborate Vault animation: replaced by a simple glow with fade.
+5. Polar bear (Hauler): wave 3 uses only lions and tigers.
+6. Step 3 of the guide hand.
 
-**Nunca cortar:** restart, CTA com confirmação e log, pausa por visibilidade, teste de tamanho do ZIP, README com tabela de testes, `CREDITS.md`.
+**Never cut:** restart, CTA with confirmation and log, visibility pause, ZIP size test, README with the test table, `CREDITS.md`.
 
-**Registro de tempo:** manter um `TIME_LOG.md` com horário de início e fim de cada bloco. O roteiro de 5 minutos pede "tempo gasto", e o briefing avisa que, ao chegar nas 6 horas, deve-se entregar a versão atual e listar o que ficou inacabado ou sem teste.
+**Time log:** keep a `TIME_LOG.md` with the start and end time of each block. The 5-minute script asks for "time spent", and the brief warns that when the 6 hours are reached, you should deliver the current version and list what was left unfinished or untested.
 
-## 11. Testes
+## 11. Tests
 
-O critério "Technical execution" (25%) cita testes críveis. Cada linha abaixo vira uma linha do README, com o ambiente e se foi **real ou emulado**. O que não for testado deve ser dito como não testado.
+The "Technical execution" criterion (25%) mentions credible tests. Each row below becomes a README row, with the environment and whether it was **real or emulated**. Anything not tested must be stated as not tested.
 
-| Área | Caso | Esperado |
+| Area | Case | Expected |
 | --- | --- | --- |
-| Tela | Retrato 320×568 e 390×844 | Tudo visível, cartões tocáveis, nada cortado |
-| Tela | Janela larga de desktop | Coluna retrato centralizada, fundo Deep ink |
-| Tela | Celular deitado | Aviso "Rotate your phone", jogo pausado, volta ao girar |
-| Tela | Redimensionar a janela no meio da onda | Enquadramento e UI se ajustam, jogo continua |
-| Entrada | Mouse e toque | Mesmo comportamento nos dois |
-| Entrada | Dois dedos ao mesmo tempo; toque cancelado | Só o primeiro ponteiro conta; seleção descartada |
-| Entrada | Tocar cartão sem moedas | Cartão treme, nada é construído |
-| Entrada | Rolagem da página durante o jogo | Página não rola |
-| Fluxo | Não construir nada | Ondas passam, jogo chega ao final |
-| Fluxo | Construir e melhorar tudo que o saldo permite | Sem erro, saldo nunca negativo |
-| Restart | No meio da onda, 10 vezes seguidas, na tela final | Estado limpo, sem inimigos ou eventos duplicados, ritmo igual ao primeiro |
-| Visibilidade | Ocultar a aba no meio de uma onda por 10 s e voltar | Inimigos parados enquanto oculto, retomada sem salto de tempo |
-| CTA | Clicar em **Explore Scrambly** | Mensagem "CTA clicked — demo only", log no console, URL não muda |
-| Rede | Aba Network com o servidor estático simples | Só requisições do mesmo domínio, sem erros |
-| Pacote | ZIP em pasta limpa | Abre, `index.html` na raiz, ≤ 5.000.000 bytes |
+| Screen | Portrait 320×568 and 390×844 | Everything visible, cards tappable, nothing cut |
+| Screen | Wide desktop window | Centered portrait column, Deep ink background |
+| Screen | Phone in landscape | "Rotate your phone" notice, game paused, resumes when rotated back |
+| Screen | Resize the window mid-wave | Framing and UI adjust, the game continues |
+| Input | Mouse and touch | Same behavior on both |
+| Input | Two fingers at once; canceled touch | Only the first pointer counts; selection discarded |
+| Input | Tap a card without coins | Card shakes, nothing is built |
+| Input | Page scroll during play | Page does not scroll |
+| Flow | Build nothing | Waves pass, the game reaches the end |
+| Flow | Build and upgrade everything the balance allows | No errors, balance never negative |
+| Restart | Mid-wave, 10 times in a row, on the end screen | Clean state, no duplicated enemies or events, same pacing as the first run |
+| Visibility | Hide the tab mid-wave for 10 s and come back | Enemies frozen while hidden, resume with no time jump |
+| CTA | Click **Explore Scrambly** | Message "CTA clicked — demo only", console log, URL unchanged |
+| Network | Network tab with the simple static server | Only same-origin requests, no errors |
+| Package | ZIP in a clean folder | Opens, `index.html` at the root, ≤ 5,000,000 bytes |
 
-**Caso extremo para mostrar no roteiro:** ocultar a aba no meio de uma onda e voltar. É o que o briefing descreve de forma mais específica e é fácil de provar na gravação.
+**Edge case to show in the script:** hide the tab in the middle of a wave and come back. It is the case the brief describes most specifically and it is easy to prove in the recording.
 
-**Ambientes a registrar (preencher o que de fato usar):** Chrome no desktop; emulação de dispositivo em 320×568 e 390×844; um celular Android ou iPhone real, se possível; um segundo navegador (Firefox ou Safari). Para cada um, anotar real ou emulado e a data do teste.
+**Environments to record (fill in what you actually use):** Chrome on desktop; device emulation at 320×568 and 390×844; a real Android phone or iPhone, if possible; a second browser (Firefox or Safari). For each one, note real or emulated and the test date.
 
-## 12. Entrega e processo
+## 12. Delivery and process
 
-São **três entregas** (Stage 1): o ZIP de produção, a gravação do processo inteiro e o passeio de 5 minutos. Os links precisam ser públicos.
+There are **three deliverables** (Stage 1): the production ZIP, the recording of the entire process and the 5-minute walkthrough. The links must be public.
 
-**Estrutura do ZIP**
+**ZIP structure**
 
 ```text
-index.html            <- raiz, obrigatório
-Build/ TemplateData/  <- build WebGL
-README.md             <- como rodar, ambientes testados (real/emulado), limitações, o que não foi testado, tamanho
-CREDITS.md            <- assets, fonte, ferramentas, código reaproveitado, uso de IA
-PROJECT_NOTE.md       <- o que usei, o que contribuí, uma decisão/correção/saída rejeitada
-TIME_LOG.md           <- tempo por bloco
-source/               <- Assets/Scripts, cena, prefabs, template WebGL, ajustes essenciais (sem Library/Temp)
+index.html            <- root, mandatory
+Build/ TemplateData/  <- WebGL build
+README.md             <- how to run, environments tested (real/emulated), limitations, what was not tested, size
+CREDITS.md            <- assets, font, tools, reused code, AI use
+PROJECT_NOTE.md       <- what I used, what I contributed, one decision/correction/rejected output
+TIME_LOG.md           <- time per block
+source/               <- Assets/Scripts, scene, prefabs, WebGL template, essential settings (no Library/Temp)
 ```
 
-**Nota do projeto (exigida):** dizer o que foi usado (Unity, pacote de assets, IA), o que você contribuiu e **uma decisão, correção ou saída rejeitada que melhorou o resultado**. Você precisa entender a implementação e conseguir modificá-la. Duas candidatas reais desta sessão, se você quiser usá-las com suas palavras:
+**Project note (required):** say what was used (Unity, asset pack, AI), what you contributed and **one decision, correction or rejected output that improved the result**. You need to understand the implementation and be able to modify it. Two real candidates from this session, if you want to use them in your own words:
 
-- Uma sugestão inicial de IA usava o ovo como mascote (vindo do site público); o briefing fornece uma **raposa**, e a direção de arte foi corrigida antes de começar.
-- A restrição de 5 MB tornou Unity condicional, e isso virou o teste de tamanho da Fase 0 com regra de decisão.
+- An initial AI suggestion used the egg as the mascot (from the public website); the brief provides a **fox**, and the art direction was corrected before starting.
+- The 5 MB constraint made Unity conditional, and that became the Phase 0 size test with a decision rule.
 
-**Gravação do processo completo.** Ligar a gravação de tela no início e deixar rodando. O briefing quer ver, desde a interpretação do briefing até o build final: ferramentas, prompts, iterações, saídas aceitas e rejeitadas, correções e onde você aplicou julgamento próprio. Mostre como você avaliou e melhorou o que a IA entregou, não só que usou.
+**Recording of the full process.** Turn on screen recording at the start and leave it running. The brief wants to see, from the interpretation of the brief to the final build: tools, prompts, iterations, accepted and rejected outputs, corrections and where you applied your own judgment. Show how you evaluated and improved what the AI delivered, not just that you used it.
 
-**Passeio de 5 minutos (roteiro)**
+**5-minute walkthrough (script)**
 
-| Tempo | Conteúdo |
+| Time | Content |
 | --- | --- |
-| 0:00–0:30 | Conceito e como Discover, Play e Redeem viram mecânica |
-| 0:30–1:45 | Jogada ao vivo: construir, melhorar, ondas |
-| 1:45–2:30 | Progressão e final: cadeados, Vault, tela final |
-| 2:30–2:50 | CTA, com o console do navegador visível |
+| 0:00–0:30 | Concept and how Discover, Play and Redeem become mechanics |
+| 0:30–1:45 | Live play: build, upgrade, waves |
+| 1:45–2:30 | Progression and ending: locks, Vault, end screen |
+| 2:30–2:50 | CTA, with the browser console visible |
 | 2:50–3:10 | Restart |
-| 3:10–3:55 | Caso extremo: ocultar a aba no meio de uma onda e voltar |
-| 3:55–5:00 | Decisões, tempo gasto, ferramentas e reuso, testes, limitações e a mudança mais importante |
+| 3:10–3:55 | Edge case: hide the tab mid-wave and come back |
+| 3:55–5:00 | Decisions, time spent, tools and reuse, tests, limitations and the most important change |
 
-**Stage 2 (se for convidado).** Marcar o Stage 1 com uma tag Git (por exemplo `stage1-final`) e manter os números no `GameConfig`, porque o pedido de ajuste costuma ser de balanceamento, clareza ou polimento. A revisão vai em nova versão ou tag, sem alterar o Stage 1, e o escopo é o mesmo jogo: jogo novo ou troca de engine está fora. Extras não são recompensados.
+**Stage 2 (if invited).** Mark Stage 1 with a Git tag (for example `stage1-final`) and keep the numbers in the `GameConfig`, because the adjustment request is usually about balance, clarity or polish. The revision goes in a new version or tag, without changing Stage 1, and the scope is the same game: a new game or an engine switch is out. Extras are not rewarded.
 
-**Pontos do briefing para conferir antes de enviar**
+**Brief points to check before submitting**
 
-- [ ] ZIP abre, tem `index.html` na raiz e está dentro de 5 MB.
-- [ ] ZIP inclui código legível, instruções e créditos de assets e ferramentas.
-- [ ] Entrada, layout, CTA, restart, visibilidade e casos extremos foram testados.
-- [ ] Gravação do processo completo está acessível e mostra o uso de IA.
-- [ ] Passeio de 5 minutos cobre decisões, tempo, ferramentas, testes, limitações e mudanças.
+- [ ] The ZIP opens, has `index.html` at the root and is within 5 MB.
+- [ ] The ZIP includes readable code, instructions and credits for assets and tools.
+- [ ] Input, layout, CTA, restart, visibility and edge cases were tested.
+- [ ] The recording of the full process is accessible and shows the use of AI.
+- [ ] The 5-minute walkthrough covers decisions, time, tools, tests, limitations and changes.
 
-## 13. Riscos e dúvidas para o contato da Simula
+## 13. Risks and questions for the Simula contact
 
-| Risco | Mitigação |
+| Risk | Mitigation |
 | --- | --- |
-| Build Unity WebGL estoura os 5 MB (build + fonte + assets) | Fase 0, regra de decisão da seção 8 e Plano B em TS + Three.js |
-| Servidor estático simples não entrega o build comprimido do Unity | Decompression Fallback e teste com `python3 -m http.server` já na Fase 0 |
-| Escopo do TD cresce além do tempo | Escopo fechado da seção 1, G1 em 2:45, lista de cortes da seção 10 |
-| Balanceamento ruim deixa o jogo fácil demais ou injusto | Tudo no `GameConfig`; cerca de 1 h de playtest; sem derrota, o pior caso é só vazar moedas |
-| Cube Pets animados pesam mais e os nomes dos clipes são desconhecidos | Importar só 3 pets e só os clipes usados; medir na Fase 0 com um pet animado; plano de reserva: squash and stretch por código |
-| Os 3 predadores somam 444 KB (leão 173, tigre 172, urso 99), e o total bruto de assets vai a ~1,04 MB | Cortar o gato (165 KB), depois os detalhes do cenário; reaproveitar o mesmo modelo recolorido e escalado; medir na Fase 0 |
-| Game Icons sem moeda, presente nem estrela, e contagem divergente (105 na página do Kenney, "125+" em cópia de terceiros) | Desenhar essas formas como sprites simples; conferir o ZIP oficial |
-| A raposa do kit de referência destoa dos pets cúbicos, ou não funciona em 3D | Raposa como mascote 2D no Vault, no HUD e na tela final, e os pets cúbicos como o time que ela lidera (kit ainda não visto) |
-| Memória do WebGL em iPhone | Memória inicial baixa, texturas pequenas, teste em aparelho real se houver |
-| Licença de asset incerta | Os 4 pacotes escolhidos são CC0 (conferido nas páginas do Kenney) e a fonte Fredoka é OFL 1.1; mesmo assim, tudo listado em `CREDITS.md` |
-| Parecer "anúncio genérico" (critério de 30%) | Três fases rotuladas Discover/Play/Redeem, cadeados de recompensa e tela final com a frase do produto |
-| Fim do prazo sem tempo de documentar | Bloco fixo de 30 min no fim e `TIME_LOG.md` ao longo do trabalho |
+| Unity WebGL build blows the 5 MB (build + source + assets) | Phase 0, section 8 decision rule and Plan B in TS + Three.js |
+| A simple static server does not serve Unity's compressed build | Decompression Fallback and a test with `python3 -m http.server` in Phase 0 |
+| The TD scope grows beyond the time | Closed scope from section 1, G1 at 2:45, section 10 cut list |
+| Bad balance makes the game too easy or unfair | Everything in the `GameConfig`; about 1 h of playtesting; with no defeat, the worst case is just leaking coins |
+| Animated Cube Pets weigh more and the clip names are unknown | Import only 3 pets and only the clips used; measure Phase 0 with an animated pet; fallback: squash and stretch in code |
+| The 3 predators add up to 444 KB (lion 173, tiger 172, bear 99), and raw assets reach ~1.04 MB | Cut the cat (165 KB), then the scenery details; reuse the same model recolored and scaled; measure in Phase 0 |
+| Game Icons has no coin, gift or star, and the count differs (105 on Kenney's page, "125+" on a third-party copy) | Draw those shapes as simple sprites; check the official ZIP |
+| The reference kit's fox clashes with the cubic pets, or does not work in 3D | Fox as a 2D mascot on the Vault, in the HUD and on the end screen, with the cubic pets as the team she leads (kit not seen yet) |
+| WebGL memory on iPhone | Low initial memory, small textures, test on a real device if available |
+| Uncertain asset license | The 4 chosen packs are CC0 (checked on Kenney's pages) and the Fredoka font is OFL 1.1; even so, everything is listed in `CREDITS.md` |
+| Looking like a "generic ad" (30% criterion) | Three phases labeled Discover/Play/Redeem, reward locks and an end screen with the product line |
+| Running out of time to document | Fixed 30-minute block at the end and `TIME_LOG.md` throughout the work |
 
-**Perguntas para o contato da Simula (o briefing manda perguntar quando algo não está claro)**
+**Questions for the Simula contact (the brief says to ask when something is unclear)**
 
-1. A gravação do passeio de 5 minutos conta dentro das 6 horas de trabalho?
-2. O "código-fonte legível" pode ser só `Assets/Scripts`, cena e template, em vez do projeto Unity completo, dado o limite de 5 MB para tudo?
-3. O kit de referência tem restrições de uso ou formato da raposa que eu deva respeitar?
+1. Does recording the 5-minute walkthrough count within the 6 hours of work?
+2. Can the "readable source code" be just `Assets/Scripts`, the scene and the template, instead of the full Unity project, given the 5 MB limit for everything?
+3. Does the reference kit have usage or format restrictions on the fox that I should respect?
 
-## Fontes
+## Sources
 
-- [Simula Playable Game Developer Take-Home (briefing)](https://simula-ad.notion.site/Simula-Playable-Game-Developer-Take-Home-321af70f6f0d80f4b560ef057587f77b)
+- [Simula Playable Game Developer Take-Home (brief)](https://simula-ad.notion.site/Simula-Playable-Game-Developer-Take-Home-321af70f6f0d80f4b560ef057587f77b)
 - [Scrambly](https://scrambly.io/)
