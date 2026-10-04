@@ -26,9 +26,10 @@ namespace ScramblyFoxDefense.EditorTools
         const int Columns = 6;
         const int Rows = 10;
         // Forest ring around the arena (what the camera sees past the board) and the path entering through it.
-        const int RingSides = 3;
-        const int RingTop = 4;
-        const int RingBottom = 3;
+        const int RingSides = 7;
+        const int RingTop = 9;
+        const int RingBottom = 6;
+        const int RingDense = 3; // cells closest to the arena get the densest forest
         const int EntranceLength = 3;
         const float PetOnTowerScale = 0.4f;
 
@@ -97,6 +98,8 @@ namespace ScramblyFoxDefense.EditorTools
             hand.sortingOrder = 10; // above cards and text
             wiring.FindProperty("tutorialHand").objectReferenceValue = hand;
             wiring.ApplyModifiedPropertiesWithoutUndo();
+
+            MarkStaticScenery(board);
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -200,6 +203,16 @@ namespace ScramblyFoxDefense.EditorTools
         {
             var root = new GameObject("Surroundings").transform;
             root.SetParent(board, false);
+
+            // One big ground slab under everything: the camera never sees the empty background, at any aspect,
+            // for one draw call (per-cell tiles out here would cost hundreds).
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Object.DestroyImmediate(ground.GetComponent<Collider>()); // physics is stripped from the build
+            ground.name = "Ground";
+            ground.transform.SetParent(root, false);
+            ground.transform.localScale = new Vector3(90f, 0.2f, 90f);
+            ground.transform.position = new Vector3(0f, -0.11f, 0f); // top just under the tiles: never covers the path
+            ground.GetComponent<Renderer>().sharedMaterial = KitMaterials.Tinted("GroundPlane", new Color(0.33f, 0.52f, 0.26f));
             var random = new System.Random(11);
             int entranceColumn = PathCorners[0].x;
             for (int row = -RingTop; row < Rows + RingBottom; row++)
@@ -208,16 +221,17 @@ namespace ScramblyFoxDefense.EditorTools
                 if (row >= 0 && row < Rows && column >= 0 && column < Columns) continue; // the arena itself
                 var cell = new Vector2Int(column, row);
                 bool entrance = column == entranceColumn && row < 0 && row >= -EntranceLength;
-                GameObject tile = entrance
-                    ? Rotated(Spawn(Kit + "tile-straight.glb", root), Yaw(Vector2Int.up) + StraightBaseYaw)
-                    : Spawn(Kit + "tile.glb", root);
-                if (!entrance) KitMaterials.Apply(tile, KitMaterials.OuterGround);
-                tile.transform.position = CellToWorld(cell);
-                if (entrance) continue;
+                if (entrance)
+                {
+                    var path = Rotated(Spawn(Kit + "tile-straight.glb", root), Yaw(Vector2Int.up) + StraightBaseYaw);
+                    path.transform.position = CellToWorld(cell);
+                    continue;
+                }
+                int distance = Mathf.Max(Mathf.Max(-row, row - (Rows - 1)), Mathf.Max(-column, column - (Columns - 1)));
 
                 bool nearEntrance = Mathf.Abs(column - entranceColumn) <= 1 && row < 0;
                 bool nearVault = row >= Rows && column >= entranceColumn - 1 && column <= entranceColumn + 1;
-                if (nearVault || random.NextDouble() > 0.85) continue;
+                if (nearVault || random.NextDouble() > (distance <= RingDense ? 0.85 : 0.6)) continue;
                 // Next to the entrance path only short pieces, so predators stay visible.
                 double roll = random.NextDouble();
                 string model = nearEntrance
@@ -229,6 +243,18 @@ namespace ScramblyFoxDefense.EditorTools
                 deco.transform.position = CellToWorld(cell) + offset + Vector3.up * tileTop;
                 deco.transform.rotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
                 deco.transform.localScale = Vector3.one * (0.95f + (float)random.NextDouble() * 0.45f);
+            }
+        }
+
+        /// <summary>Tiles and decoration never move: static batching merges them into a few draw calls.
+        /// Slots (pulse), the vault (redeem swell) and waypoints stay dynamic.</summary>
+        static void MarkStaticScenery(Transform board)
+        {
+            foreach (Transform child in board)
+            {
+                if (child.name == "Slots" || child.name == "Path" || child.name == "Reward Vault") continue;
+                foreach (var t in child.GetComponentsInChildren<Transform>(true))
+                    GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic);
             }
         }
 
@@ -407,6 +433,7 @@ namespace ScramblyFoxDefense.EditorTools
             }
 
             ApplyFeelDefaults(config);
+            ApplyFinalWavePass(config); // after the 4-wave migration, so a fresh config also ends with 5 waves
             config.towers[0].prefab = prefabs.PopBlaster;
             config.towers[1].prefab = prefabs.PuzzlePulse;
             config.towers[2].prefab = prefabs.RacerZap;
@@ -452,6 +479,29 @@ namespace ScramblyFoxDefense.EditorTools
             }
         }
 
+        /// <summary>Last-adjustments pass: a fifth wave and tougher predators. Runs once (5 waves = applied).</summary>
+        static void ApplyFinalWavePass(GameConfig config)
+        {
+            if (config.waves.Length != 4) return;
+            var waves = config.waves.ToList();
+            waves[3].intro = "Next: a big mixed wave!";
+            waves[3].clearBonus = 30;
+            waves.Add(new WaveDefinition
+            {
+                spawnInterval = 0.75f,
+                intro = "Final wave: the whole pack!",
+                groups = new[] { new SpawnGroup { enemyIndex = 0, count = 10 }, new SpawnGroup { enemyIndex = 1, count = 8 }, new SpawnGroup { enemyIndex = 2, count = 6 } }
+            });
+            config.waves = waves.ToArray();
+            config.enemies[0].health = 19; // was 15
+            config.enemies[1].health = 11; // was 9
+            config.enemies[2].health = 75; // was 60
+            // Tighter economy so the extra coins cannot buy every tower and upgrade (harder).
+            config.enemies[0].coinReward = 4;  // was 6
+            config.enemies[1].coinReward = 5;  // was 7
+            config.enemies[2].coinReward = 10; // was 15
+        }
+
         static void SetFeel(TowerDefinition tower, TargetMode targeting, Color color, float scale, float speed)
         {
             tower.targeting = targeting;
@@ -486,6 +536,10 @@ namespace ScramblyFoxDefense.EditorTools
             camera.nearClipPlane = 0.5f;
             go.transform.rotation = Quaternion.Euler(55f, 0f, 0f);
             go.transform.position = -go.transform.forward * 14f;
+            var bloom = go.AddComponent<BloomEffect>();
+            var bloomSo = new SerializedObject(bloom);
+            bloomSo.FindProperty("shader").objectReferenceValue = Shader.Find("Hidden/Scrambly/Bloom");
+            bloomSo.ApplyModifiedPropertiesWithoutUndo();
             return camera;
         }
 
