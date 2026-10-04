@@ -26,3 +26,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | readme-fix | 2026-10-04 18:11 | 2026-10-04 18:14 | 0h 03min | README rewritten for the final game; balance re-simulated with final config |
 | project-note-language | 2026-10-04 18:25 | 2026-10-04 18:26 | 0h 00min | PROJECT_NOTE note on the Portuguese setup commits and merge duration line |
 | docs-english | 2026-10-04 19:48 | 2026-10-04 19:51 | 0h 02min | GDD and CLAUDE.md translated to English |
+| fix-tutorial-hand | 2026-10-04 19:54 | 2026-10-04 19:57 | 0h 03min | Tutorial hand redrawn as a pointing hand (old sprite read as a middle finger) |

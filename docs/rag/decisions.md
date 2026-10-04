@@ -153,6 +153,10 @@ Last adjustments requested by the user:
 - **Fox position:** the vault stood 0.9 units past the board and the fox ended behind the card band; the vault now stands on the last path cell. The kit's `tile-end` is shorter than a cell and left a visible gap, so the last cell uses `tile-straight` (covered by the vault).
 - Size: ZIP 3,326,098 bytes (build 2,779,524).
 
+## 2026-10-04 — Tutorial hand redrawn
+
+The tutorial hand drawn in code (one finger raised in the middle of a closed fist, with two crease lines) read as a middle finger. Redrawn as a pointing hand: the index finger rises from the edge of the knuckles, the other fingers are folded to one side, the thumb crosses in front and a purple sleeve cuff sits below. Same file and pivot (fingertip), so the scene did not change.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).
