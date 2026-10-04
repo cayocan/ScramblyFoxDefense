@@ -151,7 +151,7 @@ Last adjustments requested by the user:
 - **Enemies +25% health** (24 / 14 / 94) and **distinct colours** (lion purple, tiger magenta, polar bear ice blue: hue-shifted copies of the pet palette; the bear needed stronger saturation because it is mostly white fur and bloomed to white).
 - **Red health bars** above every predator (pooled with the enemy objects, height from each model's bounds).
 - **Fox position:** the vault stood 0.9 units past the board and the fox ended behind the card band; the vault now stands on the last path cell. The kit's `tile-end` is shorter than a cell and left a visible gap, so the last cell uses `tile-straight` (covered by the vault).
-- Size: ZIP 3,32x,xxx bytes (see README).
+- Size: ZIP 3,326,098 bytes (build 2,779,524).
 
 ## 2026-10-03 — UI approach
 
