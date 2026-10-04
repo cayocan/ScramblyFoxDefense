@@ -24,3 +24,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | final-hud-enemies | 2026-10-04 17:47 | 2026-10-04 18:04 | 0h 17min | Kenney UI Pack HUD, card borders, enemy colours +25% HP, red enemy health bars, fox repositioned, end tile gap fix |
 | release-final | 2026-10-04 18:05 | 2026-10-04 18:05 | 0h 00min | Final sizes, production ZIP, tag stage1-final |
 | readme-fix | 2026-10-04 18:11 | 2026-10-04 18:14 | 0h 03min | README rewritten for the final game; balance re-simulated with final config |
+| project-note-language | 2026-10-04 18:25 | 2026-10-04 18:26 | 0h 00min | PROJECT_NOTE note on the Portuguese setup commits and merge duration line |
