@@ -23,6 +23,7 @@ namespace ScramblyFoxDefense.Gameplay
         readonly GameConfig _config;
         readonly PathRoute _path;
         readonly Economy _economy;
+        readonly FoxHealth _fox;
         readonly ObjectPool[] _pools;
         readonly List<Enemy> _active = new List<Enemy>();
 
@@ -32,8 +33,9 @@ namespace ScramblyFoxDefense.Gameplay
         public event Action<Enemy> Killed;
         public event Action<Enemy> Leaked;
 
-        public EnemySystem(GameConfig config, PathRoute path, Economy economy, Transform poolRoot)
+        public EnemySystem(GameConfig config, PathRoute path, Economy economy, FoxHealth fox, Transform poolRoot)
         {
+            _fox = fox;
             _config = config;
             _path = path;
             _economy = economy;
@@ -68,7 +70,8 @@ namespace ScramblyFoxDefense.Gameplay
                 enemy.Distance += enemy.Definition.speed * deltaTime;
                 if (enemy.Distance >= _path.Length)
                 {
-                    _economy.Leak(_config.leakPenalty);
+                    _economy.RegisterLeak();
+                    _fox.Damage(enemy.Definition.foxDamage);
                     Leaked?.Invoke(enemy);
                     Remove(i);
                     continue;
@@ -90,6 +93,12 @@ namespace ScramblyFoxDefense.Gameplay
             _economy.Earn(enemy.Definition.coinReward);
             Killed?.Invoke(enemy);
             Remove(_active.IndexOf(enemy));
+        }
+
+        /// <summary>Session over (the fox fell): every predator leaves the board at once.</summary>
+        public void ClearAll()
+        {
+            for (int i = _active.Count - 1; i >= 0; i--) Remove(i);
         }
 
         void Remove(int index)

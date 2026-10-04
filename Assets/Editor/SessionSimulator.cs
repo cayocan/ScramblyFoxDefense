@@ -62,7 +62,8 @@ namespace ScramblyFoxDefense.EditorTools
                 state = current;
                 if (current == "EndCard") break;
             }
-            log.Append($"| collected={economy.Collected} leaks={economy.Leaks} pending=[{string.Join(",", orders)}]");
+            var fox = (FoxHealth)typeof(EnemySystem).GetField("_fox", Private).GetValue(enemies);
+            log.Append($"| collected={economy.Collected} leaks={economy.Leaks} fox={fox.Current}/{fox.Max} pending=[{string.Join(",", orders)}]");
             Debug.Log("[SessionSimulator] " + log);
             return log.ToString();
         }

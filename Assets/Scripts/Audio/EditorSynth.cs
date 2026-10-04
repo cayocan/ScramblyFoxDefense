@@ -45,7 +45,7 @@ namespace ScramblyFoxDefense.Audio
         int _sampleRate;
         volatile bool _muted;
         volatile bool _paused;
-        double _lastShot = -1;
+        readonly double[] _lastShot = new double[16];
 
         public bool Muted { get => _muted; set => _muted = value; }
 
@@ -69,10 +69,11 @@ namespace ScramblyFoxDefense.Audio
         public void Play(Sound sound)
         {
             double now = _clock;
-            if (sound == Sound.Shoot)
+            if (sound == Sound.Shoot || sound >= Sound.ShootPop)
             {
-                if (now - _lastShot < 0.07) return; // cap shot spam, like the page
-                _lastShot = now;
+                int id = (int)sound;
+                if (now - _lastShot[id] < 0.06) return; // cap shot spam per sound, like the page
+                _lastShot[id] = now;
             }
             lock (_lock)
             {
@@ -90,6 +91,9 @@ namespace ScramblyFoxDefense.Audio
                     case Sound.Cta: Arp(now, new[] { 523, 784, 1047 }, 0.08, 0.14, 0.3f); break;
                     case Sound.Deny: Tone(now, 180, 0, 0.12, Wave.Square, 0.12f); Tone(now, 150, 0.1, 0.14, Wave.Square, 0.12f); break;
                     case Sound.Fanfare: Arp(now, new[] { 523, 659, 784, 1047, 784, 1047 }, 0.1, 0.18, 0.26f); break;
+                    case Sound.ShootPop: Tone(now, 1400, 0, 0.07, Wave.Square, 0.14f, 700); Tone(now, 2100, 0, 0.04, Wave.Triangle, 0.1f); break;
+                    case Sound.ShootPulse: Tone(now, 320, 0, 0.2, Wave.Sine, 0.4f, 150); Tone(now, 640, 0, 0.12, Wave.Triangle, 0.15f, 300); break;
+                    case Sound.ShootZap: Tone(now, 2400, 0, 0.1, Wave.Saw, 0.12f, 800); Tone(now, 1200, 0.02, 0.08, Wave.Square, 0.08f, 2400); break;
                 }
             }
         }

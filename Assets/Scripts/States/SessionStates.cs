@@ -14,6 +14,7 @@ namespace ScramblyFoxDefense.States
         public int WaveIndex;
         /// <summary>Waves cleared with no predator reaching the vault (one star each).</summary>
         public int PerfectWaves;
+        public int WavesCleared;
     }
 
     /// <summary>Discover: wave 1 starts on the first build or after the intro timeout.</summary>
@@ -68,10 +69,12 @@ namespace ScramblyFoxDefense.States
         readonly LockBarView _locks;
         readonly IAudioService _audio;
         readonly Economy _economy;
+        readonly FoxHealth _fox;
         int _leaksAtStart;
 
-        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud, LockBarView locks, IAudioService audio, Economy economy)
+        public WaveState(GameStateMachine machine, GameConfig config, GameSession session, WaveSpawner spawner, HudView hud, LockBarView locks, IAudioService audio, Economy economy, FoxHealth fox)
         {
+            _fox = fox;
             _audio = audio;
             _economy = economy;
             _machine = machine;
@@ -94,9 +97,15 @@ namespace ScramblyFoxDefense.States
 
         public void Tick(float deltaTime)
         {
+            if (_fox.Defeated)
+            {
+                _machine.Enter<EndCardState>();
+                return;
+            }
             _spawner.Tick(deltaTime);
             if (!_spawner.Finished) return;
 
+            _session.WavesCleared++;
             // Reward that grows with skill: a perfect wave earns a star (gold lock) on top of the clear bonus.
             bool perfect = _economy.Leaks == _leaksAtStart;
             if (perfect) _session.PerfectWaves++;
@@ -214,9 +223,20 @@ namespace ScramblyFoxDefense.States
 
         readonly GameSession _session;
         readonly int _waveCount;
+        readonly FoxHealth _fox;
+        readonly EnemySystem _enemies;
+        readonly PlayerActions _actions;
+        readonly CardBarView _cards;
+        readonly TowerBadges _badges;
 
-        public EndCardState(Economy economy, HudView hud, EndCardView endCard, RestartController restart, InputRouter input, IAudioService audio, GameSession session, int waveCount)
+        public EndCardState(Economy economy, HudView hud, EndCardView endCard, RestartController restart, InputRouter input, IAudioService audio, GameSession session, int waveCount,
+            FoxHealth fox, EnemySystem enemies, PlayerActions actions, CardBarView cards, TowerBadges badges)
         {
+            _fox = fox;
+            _enemies = enemies;
+            _actions = actions;
+            _cards = cards;
+            _badges = badges;
             _session = session;
             _waveCount = waveCount;
             _audio = audio;
@@ -231,10 +251,26 @@ namespace ScramblyFoxDefense.States
         {
             _hud.SetPhase("Redeem");
             _hud.HideBanner(); // the end card panel takes over the centre of the screen
-            int stars = _session.PerfectWaves;
-            string title = stars == _waveCount ? "Perfect defense!" : stars > 0 ? "Great defense!" : "Nice defense!";
-            _endCard.Show(title, _economy.Collected, stars, _waveCount);
-            _audio.Play(Sound.Fanfare);
+            // The fox may fall before the last wave: the board is cleared and the invitation still shows.
+            _enemies.ClearAll();
+            _actions.Enabled = false;
+            _actions.ClearSelection();
+            _cards.SetVisible(false);
+            _badges.HideAll();
+
+            string coins = $"You collected {_economy.Collected} demo coins";
+            if (_fox.Defeated)
+            {
+                _endCard.Show("So close!", $"{coins}\nWaves cleared: {_session.WavesCleared}/{_waveCount}");
+                _audio.Play(Sound.Unlock);
+            }
+            else
+            {
+                int stars = _session.PerfectWaves;
+                string title = stars == _waveCount ? "Perfect defense!" : stars > 0 ? "Great defense!" : "Nice defense!";
+                _endCard.Show(title, $"{coins}\nPerfect waves: {stars}/{_waveCount}");
+                _audio.Play(Sound.Fanfare);
+            }
             _endCard.CtaClicked += OnCta;
             _endCard.PlayAgainClicked += _restart.Restart;
             _input.Register(_endCard.HandleTap);

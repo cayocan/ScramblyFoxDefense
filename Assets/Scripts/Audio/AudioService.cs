@@ -16,7 +16,10 @@ namespace ScramblyFoxDefense.Audio
         Coin = 8,
         Cta = 9,
         Deny = 10,
-        Fanfare = 11
+        Fanfare = 11,
+        ShootPop = 12,
+        ShootPulse = 13,
+        ShootZap = 14
     }
 
     public interface IAudioService

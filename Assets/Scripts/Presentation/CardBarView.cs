@@ -36,6 +36,10 @@ namespace ScramblyFoxDefense.Presentation
         readonly Camera _camera;
         readonly Vector3[] _rest;
         int _shaking = -1;
+        int _focus = -1;
+        int _selected = -1;
+        static readonly Color Dimmed = new Color(0.62f, 0.6f, 0.68f, 0.45f);
+        static readonly Color FaceDimmed = new Color(0.55f, 0.53f, 0.6f);
         float _shakeTime;
 
         public CardBarView(CardView[] cards, GameConfig config, Economy economy, HudLayout layout, Camera camera)
@@ -91,10 +95,33 @@ namespace ScramblyFoxDefense.Presentation
 
         public void SetSelected(int index)
         {
+            _selected = index;
+            Repaint();
+        }
+
+        /// <summary>Tutorial: every card except the focused one is greyed out (-1 = all normal).</summary>
+        public void SetFocus(int index)
+        {
+            _focus = index;
+            Repaint();
+        }
+
+        bool IsDimmed(int i) => _focus >= 0 && i != _focus;
+
+        void Repaint()
+        {
             for (int i = 0; i < _cards.Length; i++)
             {
-                Tint.Set(_cards[i].background, i == index ? Selected : Idle);
+                bool dimmed = IsDimmed(i);
+                Tint.Set(_cards[i].background, dimmed ? Dimmed : i == _selected ? Selected : Idle);
+                var title = _cards[i].title.color;
+                title.a = dimmed ? 0.4f : 1f;
+                _cards[i].title.color = title;
+                var face = _cards[i].root.Find("Face");
+                if (face != null)
+                    foreach (var renderer in face.GetComponentsInChildren<Renderer>()) Tint.Set(renderer, dimmed ? FaceDimmed : Color.white);
             }
+            RefreshPrices();
         }
 
         /// <summary>Not enough coins: the card shakes (GDD section 4).</summary>
@@ -123,7 +150,11 @@ namespace ScramblyFoxDefense.Presentation
         void RefreshPrices()
         {
             for (int i = 0; i < _cards.Length; i++)
-                _cards[i].price.color = _economy.CanAfford(_config.towers[i].levels[0].cost) ? Affordable : TooExpensive;
+            {
+                var color = _economy.CanAfford(_config.towers[i].levels[0].cost) ? Affordable : TooExpensive;
+                if (IsDimmed(i)) color.a = 0.4f;
+                _cards[i].price.color = color;
+            }
         }
     }
 }

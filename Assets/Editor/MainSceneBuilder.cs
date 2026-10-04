@@ -25,6 +25,11 @@ namespace ScramblyFoxDefense.EditorTools
 
         const int Columns = 6;
         const int Rows = 10;
+        // Forest ring around the arena (what the camera sees past the board) and the path entering through it.
+        const int RingSides = 3;
+        const int RingTop = 4;
+        const int RingBottom = 3;
+        const int EntranceLength = 3;
         const float PetOnTowerScale = 0.4f;
 
         // Yaw that makes each kit tile match the path; tuned by looking at the board.
@@ -65,8 +70,9 @@ namespace ScramblyFoxDefense.EditorTools
             var vault = Spawn(Kit + "tower-square-bottom-a.glb", board);
             vault.name = "Reward Vault";
             vault.transform.position = CellToWorld(PathCorners[PathCorners.Length - 1]) + Vector3.back * 0.9f;
+            float vaultTop = Top(vault); // measured before the fox is parented, or the fox inflates it
             var fox = Spawn(Pets + "animal-fox.glb", vault.transform);
-            fox.transform.localPosition = Vector3.up * Top(vault);
+            fox.transform.localPosition = Vector3.up * vaultTop;
             fox.transform.localScale = Vector3.one * PetOnTowerScale;
             fox.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             PlayIdle(fox);
@@ -74,7 +80,7 @@ namespace ScramblyFoxDefense.EditorTools
             var installer = new GameObject("Game").AddComponent<GameInstaller>();
             var hud = CreateHud(camera.transform);
             var cards = CreateCards(camera.transform);
-            var locks = CreateLocks(camera.transform);
+            var locks = CreateLocks(camera.transform, config.waves.Length);
             var restart = CreateButton("Restart", camera.transform, new Vector2(76f, 32f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
             var endCard = CreateEndCard(camera.transform);
             var mute = CreateButton("", camera.transform, new Vector2(40f, 32f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
@@ -127,12 +133,13 @@ namespace ScramblyFoxDefense.EditorTools
             }
 
             Decorate(board, pathIndex, tileTop);
+            BuildSurroundings(board, tileTop);
 
             var waypointRoot = new GameObject("Path").transform;
             waypointRoot.SetParent(board, false);
             var points = new List<Transform>();
             // Enter from just above the board, end at the vault.
-            points.Add(Waypoint(waypointRoot, CellToWorld(PathCorners[0]) + Vector3.forward * 1f, tileTop));
+            points.Add(Waypoint(waypointRoot, CellToWorld(new Vector2Int(PathCorners[0].x, -EntranceLength)), tileTop));
             foreach (var corner in PathCorners) points.Add(Waypoint(waypointRoot, CellToWorld(corner), tileTop));
             waypoints = points.ToArray();
 
@@ -182,6 +189,46 @@ namespace ScramblyFoxDefense.EditorTools
                 deco.transform.position = CellToWorld(cell) + offset + Vector3.up * tileTop;
                 deco.transform.rotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
                 deco.transform.localScale = Vector3.one * (0.85f + (float)random.NextDouble() * 0.3f);
+            }
+        }
+
+        /// <summary>
+        /// Ground and a dense autumn forest around the arena, so every edge the camera reaches is dressed. The path
+        /// enters from the forest at the top; the vault corner stays open.
+        /// </summary>
+        static void BuildSurroundings(Transform board, float tileTop)
+        {
+            var root = new GameObject("Surroundings").transform;
+            root.SetParent(board, false);
+            var random = new System.Random(11);
+            int entranceColumn = PathCorners[0].x;
+            for (int row = -RingTop; row < Rows + RingBottom; row++)
+            for (int column = -RingSides; column < Columns + RingSides; column++)
+            {
+                if (row >= 0 && row < Rows && column >= 0 && column < Columns) continue; // the arena itself
+                var cell = new Vector2Int(column, row);
+                bool entrance = column == entranceColumn && row < 0 && row >= -EntranceLength;
+                GameObject tile = entrance
+                    ? Rotated(Spawn(Kit + "tile-straight.glb", root), Yaw(Vector2Int.up) + StraightBaseYaw)
+                    : Spawn(Kit + "tile.glb", root);
+                if (!entrance) KitMaterials.Apply(tile, KitMaterials.OuterGround);
+                tile.transform.position = CellToWorld(cell);
+                if (entrance) continue;
+
+                bool nearEntrance = Mathf.Abs(column - entranceColumn) <= 1 && row < 0;
+                bool nearVault = row >= Rows && column >= entranceColumn - 1 && column <= entranceColumn + 1;
+                if (nearVault || random.NextDouble() > 0.85) continue;
+                // Next to the entrance path only short pieces, so predators stay visible.
+                double roll = random.NextDouble();
+                string model = nearEntrance
+                    ? (roll < 0.6 ? "detail-rocks" : "detail-crystal")
+                    : (roll < 0.5 ? "detail-tree-large" : roll < 0.8 ? "detail-tree" : roll < 0.92 ? "detail-rocks" : "detail-crystal");
+                var deco = Spawn(Kit + model + ".glb", root);
+                KitMaterials.Apply(deco, KitMaterials.Deco);
+                var offset = new Vector3((float)(random.NextDouble() - 0.5) * 0.4f, 0f, (float)(random.NextDouble() - 0.5) * 0.4f);
+                deco.transform.position = CellToWorld(cell) + offset + Vector3.up * tileTop;
+                deco.transform.rotation = Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f);
+                deco.transform.localScale = Vector3.one * (0.95f + (float)random.NextDouble() * 0.45f);
             }
         }
 
@@ -374,6 +421,23 @@ namespace ScramblyFoxDefense.EditorTools
         /// <summary>Tower feel and wave pacing (progression pass); only fills fields that are still unset.</summary>
         static void ApplyFeelDefaults(GameConfig config)
         {
+            // Fox health pass: a fourth, mixed wave; bears hit the fox harder; coins are never lost.
+            if (config.waves.Length < 4)
+            {
+                var waves = config.waves.ToList();
+                waves.Add(new WaveDefinition
+                {
+                    spawnInterval = 0.9f,
+                    intro = "Final wave: everyone at once!",
+                    groups = new[] { new SpawnGroup { enemyIndex = 0, count = 8 }, new SpawnGroup { enemyIndex = 1, count = 6 }, new SpawnGroup { enemyIndex = 2, count = 4 } }
+                });
+                config.waves = waves.ToArray();
+                config.waves[2].clearBonus = 25;
+                config.enemies[0].foxDamage = 1;
+                config.enemies[1].foxDamage = 1;
+                config.enemies[2].foxDamage = 3;
+                config.foxHealth = 10;
+            }
             if (string.IsNullOrEmpty(config.waves[1].intro))
             {
                 config.waves[0].intro = "Lions want the coins!"; config.waves[0].clearBonus = 15;
@@ -585,11 +649,11 @@ namespace ScramblyFoxDefense.EditorTools
             property.FindPropertyRelative("sizePixels").vector2Value = button.sizePixels;
         }
 
-        static SpriteRenderer[] CreateLocks(Transform camera)
+        static SpriteRenderer[] CreateLocks(Transform camera, int count)
         {
             var root = new GameObject("Locks").transform;
             root.SetParent(camera, false);
-            return Enumerable.Range(0, 3)
+            return Enumerable.Range(0, count)
                 .Select(i => Icon($"Lock {i + 1}", root, ArtImports.Sprite("lock-closed"), 64f, Color.white))
                 .ToArray();
         }
@@ -646,6 +710,7 @@ namespace ScramblyFoxDefense.EditorTools
             so.FindProperty("sparkSprite").objectReferenceValue = ArtImports.Sprite("spark");
             so.FindProperty("ringSprite").objectReferenceValue = ArtImports.Sprite("ring");
             so.FindProperty("arrowSprite").objectReferenceValue = ArtImports.Sprite("arrow-up");
+            so.FindProperty("roundedSprite").objectReferenceValue = ArtImports.Sprite("rounded");
             so.FindProperty("lockOpenSprite").objectReferenceValue = ArtImports.Sprite("lock-open");
             so.FindProperty("coinIcon").objectReferenceValue = camera.transform.Find("HUD/Coin Icon").GetComponent<SpriteRenderer>();
             so.FindProperty("topBand").objectReferenceValue = camera.transform.Find("HUD/Top Band").GetComponent<SpriteRenderer>();

@@ -118,6 +118,20 @@ User requests after playtesting:
 - **Louder audio:** master 0.5 -> 0.9, music 0.22 -> 0.32 in both synths, with a DynamicsCompressor in the page and a tanh soft limiter in the editor synth so the louder mix does not clip.
 - Size: ZIP 3,194,083 bytes.
 
+## 2026-10-04 — Fox health, 4 waves, richer world, shot sounds
+
+User requests after playtesting (design changes vs the GDD, approved by the user):
+
+- **Fox health instead of coin theft:** predators that reach the vault hurt the fox (lion 1, tiger 1, polar bear 3; fox 10 HP) and coins already earned are never taken. A health bar floats over the fox (orange to red, fox flashes when hit). At 0 HP the session ends early on a warm "So close!" end card (coins collected, waves cleared n/4) that still shows the CTA and Play again. The GDD's "no defeat screen" rule is replaced.
+- **Longer game:** a fourth, mixed wave ("Final wave: everyone at once!"), 4 reward locks; sessions now ~75–88 s (above the brief's 45–60 s target, by the user's choice). The upgrade hint waits until the breather before wave 3, so the first waves are free play for building.
+- **Balance (SessionSimulator):** one tower alone loses in wave 3 (55–70 s); two towers lose in wave 4; two towers + an upgrade survive (fox 2/10); three towers are perfect (fox 10/10, ~77 s).
+- **Blocked taps are visibly blocked:** during the opening tutorial the other cards (background, text and 3D pet), the other slots and the Restart button are greyed out and faded (`TutorialFocus`).
+- **Shot sounds per tower:** pop (Pop Blaster), deep pulse (Puzzle Pulse), sharp zap (Racer Zap), louder than the old shared click, spam-capped per sound; both synths.
+- **Fox on the platform:** bug in the scene builder; the vault height was measured after the fox was parented to it, so the fox floated 1.2 units above the vault.
+- **World around the arena:** a darker ground ring (3 cells on the sides, 4 above, 3 below) with a dense autumn forest, rocks and crystals, and the path now enters through the forest from the top. Only short pieces stand next to the entrance path; the vault corner stays open.
+- Fix: the health bar first rendered as an ellipse because the rounded sprite's 22 px slice borders exceeded the bar's height at 64 px per unit; drawn at 512 px per unit.
+- Size: ZIP 3,265,251 bytes.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).
