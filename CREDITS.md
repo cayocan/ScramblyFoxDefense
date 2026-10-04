@@ -4,7 +4,7 @@
 
 | Asset | Author | License | Used for |
 |---|---|---|---|
-| [Tower Defense Kit](https://kenney.nl/assets/tower-defense-kit) | Kenney | CC0 1.0 | Board tiles, path, tower bases, slot markers, vault |
+| [Tower Defense Kit](https://kenney.nl/assets/tower-defense-kit) (v2.1) | Kenney | CC0 1.0 | Board tiles, path, tower bases, slot markers, vault, trees/rocks/crystals decoration |
 | [Cube Pets](https://kenney.nl/assets/cube-pets) | Kenney | CC0 1.0 | Fox, dog and cat (defenders); lion, tiger and polar bear (predators) |
 | [Fredoka](https://fonts.google.com/specimen/Fredoka) | The Fredoka Project Authors | SIL OFL 1.1 (`source/Assets/Art/Fonts/OFL.txt`) | All in-game text (weight 600 instance, subset) |
 

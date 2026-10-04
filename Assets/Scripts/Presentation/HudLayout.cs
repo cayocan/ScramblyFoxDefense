@@ -18,6 +18,9 @@ namespace ScramblyFoxDefense.Presentation
         float _halfWidth;
         float _halfHeight;
 
+        /// <summary>Screen width in reference pixels (wider than 390 on desktop-like aspects).</summary>
+        public float ScreenWidthPixels => 2f * _halfWidth / PixelUnit;
+
         /// <summary>World units per reference pixel at the HUD plane.</summary>
         public float PixelUnit { get; private set; }
 

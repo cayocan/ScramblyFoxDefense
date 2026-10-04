@@ -38,6 +38,8 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] TextMesh phaseText;
         [SerializeField] TextMesh bannerText;
         [SerializeField] SpriteRenderer coinIcon;
+        [SerializeField] SpriteRenderer topBand;
+        [SerializeField] SpriteRenderer bannerPill;
         [SerializeField] SpriteRenderer tutorialHand;
         [SerializeField] CardView[] cards;
         [SerializeField] SpriteRenderer[] locks;
@@ -103,7 +105,7 @@ namespace ScramblyFoxDefense.Core
             var audio = new WebAudioService();
             _mute = new MuteToggle(audio, muteButton, muteIcon, soundOnSprite, soundOffSprite, mainCamera);
             _input.Register(_mute.HandleTap);
-            _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon);
+            _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon, topBand, bannerPill);
             _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera);
             _lockBar = new LockBarView(locks, lockOpenSprite, _layout);
             _actions = new PlayerActions(config, _input, _cardBar, slots, _towers, economy, audio);

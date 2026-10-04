@@ -53,8 +53,8 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,714,300 |
-| Production ZIP (build + source + docs) | 3,106,800 |
+| Build folder (`index.html` + `Build/`) | 2,739,682 |
+| Production ZIP (build + source + docs) | 3,187,058 |
 | Brief limit | 5,000,000 |
 
 Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (the docs in the ZIP can shift it by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shader.
@@ -91,4 +91,4 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 ## Known limitations
 
 - Sound is synthesized in the browser (Web Audio); the editor plays nothing. It starts after the first tap, has a mute button (top left) and is silent while the page is hidden or the phone is in landscape.
-- Reward icons and the tutorial hand are simple shapes drawn in code; the 3D art is the Kenney kits recolored to the palette.
+- Reward icons and the tutorial hand are simple shapes drawn in code; the 3D art is the Kenney kits recolored to the palette (autumn trees and purple crystals as board decoration).
