@@ -132,6 +132,18 @@ User requests after playtesting (design changes vs the GDD, approved by the user
 - Fix: the health bar first rendered as an ellipse because the rounded sprite's 22 px slice borders exceeded the bar's height at 64 px per unit; drawn at 512 px per unit.
 - Size: ZIP 3,265,251 bytes.
 
+## 2026-10-04 — Fifth wave, harder balance, grass, full surroundings, bloom
+
+Last adjustments requested by the user:
+
+- **Fifth wave** ("Final wave: the whole pack!", 10 lions + 8 tigers + 6 bears at 0.75 s) with its own lock; wave 4 became "a big mixed wave" (+30). Sessions ~100 s when the fox survives.
+- **Harder:** predator health +25% (19/11/75) and kill rewards cut (4/5/10 coins). SessionSimulator: one tower falls in wave 2 (1/5 waves), two towers fall in wave 5, three towers survive with 6/10 HP, three towers + upgrades are perfect (~100 s).
+- **No camera background anywhere:** a 90 x 90 ground slab (one draw call) under a wider forest ring (7 cells on the sides, 9 above, 6 below; densest next to the arena). Tiles and decoration are static-batched. The slab sits just under the tiles: the first version was at tile height and hid the path; the user flagged it and the path was restored exactly as before.
+- **Grass:** the board ground is a natural meadow green (user request); outer ground darker green. The path was toned to warm sand so it does not bloom.
+- **Light bloom:** own `OnRenderImage` effect (quarter-res bright pass, two blur passes, additive combine, threshold 0.92, intensity 0.25). Not the Post Processing package (build size).
+- **Playable-ad libraries:** none added. The Simula brief defines the format (static HTTP, no external requests, local CTA that does not navigate), so no ad SDK is required. Networks that need MRAID/DAPI would only change the CTA call (e.g. `mraid.open`) in the template when the ad is packaged for them.
+- Size: ZIP 3,289,087 bytes.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

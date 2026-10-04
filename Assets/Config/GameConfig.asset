@@ -89,21 +89,21 @@ MonoBehaviour:
   enemies:
   - displayName: Snatcher
     prefab: {fileID: 4392959943242693288, guid: 9e1385fef95b13c4a878d9e7b71ee98e, type: 3}
-    health: 15
+    health: 19
     speed: 1.6
-    coinReward: 6
+    coinReward: 4
     foxDamage: 1
   - displayName: Dart
     prefab: {fileID: 2977190006061930877, guid: da252cc5470e4064b975b0a5db265021, type: 3}
-    health: 9
+    health: 11
     speed: 2.8
-    coinReward: 7
+    coinReward: 5
     foxDamage: 1
   - displayName: Hauler
     prefab: {fileID: 3689342531642266020, guid: ac5875210c44e3340854d372aba7758c, type: 3}
-    health: 60
+    health: 75
     speed: 1
-    coinReward: 15
+    coinReward: 10
     foxDamage: 3
   waves:
   - groups:
@@ -138,5 +138,15 @@ MonoBehaviour:
     - enemyIndex: 2
       count: 4
     spawnInterval: 0.9
-    intro: 'Final wave: everyone at once!'
+    intro: 'Next: a big mixed wave!'
+    clearBonus: 30
+  - groups:
+    - enemyIndex: 0
+      count: 10
+    - enemyIndex: 1
+      count: 8
+    - enemyIndex: 2
+      count: 6
+    spawnInterval: 0.75
+    intro: 'Final wave: the whole pack!'
     clearBonus: 0
