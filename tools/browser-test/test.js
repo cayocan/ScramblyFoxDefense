@@ -105,7 +105,14 @@ async function setHidden(page, hidden) {
   if (process.env.FULL) {
     const full = await open(browser, { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, 'full');
     const urlBefore = full.page.url();
-    await sleep(85000); // no towers: the session reaches the end card in ~78 s
+    // The opening tutorial blocks the session: wait 10 s to prove it does not start on its own, then do it.
+    await sleep(10000);
+    const stillWaiting = await full.page.evaluate(() => document.querySelector('canvas') !== null);
+    await full.page.touchscreen.tap(195, 508); // a non-tutorial tap (centre of the board): must be ignored
+    await full.page.touchscreen.tap(73, 766);  // tutorial step 1: first card
+    await sleep(300);
+    await full.page.touchscreen.tap(165, 182); // tutorial step 2: first slot -> wave 1 starts
+    await sleep(75000); // one tower: the session reaches the end card in ~65 s
     await full.page.screenshot({ path: path.join(OUT, 'b-full-endcard.png') });
     await full.page.touchscreen.tap(195, 508); // Explore Scrambly (panel centre - 10 px, button at -96 px)
     await sleep(800);

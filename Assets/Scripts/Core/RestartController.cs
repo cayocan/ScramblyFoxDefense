@@ -12,6 +12,7 @@ namespace ScramblyFoxDefense.Core
     {
         readonly HudButton _button;
         readonly Camera _camera;
+        Gameplay.TutorialGate _tutorial;
         bool _restarting;
 
         public RestartController(HudButton button, Camera camera)
@@ -20,9 +21,13 @@ namespace ScramblyFoxDefense.Core
             _camera = camera;
         }
 
+        /// <summary>Set once the tower system exists (the restart button is registered first in the tap chain).</summary>
+        public void BlockDuring(Gameplay.TutorialGate tutorial) => _tutorial = tutorial;
+
         public bool HandleTap(Vector2 screenPoint)
         {
             if (!_button.HitTest(_camera, screenPoint)) return false;
+            if (_tutorial != null && _tutorial.Active) return true; // swallowed: finish the tutorial first
             Restart();
             return true;
         }

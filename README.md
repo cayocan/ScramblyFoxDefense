@@ -18,7 +18,7 @@ Opening `index.html` straight from disk (`file://`) does not work: browsers bloc
 ## How to play
 
 1. Tap a card at the bottom (Pop Blaster, Puzzle Pulse, Racer Zap). The free slots pulse.
-2. Tap a pulsing slot to build. The first build starts wave 1 (it also starts on its own after 8 s).
+2. Tap a pulsing slot to build. The hand guides the first build (nothing else responds until then); it starts wave 1.
 3. Tap a tower to upgrade it (up to level 3). The badge above it shows the cost. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
 4. Clear a wave with no predator reaching the vault for a gold lock (perfect wave). Each wave pays a bonus, and the breather tells you what comes next.
 5. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time; the speaker button next to it mutes the sound.
@@ -53,8 +53,8 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,739,682 |
-| Production ZIP (build + source + docs) | 3,187,058 |
+| Build folder (`index.html` + `Build/`) | 2,739,624 |
+| Production ZIP (build + source + docs) | 3,194,083 |
 | Brief limit | 5,000,000 |
 
 Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (the docs in the ZIP can shift it by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shader.
@@ -77,8 +77,8 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Music | Loop after first tap, frozen while hidden | Chrome headless, `scramblySfx.musicStep()` | Step advances while audible (10 → 14), stays at 14 while the tab is hidden |
 | Tutorial | First card, then slot | Chrome headless screenshots | Hand points at the first card, then at the slot nearest the path start |
 | Package | Production ZIP unpacked into an empty folder, served with `python -m http.server` | Chrome headless (`TEST_URL`) | All checks above pass from the unpacked ZIP; `index.html` at the root |
-| Full flow | Whole session with no input, then **Explore Scrambly** and **Play again** | Chrome headless, real touch taps (`FULL=1`) | End card reached; "CTA clicked — demo only" on screen and in the console; URL unchanged; Play again back to Discover with 70 coins |
-| Flow | No towers at all | Editor, SessionSimulator | Reaches the end card in 83 s, 29 leaks, wallet never below 0 |
+| Full flow | Wait 10 s, an ignored tap, the two tutorial taps, then the whole session, **Explore Scrambly** and **Play again** | Chrome headless, real touch taps (`FULL=1`) | Tutorial holds the session; end card reached ("Great defense!", 1/3 perfect waves); "CTA clicked — demo only" on screen and in the console; URL unchanged; Play again back to Discover |
+| Tutorial | Wait 20 s, tap Restart, other cards and slots, then card 0 and slot 0 | Editor, simulated taps at real screen positions | Stays on the intro and ignores every non-tutorial tap; card 0 then slot 0 build the tower and wave 1 starts |
 | Flow | Balance plans (each tower alone, pairs, three towers) | Editor, SessionSimulator | Alone: 58–70 s, 9–15 leaks; pairs: 54–61 s, 1–4 leaks; three towers or two + upgrade: 48–51 s, 0 leaks (details in `docs/rag/decisions.md`) |
 | CTA | Tap **Explore Scrambly** | Editor, simulated tap | "CTA clicked — demo only" on screen and in the console; no navigation |
 | Restart | 10 restarts in a row mid-wave | Editor | Identical state each time (1 installer, same object count), 0 errors |

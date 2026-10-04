@@ -16,7 +16,7 @@ namespace ScramblyFoxDefense.EditorTools
             "Assets/Art/TowerDefense/Textures/colormap-deco.png"
         };
 
-        static readonly string[] Sprites = { "rounded", "lock-closed", "lock-open", "coin", "trophy", "medal", "basket", "hand", "sound-on", "sound-off" };
+        static readonly string[] Sprites = { "rounded", "lock-closed", "lock-open", "coin", "trophy", "medal", "basket", "hand", "sound-on", "sound-off", "spark", "ring", "arrow-up" };
 
         public static Font Font => AssetDatabase.LoadAssetAtPath<Font>(FontPath);
 

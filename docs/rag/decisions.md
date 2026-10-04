@@ -108,6 +108,16 @@ User feedback: board looks empty, UI basic, effects weak.
 - **Effects:** orange ring burst on build and upgrade, bigger defeat poof, purple splash ring (progression pass), short camera shake when a predator reaches the vault.
 - Size after the pass: ZIP 3,187,058 bytes (build 2,739,682).
 
+## 2026-10-04 — Mandatory tutorial, upgrade cue, particles, louder audio
+
+User requests after playtesting:
+
+- **Mandatory opening tutorial (overrides the GDD rule "the session never waits for the player").** Until the first tower is built the intro does not time out and only the hand's target accepts taps: card 0, then slot 0 (`TutorialGate`, checked in `PlayerActions`; Restart is swallowed too). The mute button stays usable, because the brief requires an always-available sound control. A session with no input now stays on the tutorial instead of reaching the end card, so the browser full-flow test performs the two tutorial taps (and one ignored tap) first. After a restart the tutorial runs again (2 taps).
+- **Upgrade-ready cue:** when the wallet covers a tower's next level, an orange ring pulses on the ground, an arrow bobs above the tower and the "UP" badge pulses; greyed out otherwise.
+- **Particles on shots and hits:** `SparkFx`, pooled camera-facing sprites (160) with velocity, gravity, shrink and fade; muzzle cone in the tower's colour plus a warm core, hit burst in the shot colour. Not Unity's ParticleSystem (native module size). White cores were invisible on the cream ground, so cores are warm yellow; first sizes (~16 px) were too small and were raised ~2.5x.
+- **Louder audio:** master 0.5 -> 0.9, music 0.22 -> 0.32 in both synths, with a DynamicsCompressor in the page and a tanh soft limiter in the editor synth so the louder mix does not clip.
+- Size: ZIP 3,194,083 bytes.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

@@ -643,6 +643,9 @@ namespace ScramblyFoxDefense.EditorTools
             so.FindProperty("coinPrefab").objectReferenceValue = prefabs.Coin;
             so.FindProperty("badgePrefab").objectReferenceValue = prefabs.Badge;
             so.FindProperty("poofPrefab").objectReferenceValue = prefabs.Poof;
+            so.FindProperty("sparkSprite").objectReferenceValue = ArtImports.Sprite("spark");
+            so.FindProperty("ringSprite").objectReferenceValue = ArtImports.Sprite("ring");
+            so.FindProperty("arrowSprite").objectReferenceValue = ArtImports.Sprite("arrow-up");
             so.FindProperty("lockOpenSprite").objectReferenceValue = ArtImports.Sprite("lock-open");
             so.FindProperty("coinIcon").objectReferenceValue = camera.transform.Find("HUD/Coin Icon").GetComponent<SpriteRenderer>();
             so.FindProperty("topBand").objectReferenceValue = camera.transform.Find("HUD/Top Band").GetComponent<SpriteRenderer>();

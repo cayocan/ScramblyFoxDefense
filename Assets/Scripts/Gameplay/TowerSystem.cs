@@ -32,6 +32,7 @@ namespace ScramblyFoxDefense.Gameplay
         public float Damage;
         public float SplashRadius;
         public float Speed;
+        public Color Color;
     }
 
     /// <summary>Builds towers on slots, picks targets and fires pooled projectiles.</summary>
@@ -53,6 +54,10 @@ namespace ScramblyFoxDefense.Gameplay
         public event Action<Tower> Upgraded;
         public event Action<Tower> Fired;
         public event Action<Vector3, float> Splashed;
+        /// <summary>Muzzle position, direction to the target, shot colour.</summary>
+        public event Action<Vector3, Vector3, Color> Shot;
+        /// <summary>Where a shot landed and its colour.</summary>
+        public event Action<Vector3, Color> Impact;
 
         public TowerSystem(GameConfig config, Economy economy, EnemySystem enemies, Transform towerRoot, GameObject projectilePrefab)
         {
@@ -160,6 +165,7 @@ namespace ScramblyFoxDefense.Gameplay
             var definition = tower.Definition;
             go.transform.localScale = Vector3.one * definition.projectileScale * (1f + 0.25f * tower.Level);
             foreach (var renderer in go.GetComponentsInChildren<Renderer>()) Presentation.Tint.Set(renderer, definition.projectileColor);
+            Shot?.Invoke(go.transform.position, (target.Transform.position - go.transform.position).normalized, definition.projectileColor);
             _projectiles.Add(new Projectile
             {
                 GameObject = go,
@@ -168,7 +174,8 @@ namespace ScramblyFoxDefense.Gameplay
                 Destination = target.Transform.position,
                 Damage = stats.damage,
                 SplashRadius = stats.splashRadius,
-                Speed = definition.projectileSpeed > 0f ? definition.projectileSpeed : _config.projectileSpeed
+                Speed = definition.projectileSpeed > 0f ? definition.projectileSpeed : _config.projectileSpeed,
+                Color = definition.projectileColor
             });
         }
 
@@ -180,6 +187,8 @@ namespace ScramblyFoxDefense.Gameplay
             Vector3 position = Vector3.MoveTowards(projectile.Transform.position, projectile.Destination, projectile.Speed * deltaTime);
             projectile.Transform.position = position;
             if ((position - projectile.Destination).sqrMagnitude > 0.0025f) return false;
+
+            Impact?.Invoke(position, projectile.Color);
 
             if (projectile.SplashRadius > 0f)
             {

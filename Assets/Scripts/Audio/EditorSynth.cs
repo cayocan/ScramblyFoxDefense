@@ -25,8 +25,8 @@ namespace ScramblyFoxDefense.Audio
             public bool Music;
         }
 
-        const float MasterGain = 0.5f;
-        const float MusicGain = 0.22f;
+        const float MasterGain = 0.9f;
+        const float MusicGain = 0.32f;
         const double Step = 60.0 / 100.0 / 2.0; // eighth notes at 100 BPM
 
         static readonly int[] Melody =
@@ -162,7 +162,8 @@ namespace ScramblyFoxDefense.Audio
                     sum += sample * v.Gain * attack * decay * (v.Music ? MusicGain : 1f);
                     _voices[i] = v;
                 }
-                sum *= MasterGain;
+                // Soft limiter (tanh) so the louder mix never clips, like the page's compressor.
+                sum = (float)Math.Tanh(sum * MasterGain * 1.2f);
                 for (int c = 0; c < channels; c++) data[f * channels + c] = sum;
             }
             _clock += frames * dt;
