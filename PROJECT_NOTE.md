@@ -22,3 +22,7 @@
 ## Time
 
 Feature-by-feature times are in `TIME_LOG.md`; each merge commit also records its duration.
+
+## A note on commit language
+
+Everything in the project is written in English, with two exceptions in the git history. The commits of the initial setup (the first 8 minutes on day 1) are in Portuguese, my native language, because they came before I adopted the English-only rule. And every merge commit carries a "Duracao da feature (inicio ate o fim)" line ("feature duration, start to end"), written by the `finish-feature` script, which I wrote in Portuguese before that rule. I left the history as it is rather than rewriting it.
