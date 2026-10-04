@@ -40,6 +40,8 @@ namespace ScramblyFoxDefense.Presentation
         int _selected = -1;
         static readonly Color Dimmed = new Color(0.62f, 0.6f, 0.68f, 0.45f);
         static readonly Color FaceDimmed = new Color(0.55f, 0.53f, 0.6f);
+        static readonly Color BorderIdle = new Color32(0x78, 0x45, 0xD8, 0xFF);
+        static readonly Color BorderSelected = new Color(1f, 0.85f, 0.35f);
         float _shakeTime;
 
         public CardBarView(CardView[] cards, GameConfig config, Economy economy, HudLayout layout, Camera camera)
@@ -114,6 +116,8 @@ namespace ScramblyFoxDefense.Presentation
             {
                 bool dimmed = IsDimmed(i);
                 Tint.Set(_cards[i].background, dimmed ? Dimmed : i == _selected ? Selected : Idle);
+                var border = _cards[i].root.Find("Border");
+                if (border != null) Tint.Set(border.GetComponent<Renderer>(), dimmed ? Dimmed : i == _selected ? BorderSelected : BorderIdle);
                 var title = _cards[i].title.color;
                 title.a = dimmed ? 0.4f : 1f;
                 _cards[i].title.color = title;
