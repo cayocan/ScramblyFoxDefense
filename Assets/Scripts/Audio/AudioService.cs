@@ -43,8 +43,27 @@ namespace ScramblyFoxDefense.Audio
         }
 
         public void Play(Sound sound) => Sfx_Play((int)sound);
+#elif UNITY_EDITOR
+        // Play Mode: C# port of the page synth. Mute is kept in SessionState so it survives restarts,
+        // like the page keeps it across scene reloads.
+        const string MutedKey = "Scrambly.EditorSynth.Muted";
+        readonly EditorSynth _synth = EditorSynth.Create();
+
+        public WebAudioService() => _synth.Muted = Muted;
+
+        public bool Muted
+        {
+            get => UnityEditor.SessionState.GetBool(MutedKey, false);
+            set
+            {
+                UnityEditor.SessionState.SetBool(MutedKey, value);
+                _synth.Muted = value;
+            }
+        }
+
+        public void Play(Sound sound) => _synth.Play(sound);
 #else
-        // Editor and non-web builds: silent, but the mute toggle still works for testing the UI.
+        // Non-web players are not a target: silent.
         public bool Muted { get; set; }
 
         public void Play(Sound sound) { }

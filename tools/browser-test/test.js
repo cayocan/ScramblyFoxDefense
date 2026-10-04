@@ -55,9 +55,12 @@ async function setHidden(page, hidden) {
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-built.png') });
 
   const audioAfterTap = await audio();
+  const music = () => phone.page.evaluate(() => window.scramblySfx.musicStep());
+  const musicA = await music(); await sleep(1200); const musicB = await music();
   await setHidden(phone.page, true);
   await sleep(1000);
   const audioHidden = await audio();
+  const musicH1 = await music(); await sleep(1200); const musicH2 = await music();
   await sleep(2000);
   await setHidden(phone.page, false);
   await sleep(1000);
@@ -69,6 +72,7 @@ async function setHidden(page, hidden) {
   await sleep(2500);
   const audioAfterRestart = await audio();
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-restarted.png') });
+  report.push(`[music] playing after tap: step ${musicA} -> ${musicB}; while hidden: step ${musicH1} -> ${musicH2} (frozen = ${musicH1 === musicH2})`);
   report.push(`[audio] before tap=${audioBefore} after tap=${audioAfterTap} hidden=${audioHidden} shown=${audioShown} mute=${audioMuted} after restart=${audioAfterRestart}`);
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-resumed.png') });
 

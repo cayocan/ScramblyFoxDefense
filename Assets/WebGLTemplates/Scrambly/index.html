@@ -78,8 +78,53 @@
           ctx = new AudioCtx();
           master = ctx.createGain();
           master.connect(ctx.destination);
+          startMusic();
         }
         refresh();
+      }
+
+      // ---- Background music: a soft synthesized loop, scheduled on the audio clock ----
+      // C major pentatonic melody over I-vi-IV-V. Scheduling uses ctx.currentTime, which stops while the
+      // context is suspended (hidden page, landscape, mute), so the loop pauses and resumes in place.
+      var musicBus = null, musicTimer = null, musicStep = 0, musicNext = 0;
+      var STEP = 60 / 100 / 2; // eighth notes at 100 BPM, 4-bar loop = 32 steps (~9.6 s)
+      var MELODY = [72, 0, 76, 0, 79, 0, 76, 74,   72, 0, 69, 0, 72, 0, 0, 0,
+                    69, 0, 72, 0, 77, 0, 76, 74,   74, 0, 79, 0, 74, 0, 0, 0];
+      var BASS = [48, 45, 41, 43]; // C, A, F, G: one chord per bar
+
+      function midi(note) { return 440 * Math.pow(2, (note - 69) / 12); }
+
+      function noteAt(freq, t, dur, type, gain, dest) {
+        var osc = ctx.createOscillator(), env = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t);
+        env.gain.setValueAtTime(0.0001, t);
+        env.gain.exponentialRampToValueAtTime(gain, t + 0.02);
+        env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        osc.connect(env); env.connect(dest);
+        osc.start(t); osc.stop(t + dur + 0.05);
+      }
+
+      function playStep(step, t) {
+        var bar = Math.floor(step / 8), beat = step % 8;
+        if (beat === 0 || beat === 4) noteAt(midi(BASS[bar] - (beat === 4 ? 0 : 12)), t, STEP * 3.5, "triangle", 0.5, musicBus);
+        if (beat % 2 === 0) noteAt(midi(BASS[bar] + 16), t, STEP * 1.6, "sine", 0.12, musicBus); // soft chord pulse
+        if (MELODY[step]) noteAt(midi(MELODY[step]), t, STEP * 1.8, "triangle", 0.32, musicBus);
+      }
+
+      function startMusic() {
+        musicBus = ctx.createGain();
+        musicBus.gain.value = 0.22; // under the sound effects
+        musicBus.connect(master);
+        musicNext = ctx.currentTime + 0.1;
+        musicTimer = setInterval(function () {
+          // Lookahead scheduler: queue notes up to 150 ms ahead of the audio clock.
+          while (musicNext < ctx.currentTime + 0.15) {
+            playStep(musicStep, musicNext);
+            musicNext += STEP;
+            musicStep = (musicStep + 1) % MELODY.length;
+          }
+        }, 50);
       }
 
       // Suspend when hidden/landscape or muted; resume otherwise.
@@ -125,6 +170,7 @@
         setMuted: function (value) { muted = !!value; refresh(); },
         isMuted: function () { return muted; },
         state: function () { return ctx ? ctx.state : "locked"; }, // for tests: locked / running / suspended
+        musicStep: function () { return musicTimer ? musicStep : -1; }, // for tests: advances only while audible
         play: function (id) {
           if (!ctx || muted || window.scramblyPaused || ctx.state !== "running") return;
           if (id === 3) { var now = ctx.currentTime; if (now - lastShot < 0.07) return; lastShot = now; } // cap shot spam

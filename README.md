@@ -73,6 +73,7 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Input | Card without coins, tap empty area, re-tap card | Editor, simulated taps at real screen positions | Card shakes and nothing is built; selection cleared |
 | Visibility | Hide the tab for 3 s mid-session | Emulated `visibilitychange` | Paused at t=3.76, resumed at t=3.76 (game time does not jump) |
 | Audio | First tap, hide/show, mute, restart | Chrome headless, `scramblySfx.state()` | locked before tap → running → suspended when hidden → running → muted (suspended) → still muted after restart |
+| Music | Loop after first tap, frozen while hidden | Chrome headless, `scramblySfx.musicStep()` | Step advances while audible (10 → 14), stays at 14 while the tab is hidden |
 | Tutorial | First card, then slot | Chrome headless screenshots | Hand points at the first card, then at the slot nearest the path start |
 | Package | Production ZIP unpacked into an empty folder, served with `python -m http.server` | Chrome headless (`TEST_URL`) | All checks above pass from the unpacked ZIP; `index.html` at the root |
 | Full flow | Whole session with no input, then **Explore Scrambly** and **Play again** | Chrome headless, real touch taps (`FULL=1`) | End card reached; "CTA clicked — demo only" on screen and in the console; URL unchanged; Play again back to Discover with 70 coins |
