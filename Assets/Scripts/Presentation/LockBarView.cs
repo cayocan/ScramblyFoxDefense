@@ -11,6 +11,7 @@ namespace ScramblyFoxDefense.Presentation
 
         static readonly Color Locked = new Color(0.42f, 0.36f, 0.52f);
         static readonly Color Open = new Color32(0xF5, 0x83, 0x24, 0xFF);
+        static readonly Color Perfect = new Color(1f, 0.8f, 0.2f);
 
         readonly SpriteRenderer[] _locks;
         readonly Sprite _openSprite;
@@ -32,12 +33,12 @@ namespace ScramblyFoxDefense.Presentation
             }
         }
 
-        public void Unlock(int index)
+        public void Unlock(int index, bool perfect)
         {
             if (index < 0 || index >= _locks.Length || index < UnlockedCount) return;
             UnlockedCount = index + 1;
             _locks[index].sprite = _openSprite;
-            SetColor(index, Open);
+            SetColor(index, perfect ? Perfect : Open);
             _popTime[index] = 0f;
         }
 

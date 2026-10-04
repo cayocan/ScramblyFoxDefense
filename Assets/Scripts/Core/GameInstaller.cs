@@ -119,10 +119,10 @@ namespace ScramblyFoxDefense.Core
 
             _machine = new GameStateMachine();
             _machine.Register(new IntroState(_machine, config, _towers, _actions, _hud));
-            _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar, audio));
-            _machine.Register(new BreatherState(_machine, config, session));
+            _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar, audio, economy));
+            _machine.Register(new BreatherState(_machine, config, session, _hud));
             _machine.Register(new RedeemState(_machine, _actions, _hud, _redeem, _input, _cardBar, _badges, audio));
-            _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input, audio));
+            _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input, audio, session, config.waves.Length));
         }
 
         void Start() => _machine.Enter<IntroState>();

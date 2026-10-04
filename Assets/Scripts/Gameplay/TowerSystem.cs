@@ -31,6 +31,7 @@ namespace ScramblyFoxDefense.Gameplay
         public Vector3 Destination;
         public float Damage;
         public float SplashRadius;
+        public float Speed;
     }
 
     /// <summary>Builds towers on slots, picks targets and fires pooled projectiles.</summary>
@@ -51,6 +52,7 @@ namespace ScramblyFoxDefense.Gameplay
         public event Action<Tower> Built;
         public event Action<Tower> Upgraded;
         public event Action<Tower> Fired;
+        public event Action<Vector3, float> Splashed;
 
         public TowerSystem(GameConfig config, Economy economy, EnemySystem enemies, Transform towerRoot, GameObject projectilePrefab)
         {
@@ -96,7 +98,11 @@ namespace ScramblyFoxDefense.Gameplay
                 piece.transform.localPosition = tower.Base.localPosition + Vector3.up * (tower.BaseHeight * tower.Level);
                 piece.transform.localScale = tower.Base.localScale * (1f - 0.12f * tower.Level);
             }
-            if (tower.Pet != null) tower.Pet.localPosition += Vector3.up * tower.BaseHeight;
+            if (tower.Pet != null)
+            {
+                tower.Pet.localPosition += Vector3.up * tower.BaseHeight;
+                tower.Pet.localScale *= 1.12f; // the pet grows with its tower
+            }
             Upgraded?.Invoke(tower);
             return true;
         }
@@ -112,7 +118,7 @@ namespace ScramblyFoxDefense.Gameplay
         {
             tower.Cooldown -= deltaTime;
             var stats = tower.Stats;
-            var target = FindTarget(tower.Transform.position, stats.range);
+            var target = FindTarget(tower.Transform.position, stats.range, tower.Definition.targeting);
             if (target == null) return;
 
             if (tower.Pet != null)
@@ -128,8 +134,8 @@ namespace ScramblyFoxDefense.Gameplay
             Fired?.Invoke(tower);
         }
 
-        /// <summary>The predator furthest along the path within range.</summary>
-        Enemy FindTarget(Vector3 origin, float range)
+        /// <summary>Within range: furthest along the path (First) or most health left (Strongest).</summary>
+        Enemy FindTarget(Vector3 origin, float range, TargetMode mode)
         {
             Enemy best = null;
             float rangeSqr = range * range;
@@ -138,7 +144,10 @@ namespace ScramblyFoxDefense.Gameplay
                 Vector3 offset = enemy.Transform.position - origin;
                 offset.y = 0f;
                 if (offset.sqrMagnitude > rangeSqr) continue;
-                if (best == null || enemy.Distance > best.Distance) best = enemy;
+                bool better = mode == TargetMode.Strongest
+                    ? best == null || enemy.Health > best.Health || (enemy.Health == best.Health && enemy.Distance > best.Distance)
+                    : best == null || enemy.Distance > best.Distance;
+                if (better) best = enemy;
             }
             return best;
         }
@@ -147,6 +156,10 @@ namespace ScramblyFoxDefense.Gameplay
         {
             var go = _projectilePool.Get();
             go.transform.position = (tower.Pet != null ? tower.Pet.position : tower.Transform.position) + Vector3.up * MuzzleHeight;
+            // Each tower reads differently: own colour and size; upgrades grow the shot.
+            var definition = tower.Definition;
+            go.transform.localScale = Vector3.one * definition.projectileScale * (1f + 0.25f * tower.Level);
+            foreach (var renderer in go.GetComponentsInChildren<Renderer>()) Presentation.Tint.Set(renderer, definition.projectileColor);
             _projectiles.Add(new Projectile
             {
                 GameObject = go,
@@ -154,7 +167,8 @@ namespace ScramblyFoxDefense.Gameplay
                 Target = target,
                 Destination = target.Transform.position,
                 Damage = stats.damage,
-                SplashRadius = stats.splashRadius
+                SplashRadius = stats.splashRadius,
+                Speed = definition.projectileSpeed > 0f ? definition.projectileSpeed : _config.projectileSpeed
             });
         }
 
@@ -163,11 +177,15 @@ namespace ScramblyFoxDefense.Gameplay
         {
             if (projectile.Target.Alive) projectile.Destination = projectile.Target.Transform.position + Vector3.up * 0.25f;
 
-            Vector3 position = Vector3.MoveTowards(projectile.Transform.position, projectile.Destination, _config.projectileSpeed * deltaTime);
+            Vector3 position = Vector3.MoveTowards(projectile.Transform.position, projectile.Destination, projectile.Speed * deltaTime);
             projectile.Transform.position = position;
             if ((position - projectile.Destination).sqrMagnitude > 0.0025f) return false;
 
-            if (projectile.SplashRadius > 0f) Splash(position, projectile.SplashRadius, projectile.Damage);
+            if (projectile.SplashRadius > 0f)
+            {
+                Splash(position, projectile.SplashRadius, projectile.Damage);
+                Splashed?.Invoke(position, projectile.SplashRadius);
+            }
             else if (projectile.Target.Alive) _enemies.Damage(projectile.Target, projectile.Damage);
             return true;
         }

@@ -79,6 +79,26 @@ Matches GDD intent: one tower handles wave 1, wave 3 needs 2+ towers or upgrades
 - The user heard nothing because they tested in the editor, where the page synth does not exist. Added `EditorSynth` (C# port of the same cues and loop, `OnAudioFilterRead`), compiled only under `UNITY_EDITOR`; `com.unity.modules.audio` is in the manifest for the editor, and the linker report confirms no Audio module in the WebGL build. The AudioListener is added at runtime in the editor only (a scene listener would pull audio into the build). The two synth tables must be kept in sync.
 - The interrupted batchmode build had already deleted `Builds/WebGL`; builds now go through the Pipeline while the editor is open. Stray `Assets/Resources/PerformanceTestRun*` files (performance test framework, generated during builds) are gitignored so they never ship.
 
+## 2026-10-04 — Progression and balance pass 2
+
+User feedback: no logical progression, no balance. Changes (all data in `GameConfig`):
+
+- **Escalating waves with a preview:** each wave has an `intro` shown in the breather before it ("Next: Tigers — fast!", "Next: Polar bears — tough!") and a `clearBonus` (+15, +20). Breather is 4 s so the preview can be read and acted on.
+- **Rewards that grow with skill:** a wave with no leaks is a perfect wave (gold lock, "Perfect wave! +15" banner, stronger cue). End card title depends on perfect waves (Perfect / Great / Nice defense) and shows "Perfect waves: n/3".
+- **Towers that feel different:** per-tower targeting (Racer Zap aims at the strongest predator), projectile colour/size/speed (orange quick shots, big slow purple orbs with a splash ring, thin fast gold bolts); shots and pets grow with each upgrade.
+- **Balance (SessionSimulator, deterministic):** Racer Zap could not one-shot a lion (14 dmg vs 15 hp) and Puzzle Pulse was weak against the spread-out first wave, so Pop Blaster dominated. Racer Zap 16 dmg / 0.7 per s / range 3.6; Puzzle Pulse cost 40, 7 dmg, 1 per s, radius 1.5. Waves 2 and 3 got one more tiger and one more bear to keep the challenge.
+
+| Plan | Session | Leaks |
+|---|---|---|
+| none | 83 s | 29 |
+| Pop Blaster only | 62 s | 15 |
+| Puzzle Pulse only | 70 s | 10 |
+| Racer Zap only | 58 s | 9 (waves 1–2 perfect) |
+| two towers | 54–61 s | 1–4 |
+| three towers, or two + upgrade | 48–51 s | 0 |
+
+- Fix: world sprites (poof, splash ring) drew over the end card because sprites sort by order before distance; world effects now use sorting order -10. The wave banner is 26 px (the longest one fits 390 px) and hides when the end card opens.
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).
