@@ -53,8 +53,8 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,767,380 |
-| Production ZIP (build + source + docs) | 3,289,087 |
+| Build folder (`index.html` + `Build/`) | 2,779,524 |
+| Production ZIP (build + source + docs) | 3,326,098 |
 | Brief limit | 5,000,000 |
 
 Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (the docs in the ZIP can shift it by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shader.
