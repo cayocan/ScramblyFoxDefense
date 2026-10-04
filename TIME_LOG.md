@@ -22,3 +22,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | fox-health-world | 2026-10-04 16:37 | 2026-10-04 16:55 | 0h 18min | Fox health (coins never lost) + defeat end card, 4 waves, upgrade hint from wave 3, tutorial greys blocked items, per-tower shot SFX, fox on vault fix, forest ring + path entrance, ZIP 3,265,251 bytes |
 | final-wave-bloom | 2026-10-04 17:00 | 2026-10-04 17:36 | 0h 35min | 5th wave, harder balance (+25% HP, lower rewards), green grass, ground slab + wider forest (no background visible), light bloom, ZIP 3,289,087 bytes |
 | final-hud-enemies | 2026-10-04 17:47 | 2026-10-04 18:04 | 0h 17min | Kenney UI Pack HUD, card borders, enemy colours +25% HP, red enemy health bars, fox repositioned, end tile gap fix |
+| release-final | 2026-10-04 18:05 | 2026-10-04 18:05 | 0h 00min | Final sizes, production ZIP, tag stage1-final |
