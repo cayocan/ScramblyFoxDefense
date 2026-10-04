@@ -89,19 +89,19 @@ MonoBehaviour:
   enemies:
   - displayName: Snatcher
     prefab: {fileID: 4392959943242693288, guid: 9e1385fef95b13c4a878d9e7b71ee98e, type: 3}
-    health: 19
+    health: 24
     speed: 1.6
     coinReward: 4
     foxDamage: 1
   - displayName: Dart
     prefab: {fileID: 2977190006061930877, guid: da252cc5470e4064b975b0a5db265021, type: 3}
-    health: 11
+    health: 14
     speed: 2.8
     coinReward: 5
     foxDamage: 1
   - displayName: Hauler
     prefab: {fileID: 3689342531642266020, guid: ac5875210c44e3340854d372aba7758c, type: 3}
-    health: 75
+    health: 94
     speed: 1
     coinReward: 10
     foxDamage: 3

@@ -144,6 +144,15 @@ Last adjustments requested by the user:
 - **Playable-ad libraries:** none added. The Simula brief defines the format (static HTTP, no external requests, local CTA that does not navigate), so no ad SDK is required. Networks that need MRAID/DAPI would only change the CTA call (e.g. `mraid.open`) in the template when the ad is packaged for them.
 - Size: ZIP 3,289,087 bytes.
 
+## 2026-10-04 — Release pass: Kenney UI Pack HUD, enemy colours and health bars
+
+- **HUD with the Kenney UI Pack (CC0, third party):** the pack was planned in CLAUDE.md but had never been imported; downloaded from kenney.nl and kept 4 grey sprites (bevelled rectangle button, bevelled square, flat square, star) tinted with the palette and 9-sliced. Used for all buttons, tower cards, reward cards, the top band, banner pill and the end card (orange frame, flat warm-white panel; the glossy square made the panel look grey).
+- **Tower cards have borders:** purple frame (gold when selected, grey when the tutorial blocks the card).
+- **Enemies +25% health** (24 / 14 / 94) and **distinct colours** (lion purple, tiger magenta, polar bear ice blue: hue-shifted copies of the pet palette; the bear needed stronger saturation because it is mostly white fur and bloomed to white).
+- **Red health bars** above every predator (pooled with the enemy objects, height from each model's bounds).
+- **Fox position:** the vault stood 0.9 units past the board and the fox ended behind the card band; the vault now stands on the last path cell. The kit's `tile-end` is shorter than a cell and left a visible gap, so the last cell uses `tile-straight` (covered by the vault).
+- Size: ZIP 3,32x,xxx bytes (see README).
+
 ## 2026-10-03 — UI approach
 
 **In-Unity UI with camera-attached SpriteRenderers + legacy TextMesh** (subset Fredoka TTF), taps resolved by screen-distance input as in GDD section 7. Rejected: uGUI/TMP (size), HTML overlay (logic split across JS/C#, more to test), IMGUI (hard to polish).

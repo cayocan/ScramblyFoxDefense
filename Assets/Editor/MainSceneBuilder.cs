@@ -70,7 +70,8 @@ namespace ScramblyFoxDefense.EditorTools
 
             var vault = Spawn(Kit + "tower-square-bottom-a.glb", board);
             vault.name = "Reward Vault";
-            vault.transform.position = CellToWorld(PathCorners[PathCorners.Length - 1]) + Vector3.back * 0.9f;
+            // On the last path cell (not past the board): keeps the fox clear of the card band.
+            vault.transform.position = CellToWorld(PathCorners[PathCorners.Length - 1]);
             float vaultTop = Top(vault); // measured before the fox is parented, or the fox inflates it
             var fox = Spawn(Pets + "animal-fox.glb", vault.transform);
             fox.transform.localPosition = Vector3.up * vaultTop;
@@ -82,9 +83,9 @@ namespace ScramblyFoxDefense.EditorTools
             var hud = CreateHud(camera.transform);
             var cards = CreateCards(camera.transform);
             var locks = CreateLocks(camera.transform, config.waves.Length);
-            var restart = CreateButton("Restart", camera.transform, new Vector2(76f, 32f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
+            var restart = CreateButton("Restart", camera.transform, new Vector2(80f, 36f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
             var endCard = CreateEndCard(camera.transform);
-            var mute = CreateButton("", camera.transform, new Vector2(40f, 32f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
+            var mute = CreateButton("", camera.transform, new Vector2(44f, 36f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
             mute.root.name = "Button Mute";
             var muteIcon = Icon("Icon", mute.root, ArtImports.Sprite("sound-on"), 22f, WarmWhite);
             Wire(installer, config, camera, waypoints, slots, prefabs, hud, cards, locks);
@@ -261,7 +262,8 @@ namespace ScramblyFoxDefense.EditorTools
         static GameObject PathTile(List<Vector2Int> cells, int i, Transform parent)
         {
             if (i == 0) return Rotated(Spawn(Kit + "tile-spawn.glb", parent), Yaw(cells[1] - cells[0]) + StraightBaseYaw);
-            if (i == cells.Count - 1) return Rotated(Spawn(Kit + "tile-end.glb", parent), Yaw(cells[i] - cells[i - 1]) + StraightBaseYaw);
+            // The vault stands on the last cell; the kit's tile-end is shorter than a cell and left a visible gap.
+            if (i == cells.Count - 1) return Rotated(Spawn(Kit + "tile-straight.glb", parent), Yaw(cells[i] - cells[i - 1]) + StraightBaseYaw);
 
             var inDir = cells[i] - cells[i - 1];
             var outDir = cells[i + 1] - cells[i];
@@ -318,9 +320,9 @@ namespace ScramblyFoxDefense.EditorTools
                 PopBlaster = TowerPrefab("Tower_PopBlaster", "animal-dog"),
                 PuzzlePulse = TowerPrefab("Tower_PuzzlePulse", "animal-cat"),
                 RacerZap = TowerPrefab("Tower_RacerZap", "animal-fox"),
-                Lion = EnemyPrefab("Enemy_Snatcher", "animal-lion", 0.35f),
-                Tiger = EnemyPrefab("Enemy_Dart", "animal-tiger", 0.32f),
-                Polar = EnemyPrefab("Enemy_Hauler", "animal-polar", 0.45f),
+                Lion = EnemyPrefab("Enemy_Snatcher", "animal-lion", 0.35f, KitMaterials.Enemies),
+                Tiger = EnemyPrefab("Enemy_Dart", "animal-tiger", 0.32f, KitMaterials.EnemiesTiger),
+                Polar = EnemyPrefab("Enemy_Hauler", "animal-polar", 0.45f, KitMaterials.EnemiesBear),
                 Projectile = PrimitivePrefab("Projectile", PrimitiveType.Sphere, Vector3.one * 0.15f, Quaternion.identity, KitMaterials.Tinted("Projectile", Orange)),
                 Badge = BadgePrefab(),
                 Poof = PoofPrefab(),
@@ -342,12 +344,12 @@ namespace ScramblyFoxDefense.EditorTools
             return SavePrefab(root);
         }
 
-        static GameObject EnemyPrefab(string name, string pet, float scale)
+        static GameObject EnemyPrefab(string name, string pet, float scale, Material material)
         {
             var root = new GameObject(name);
             var model = Spawn(Pets + pet + ".glb", root.transform);
             model.transform.localScale = Vector3.one * scale;
-            KitMaterials.Apply(model, KitMaterials.Enemies);
+            KitMaterials.Apply(model, material); // each predator type has its own colour
             return SavePrefab(root);
         }
 
@@ -434,6 +436,13 @@ namespace ScramblyFoxDefense.EditorTools
 
             ApplyFeelDefaults(config);
             ApplyFinalWavePass(config); // after the 4-wave migration, so a fresh config also ends with 5 waves
+            if (config.enemies[0].health < 24f)
+            {
+                // Release pass: every predator +25% health.
+                config.enemies[0].health = 24; // was 19
+                config.enemies[1].health = 14; // was 11
+                config.enemies[2].health = 94; // was 75
+            }
             config.towers[0].prefab = prefabs.PopBlaster;
             config.towers[1].prefab = prefabs.PuzzlePulse;
             config.towers[2].prefab = prefabs.RacerZap;
@@ -568,10 +577,10 @@ namespace ScramblyFoxDefense.EditorTools
             var coin = Icon("Coin Icon", root, ArtImports.Sprite("coin"), 64f, new Color(1f, 0.78f, 0.25f));
             coin.name = "Coin Icon";
             // Top band behind the buttons, balance and locks; laid out by HudView.
-            var band = Rounded("Top Band", root, new Vector2(420f, 140f), new Color(0.18f, 0.11f, 0.32f, 0.92f), -5);
+            var band = Rounded("Top Band", root, new Vector2(420f, 140f), new Color(0.18f, 0.11f, 0.32f, 0.94f), -5, "kenney-flat");
             band.name = "Top Band";
             // Pill behind wave banners, resized to the text by HudView.
-            var pill = Rounded("Banner Pill", root, new Vector2(200f, 44f), new Color(0.13f, 0.07f, 0.22f, 0.9f), 4);
+            var pill = Rounded("Banner Pill", root, new Vector2(200f, 44f), new Color(0.13f, 0.07f, 0.22f, 0.92f), 4, "kenney-button");
             pill.name = "Banner Pill";
             return new[]
             {
@@ -592,9 +601,11 @@ namespace ScramblyFoxDefense.EditorTools
                 var card = new GameObject($"Card {i}").transform;
                 card.SetParent(root, false);
 
-                var shadow = Rounded("Shadow", card, new Vector2(112f, 128f), new Color(0f, 0f, 0f, 0.35f), -2);
-                shadow.transform.localPosition = new Vector3(0f, -5f, 0f);
-                var background = Rounded("Background", card, new Vector2(112f, 128f), Color.white);
+                var shadow = Rounded("Shadow", card, new Vector2(120f, 136f), new Color(0f, 0f, 0f, 0.35f), -3, "kenney-flat");
+                shadow.transform.localPosition = new Vector3(0f, -6f, 0f);
+                // Border frame around each tower card (Kenney UI Pack card sprite, tinted purple).
+                Rounded("Border", card, new Vector2(122f, 138f), Purple, -2, "kenney-card");
+                var background = Rounded("Background", card, new Vector2(110f, 126f), Color.white, -1, "kenney-card");
 
                 var face = Spawn(Pets + pet + ".glb", card);
                 face.name = "Face";
@@ -627,7 +638,8 @@ namespace ScramblyFoxDefense.EditorTools
         {
             var panel = new GameObject("End Card").transform;
             panel.SetParent(camera, false);
-            Rounded("Panel", panel, new Vector2(340f, 520f), WarmWhite, -1);
+            Rounded("Panel Border", panel, new Vector2(352f, 532f), Orange, -2, "kenney-card");
+            Rounded("Panel", panel, new Vector2(340f, 520f), WarmWhite, -1, "kenney-flat");
 
             TextMesh Label(string text, float y, float height, Color color)
             {
@@ -653,7 +665,7 @@ namespace ScramblyFoxDefense.EditorTools
                 var reward = new GameObject($"Reward {name}").transform;
                 reward.SetParent(panel, false);
                 reward.localPosition = new Vector3((i - 1) * 100f, 6f, 0f);
-                Rounded("Card", reward, new Vector2(88f, 96f), new Color(1f, 0.9f, 0.78f));
+                Rounded("Card", reward, new Vector2(88f, 96f), new Color(1f, 0.88f, 0.74f), 0, "kenney-card");
                 Icon("Icon", reward, ArtImports.Sprite(name.ToLowerInvariant()), 48f, rewardColors[i]).transform.localPosition = new Vector3(0f, 12f, 0f);
                 var caption = CreateText(name, reward, DeepInk);
                 caption.transform.localPosition = new Vector3(0f, -32f, 0f);
@@ -674,7 +686,7 @@ namespace ScramblyFoxDefense.EditorTools
         {
             var root = new GameObject($"Button {text}").transform;
             root.SetParent(parent, false);
-            var background = Rounded("Background", root, size, material.color);
+            var background = Rounded("Background", root, size, material.color, 0, "kenney-button");
             var label = CreateText(text, root, textColor);
             label.transform.localScale = Vector3.one * (textHeight / 0.064f);
             return new HudButton { root = root, background = background, label = label, sizePixels = size };
@@ -713,11 +725,11 @@ namespace ScramblyFoxDefense.EditorTools
         }
 
         /// <summary>9-sliced rounded rectangle (the brief asks for rounded, warm shapes); size in reference pixels.</summary>
-        static SpriteRenderer Rounded(string name, Transform parent, Vector2 size, Color color, int sortingOrder = 0)
+        static SpriteRenderer Rounded(string name, Transform parent, Vector2 size, Color color, int sortingOrder = 0, string spriteName = "rounded")
         {
             var sprite = new GameObject(name, typeof(SpriteRenderer)).GetComponent<SpriteRenderer>();
             sprite.transform.SetParent(parent, false);
-            sprite.sprite = ArtImports.Sprite("rounded");
+            sprite.sprite = ArtImports.Sprite(spriteName);
             sprite.drawMode = SpriteDrawMode.Sliced;
             sprite.size = size;
             sprite.color = color;

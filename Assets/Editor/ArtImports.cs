@@ -13,10 +13,12 @@ namespace ScramblyFoxDefense.EditorTools
         {
             "Assets/Art/TowerDefense/Textures/colormap-scrambly.png",
             "Assets/Art/CubePets/Textures/colormap-predators.png",
-            "Assets/Art/TowerDefense/Textures/colormap-deco.png"
+            "Assets/Art/TowerDefense/Textures/colormap-deco.png",
+            "Assets/Art/CubePets/Textures/colormap-predator-tiger.png",
+            "Assets/Art/CubePets/Textures/colormap-predator-bear.png"
         };
 
-        static readonly string[] Sprites = { "rounded", "lock-closed", "lock-open", "coin", "trophy", "medal", "basket", "hand", "sound-on", "sound-off", "spark", "ring", "arrow-up" };
+        static readonly string[] Sprites = { "rounded", "lock-closed", "lock-open", "coin", "trophy", "medal", "basket", "hand", "sound-on", "sound-off", "spark", "ring", "arrow-up", "kenney-button", "kenney-card", "kenney-flat", "kenney-star" };
 
         public static Font Font => AssetDatabase.LoadAssetAtPath<Font>(FontPath);
 
@@ -51,6 +53,10 @@ namespace ScramblyFoxDefense.EditorTools
                 settings.spriteAlignment = (int)(name == "hand" ? SpriteAlignment.TopCenter : SpriteAlignment.Center);
                 importer.SetTextureSettings(settings);
                 if (name == "rounded") importer.spriteBorder = new Vector4(22f, 22f, 22f, 22f); // 9-slice corners
+                // Kenney UI Pack (CC0): 6 px corners, the "depth" sprites carry a 4 px bevel at the bottom.
+                // Vector4 order is left, bottom, right, top.
+                if (name == "kenney-button" || name == "kenney-card") importer.spriteBorder = new Vector4(12f, 16f, 12f, 12f);
+                if (name == "kenney-flat") importer.spriteBorder = new Vector4(12f, 12f, 12f, 12f);
                 importer.SaveAndReimport();
             }
         }

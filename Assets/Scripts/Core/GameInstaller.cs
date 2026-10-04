@@ -72,6 +72,7 @@ namespace ScramblyFoxDefense.Core
         FeedbackFx _feedback;
         SparkFx _sparks;
         FoxHealthBar _foxBar;
+        EnemyHealthBars _enemyBars;
         TutorialFocus _tutorialFocus;
         TutorialHand _tutorial;
         HudLayout _layout;
@@ -125,6 +126,7 @@ namespace ScramblyFoxDefense.Core
             _tutorialFocus = new TutorialFocus(tutorialGate, _cardBar, slots, restartButton);
             _coinFx = new CoinPopFx(_enemies, coinPrefab, fxRoot);
             _soundCues = new SoundCues(audio, _enemies, _towers, config);
+            _enemyBars = new EnemyHealthBars(_enemies, roundedSprite, mainCamera.transform);
             _foxBar = new FoxHealthBar(fox, vault.Find("animal-fox"), roundedSprite, mainCamera.transform);
             _feedback = new FeedbackFx(_enemies, _towers, poofPrefab, fxRoot, mainCamera.transform);
             _sparks = new SparkFx(_towers, sparkSprite, fxRoot, mainCamera.transform);
@@ -164,6 +166,7 @@ namespace ScramblyFoxDefense.Core
             _feedback.Tick(deltaTime);
             _sparks.Tick(deltaTime);
             _foxBar.Tick(deltaTime);
+            _enemyBars.Tick();
             _tutorialFocus.Tick();
             _badges.Tick(deltaTime);
             _hud.Tick(deltaTime);

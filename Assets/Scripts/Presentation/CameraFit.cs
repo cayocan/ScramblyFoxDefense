@@ -10,7 +10,7 @@ namespace ScramblyFoxDefense.Presentation
     {
         // Reserved bands in reference pixels (GDD section 6: ~90 top, ~150 bottom of 844).
         const float TopBand = 112f;
-        const float BottomBand = 160f;
+        const float BottomBand = 172f;
         const float ReferenceHeight = 844f;
 
         readonly Camera _camera;

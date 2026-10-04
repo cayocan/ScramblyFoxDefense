@@ -23,6 +23,8 @@ namespace ScramblyFoxDefense.EditorTools
         public static Material Towers => GetOrCreate("TowerKit", TowerTexture, Color.white);
         // Predators read as "the other side": purple version of the pet palette (GDD section 6).
         public static Material Enemies => GetOrCreate("EnemyKit", PredatorTexture, Color.white);
+        public static Material EnemiesTiger => GetOrCreate("EnemyTiger", "Assets/Art/CubePets/Textures/colormap-predator-tiger.png", Color.white);
+        public static Material EnemiesBear => GetOrCreate("EnemyBear", "Assets/Art/CubePets/Textures/colormap-predator-bear.png", Color.white);
         public static Material Deco => GetOrCreate("DecoKit", DecoTexture, Color.white);
         // Ground outside the play area: same palette, slightly darker so the board still reads as the arena.
         public static Material OuterGround => GetOrCreate("OuterGround", TowerTexture, new Color(0.8f, 0.85f, 0.75f));
