@@ -83,3 +83,15 @@ A clean run is 76–77 s in the simulator, about 80 s with the tutorial taps. Th
 - `TutorialHand` loops a 2.8 s demo while no tower stands: open over the Pop Blaster card, grab, carry a ghost along an arc to `GameConfig.tutorialSpot`, release, fade. The ghost turns red while it crosses the path and green at the spot, which shows the rule. The hand hides as soon as the player starts a drag; the player's drag then owns the ghost. The spot is checked against `PlacementValidator` at start (warning if it breaks the rules); none was logged.
 - After the first tower the old pointing hand is still used for the upgrade and idle hints.
 - Verified in headless Chrome (`node tutorial.js`): 12 frames of the loop at 390x844 (`out/t-hand-sheet.png`), and the tutorial completed with a real touch drag at 390x844 and 320x568 (built at the spot, wallet 50 -> 20).
+
+## Task 4: milestones unlock towers
+
+- `TowerUnlocks` (plain C#): only the Pop Blaster card is open at the start; the breather after wave 1 unlocks Puzzle Pulse, the breather after wave 2 unlocks Racer Zap. Locked cards are a dark silhouette with a padlock and are refused (shake + deny cue) like an unaffordable card. No new towers.
+- Celebration inside the breather (scaled time, owned by `BreatherState`, rebuilt with the scene): the clear banner is cut to 0.8 s; then "New friend: <name>!" for 1.2 s, the card slides up with a scale overshoot, a spark burst over it (`SparkFx.Celebrate`, sized in HUD pixels), a warm-white screen flash (`FeedbackFx.ScreenFlash`) and the `Unlock` cue (placeholder; the audio pass was cut, see below). The lock bar still pops on the wave clear. The new card pulses until it is first dragged. Then the next-wave preview for 0.6 s. Breather 2 s -> 2.6 s.
+- Economy unchanged (SessionSimulator): one tower falls in wave 3 at 67.8 s; tower first then upgrades: perfect at 78.1 s; upgrade first: 77.1 s; Puzzle Pulse as second tower: 77.7 s. The first breather still opens with 44 coins and the cap before wave 2 ends is still 68 < 70. The simulator builds through `TowerSystem` and does not enforce unlocks; no plan uses a card before its unlock.
+- Verified in headless Chrome (`node unlock.js`, 390x844 touch): a locked card is refused at the start; both unlocks fire ("[Unlock] card=1 Puzzle Pulse at wave 2", "card=2 Racer Zap at wave 3") and the new card builds right away; Restart during the celebration returns to the locked state (card 1 refused again); hiding the tab during the celebration freezes it (paused and resumed at the same game time, 22.54 s) and it completes after. The frozen frame `out/u-hidden-mid-celebration.png` shows banner, flash, slide and sparks together.
+- Known issue: the padlock sits a little low on the locked card and covers part of the card name (perspective shift from drawing it in front of the 3D face). Readable as locked; not fixed for time.
+
+## Cut for time (two-hour Stage 2 limit)
+
+Following the documented cut order, Task 5 (opening hook), Task 6 (top HUD redesign) and Task 7 (audio pass) were not done. The unlock uses the existing synth `Unlock` cue.

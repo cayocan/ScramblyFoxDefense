@@ -116,6 +116,7 @@ namespace ScramblyFoxDefense.Core
             var ghost = new TowerGhost(config, ghostMaterial, ringSprite, fxRoot);
 
             var tutorialGate = new TutorialGate(_towers);
+            var unlocks = new TowerUnlocks(config.towers.Length);
             _layout = new HudLayout(mainCamera);
             // HUD buttons first: the first tap handler that accepts a tap consumes it.
             _restart = new RestartController(restartButton, mainCamera);
@@ -125,9 +126,9 @@ namespace ScramblyFoxDefense.Core
             _mute = new MuteToggle(audio, muteButton, muteIcon, soundOnSprite, soundOffSprite, mainCamera);
             _input.Register(_mute.HandleTap);
             _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon, topBand, bannerPill);
-            _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera);
+            _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera, unlocks, locks[0].sprite); // locks start closed
             _lockBar = new LockBarView(locks, lockOpenSprite, _layout);
-            _actions = new PlayerActions(config, _input, _cardBar, picker, placement, ghost, _towers, economy, audio, tutorialGate);
+            _actions = new PlayerActions(config, _input, _cardBar, picker, placement, ghost, _towers, economy, audio, tutorialGate, unlocks);
             _badges = new TowerBadges(_towers, economy, badgePrefab, ringSprite, arrowSprite, mainCamera.transform);
             _tutorial = new TutorialHand(tutorialHand, handOpenSprite, handGrabSprite, ghost, picker, _layout, mainCamera, config, _actions, cards, placement, groundHeight, _towers, _enemies, economy, session);
             _tutorialFocus = new TutorialFocus(tutorialGate, _cardBar, restartButton);
@@ -135,7 +136,7 @@ namespace ScramblyFoxDefense.Core
             _soundCues = new SoundCues(audio, _enemies, _towers, config);
             _enemyBars = new EnemyHealthBars(_enemies, roundedSprite, mainCamera.transform);
             _foxBar = new FoxHealthBar(fox, vault.Find("animal-fox"), roundedSprite, mainCamera.transform);
-            _feedback = new FeedbackFx(_enemies, _towers, poofPrefab, fxRoot, mainCamera.transform);
+            _feedback = new FeedbackFx(_enemies, _towers, poofPrefab, fxRoot, mainCamera.transform, roundedSprite);
             _sparks = new SparkFx(_towers, sparkSprite, fxRoot, mainCamera.transform);
             _cameraFit = new CameraFit(mainCamera, boardCenter, boardSize.x, boardSize.y);
             _redeem = new RedeemSequence(coinPrefab, fxRoot, vault, pathWaypoints);
@@ -144,7 +145,7 @@ namespace ScramblyFoxDefense.Core
             _machine = new GameStateMachine();
             _machine.Register(new IntroState(_machine, config, _towers, _actions, _hud));
             _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar, audio, economy, fox));
-            _machine.Register(new BreatherState(_machine, config, session, _hud));
+            _machine.Register(new BreatherState(_machine, config, session, _hud, unlocks, _cardBar, _sparks, _feedback, _layout, audio));
             _machine.Register(new RedeemState(_machine, _actions, _hud, _redeem, _input, _cardBar, _badges, audio));
             _machine.Register(new EndCardState(economy, _hud, _endCard, _restart, _input, audio, session, config.waves.Length, fox, _enemies, _actions, _cardBar, _badges));
         }

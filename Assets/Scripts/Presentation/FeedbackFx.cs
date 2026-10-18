@@ -26,8 +26,20 @@ namespace ScramblyFoxDefense.Presentation
         readonly List<Enemy> _flashDone = new List<Enemy>();
         readonly List<Poof> _poofs = new List<Poof>();
 
-        public FeedbackFx(EnemySystem enemies, TowerSystem towers, GameObject poofPrefab, Transform root, Transform camera)
+        const float ScreenFlashTime = 0.35f;
+        readonly SpriteRenderer _screenFlash;
+        float _screenFlashTime;
+
+        public FeedbackFx(EnemySystem enemies, TowerSystem towers, GameObject poofPrefab, Transform root, Transform camera, Sprite flashSprite)
         {
+            // Full-screen warm-white quad just in front of the camera, hidden until a milestone flashes it.
+            _screenFlash = new GameObject("Screen Flash", typeof(SpriteRenderer)).GetComponent<SpriteRenderer>();
+            _screenFlash.transform.SetParent(camera, false);
+            _screenFlash.transform.localPosition = new Vector3(0f, 0f, 0.62f);
+            _screenFlash.transform.localScale = Vector3.one * 0.06f;
+            _screenFlash.sprite = flashSprite;
+            _screenFlash.sortingOrder = 9; // above the HUD, under the tutorial hand
+            _screenFlash.gameObject.SetActive(false);
             _enemies = enemies;
             _towers = towers;
             _camera = camera;
@@ -59,8 +71,21 @@ namespace ScramblyFoxDefense.Presentation
         float _shakeTime;
         Vector3 _cameraRest;
 
+        /// <summary>Milestone unlock: a short warm-white flash over the whole screen.</summary>
+        public void ScreenFlash()
+        {
+            _screenFlashTime = ScreenFlashTime;
+            _screenFlash.gameObject.SetActive(true);
+        }
+
         public void Tick(float deltaTime)
         {
+            if (_screenFlashTime > 0f)
+            {
+                _screenFlashTime -= deltaTime;
+                _screenFlash.color = new Color(1f, 0.96f, 0.91f, Mathf.Max(0f, _screenFlashTime / ScreenFlashTime) * 0.55f);
+                if (_screenFlashTime <= 0f) _screenFlash.gameObject.SetActive(false);
+            }
             if (_shakeTime > 0f)
             {
                 _shakeTime -= deltaTime;

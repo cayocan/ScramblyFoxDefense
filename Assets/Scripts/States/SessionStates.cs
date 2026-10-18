@@ -112,37 +112,61 @@ namespace ScramblyFoxDefense.States
             var wave = _config.waves[_session.WaveIndex];
             if (wave.clearBonus > 0) _economy.Earn(wave.clearBonus);
             string bonus = wave.clearBonus > 0 ? $"  +{wave.clearBonus}" : "";
-            _hud.ShowBanner(perfect ? $"Perfect wave!{bonus}" : $"Wave cleared{bonus}", 1.6f);
+            bool last = _session.WaveIndex >= _config.waves.Length - 1;
+            // Mid-run the breather follows with the unlock celebration, so the clear banner stays short.
+            _hud.ShowBanner(perfect ? $"Perfect wave!{bonus}" : $"Wave cleared{bonus}", last ? 1.6f : BreatherState.ClearBannerSeconds);
             _locks.Unlock(_session.WaveIndex, perfect);
             _audio.Play(perfect ? Sound.Upgrade : Sound.Unlock);
-            if (_session.WaveIndex >= _config.waves.Length - 1) _machine.Enter<RedeemState>();
+            if (last) _machine.Enter<RedeemState>();
             else _machine.Enter<BreatherState>();
         }
 
         public void Exit() { }
     }
 
-    /// <summary>Short pause between waves; the next reward lock opens here (later feature).</summary>
+    /// <summary>
+    /// Pause between waves. Timeline (scaled time): the short clear banner, then the milestone unlock
+    /// (next tower card: banner, card slide-in, sparks, screen flash, cue), then a preview of the next wave.
+    /// Nothing here outlives the state: restart reloads the scene and a hidden page freezes scaled time.
+    /// </summary>
     public sealed class BreatherState : IGameState
     {
+        public const float ClearBannerSeconds = 0.8f;
+        const float CelebrationSeconds = 1.2f;
+
         readonly GameStateMachine _machine;
         readonly GameConfig _config;
         readonly GameSession _session;
         readonly HudView _hud;
+        readonly TowerUnlocks _unlocks;
+        readonly CardBarView _cards;
+        readonly SparkFx _sparks;
+        readonly FeedbackFx _feedback;
+        readonly HudLayout _layout;
+        readonly IAudioService _audio;
         float _elapsed;
+        bool _celebrated;
         bool _previewShown;
 
-        public BreatherState(GameStateMachine machine, GameConfig config, GameSession session, HudView hud)
+        public BreatherState(GameStateMachine machine, GameConfig config, GameSession session, HudView hud, TowerUnlocks unlocks, CardBarView cards,
+            SparkFx sparks, FeedbackFx feedback, HudLayout layout, IAudioService audio)
         {
             _machine = machine;
             _config = config;
             _session = session;
             _hud = hud;
+            _unlocks = unlocks;
+            _cards = cards;
+            _sparks = sparks;
+            _feedback = feedback;
+            _layout = layout;
+            _audio = audio;
         }
 
         public void Enter()
         {
             _elapsed = 0f;
+            _celebrated = false;
             _previewShown = false;
             _session.WaveIndex++;
         }
@@ -150,12 +174,27 @@ namespace ScramblyFoxDefense.States
         public void Tick(float deltaTime)
         {
             _elapsed += deltaTime;
-            // After the clear banner: tell the player what the next wave brings, so they can prepare.
-            if (!_previewShown && _elapsed >= 1.6f)
+            if (!_celebrated && _elapsed >= ClearBannerSeconds)
+            {
+                _celebrated = true;
+                int card = _unlocks.UnlockNext();
+                if (card >= 0)
+                {
+                    _hud.ShowBanner($"New friend: {_config.towers[card].displayName}!", CelebrationSeconds);
+                    _cards.PlayUnlock(card);
+                    _sparks.Celebrate(_cards.FacePosition(card), _layout.PixelUnit);
+                    _feedback.ScreenFlash();
+                    _audio.Play(Sound.Unlock); // placeholder cue until the audio pass
+                    Debug.Log($"[Unlock] card={card} {_config.towers[card].displayName} at wave {_session.WaveIndex + 1}");
+                }
+            }
+            // Then tell the player what the next wave brings, so they can prepare.
+            float previewAt = ClearBannerSeconds + CelebrationSeconds;
+            if (!_previewShown && _elapsed >= previewAt)
             {
                 _previewShown = true;
                 string intro = _config.waves[_session.WaveIndex].intro;
-                if (!string.IsNullOrEmpty(intro)) _hud.ShowBanner(intro, _config.breatherSeconds - 1.6f);
+                if (!string.IsNullOrEmpty(intro)) _hud.ShowBanner(intro, Mathf.Max(0.4f, _config.breatherSeconds - previewAt));
             }
             if (_elapsed >= _config.breatherSeconds) _machine.Enter<WaveState>();
         }

@@ -15,7 +15,7 @@ MonoBehaviour:
   startingCoins: 50
   foxHealth: 10
   introMaxSeconds: 8
-  breatherSeconds: 2
+  breatherSeconds: 2.6
   maxDeltaTime: 0.1
   pickRadiusCssPixels: 44
   touchGhostOffsetCssPixels: 80
