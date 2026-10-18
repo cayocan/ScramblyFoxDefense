@@ -426,7 +426,7 @@ namespace ScramblyFoxDefense.EditorTools
                 };
                 config.waves = new[]
                 {
-                    new WaveDefinition { spawnInterval = 1.8f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 } } },
+                    new WaveDefinition { spawnInterval = 1.8f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 7 } } },
                     new WaveDefinition { spawnInterval = 1.3f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 5 }, new SpawnGroup { enemyIndex = 1, count = 5 } } },
                     new WaveDefinition { spawnInterval = 1.1f, groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 }, new SpawnGroup { enemyIndex = 1, count = 4 }, new SpawnGroup { enemyIndex = 2, count = 3 } } }
                 };
@@ -443,6 +443,7 @@ namespace ScramblyFoxDefense.EditorTools
                 config.enemies[1].health = 14; // was 11
                 config.enemies[2].health = 94; // was 75
             }
+            ApplyShortRunPass(config); // last: the older passes above would regrow the 3-wave run
             config.towers[0].prefab = prefabs.PopBlaster;
             config.towers[1].prefab = prefabs.PuzzlePulse;
             config.towers[2].prefab = prefabs.RacerZap;
@@ -509,6 +510,28 @@ namespace ScramblyFoxDefense.EditorTools
             config.enemies[0].coinReward = 4;  // was 6
             config.enemies[1].coinReward = 5;  // was 7
             config.enemies[2].coinReward = 10; // was 15
+        }
+
+        /// <summary>
+        /// Stage 2 short run (docs/STAGE2_NOTES.md): 3 waves of about 80 s in total, one tower at the start, and
+        /// a forced choice before wave 2 ends: a second tower or the first upgrade, not both. Always applied.
+        /// </summary>
+        public static void ApplyShortRunPass(GameConfig config)
+        {
+            config.startingCoins = 50;
+            config.breatherSeconds = 2f;
+            config.enemies[0].health = 14; config.enemies[0].coinReward = 2;
+            config.enemies[1].health = 10; config.enemies[1].coinReward = 2;
+            config.enemies[2].health = 70; config.enemies[2].coinReward = 6;
+            config.waves = new[]
+            {
+                new WaveDefinition { spawnInterval = 2.4f, intro = "Lions want the coins!", clearBonus = 10,
+                    groups = new[] { new SpawnGroup { enemyIndex = 0, count = 7 } } },
+                new WaveDefinition { spawnInterval = 1.7f, intro = "Next: Tigers — fast!", clearBonus = 30,
+                    groups = new[] { new SpawnGroup { enemyIndex = 0, count = 6 }, new SpawnGroup { enemyIndex = 1, count = 6 } } },
+                new WaveDefinition { spawnInterval = 1.1f, intro = "Final wave: polar bears join!", clearBonus = 0,
+                    groups = new[] { new SpawnGroup { enemyIndex = 0, count = 12 }, new SpawnGroup { enemyIndex = 1, count = 10 }, new SpawnGroup { enemyIndex = 2, count = 5 } } }
+            };
         }
 
         static void SetFeel(TowerDefinition tower, TargetMode targeting, Color color, float scale, float speed)
