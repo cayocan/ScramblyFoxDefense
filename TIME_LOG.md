@@ -28,3 +28,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | docs-english | 2026-10-04 19:48 | 2026-10-04 19:51 | 0h 02min | GDD and CLAUDE.md translated to English |
 | fix-tutorial-hand | 2026-10-04 19:54 | 2026-10-04 19:57 | 0h 03min | Tutorial hand redrawn as a pointing hand (old sprite read as a middle finger) |
 | stage2-short-run | 2026-10-18 18:23 | 2026-10-18 18:57 | 0h 34min | Stage 2: 3 waves (~77 s clean in SessionSimulator, was 105.6 s), 2 s breather, 50 starting coins, second tower or first upgrade before wave 2 ends (not both), 3 locks, upgrade hint from wave 2 |
+| stage2-drag-placement | 2026-10-18 19:15 | 2026-10-18 20:03 | 0h 48min | Drag a ghost tower from the cards to any valid point (path, tower, decoration and arena rules in GameConfig, max 3 towers), slots removed, cancel on hide/focus loss/touch cancel, stuck-finger-after-hide fix, drag browser checks at 390x844 and 320x568 (touch + mouse), ZIP 3,337,591 bytes |

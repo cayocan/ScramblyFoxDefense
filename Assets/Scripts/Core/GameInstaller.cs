@@ -18,7 +18,10 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] GameConfig config;
         [SerializeField] Camera mainCamera;
         [SerializeField] Transform[] pathWaypoints;
-        [SerializeField] Transform[] slotTransforms;
+        [Tooltip("Arena on the ground plane: x/width = world X, y/height = world Z.")]
+        [SerializeField] Rect arenaBounds = new Rect(-3f, -5f, 6f, 10f);
+        [Tooltip("Trees, rocks and crystals on the board; towers keep clear of them.")]
+        [SerializeField] Transform decorationRoot;
         [SerializeField] Vector2 boardSize = new Vector2(6f, 11f);
         [SerializeField] Vector3 boardCenter = new Vector3(0f, 0f, -0.45f);
 
@@ -27,6 +30,7 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] GameObject coinPrefab;
         [SerializeField] GameObject badgePrefab;
         [SerializeField] GameObject poofPrefab;
+        [SerializeField] Material ghostMaterial;
         [SerializeField] Sprite sparkSprite;
         [SerializeField] Sprite ringSprite;
         [SerializeField] Sprite arrowSprite;
@@ -80,7 +84,6 @@ namespace ScramblyFoxDefense.Core
         CardBarView _cardBar;
         LockBarView _lockBar;
         TowerBadges _badges;
-        SlotHighlighter _slotHighlighter;
         CameraFit _cameraFit;
         RestartController _restart;
         PagePause _pagePause;
@@ -105,7 +108,10 @@ namespace ScramblyFoxDefense.Core
             _enemies = new EnemySystem(config, path, economy, fox, enemyRoot);
             var spawner = new WaveSpawner(_enemies);
             _towers = new TowerSystem(config, economy, _enemies, towerRoot, projectilePrefab);
-            var slots = new SlotManager(slotTransforms, mainCamera, config.pickRadiusCssPixels);
+            float groundHeight = pathWaypoints[0].position.y; // waypoints sit on the tile tops
+            var picker = new TowerPicker(_towers, mainCamera, config.pickRadiusCssPixels, groundHeight);
+            var placement = new PlacementValidator(config, arenaBounds, path, _towers.Towers, DecorationPoints());
+            var ghost = new TowerGhost(config, ghostMaterial, ringSprite, fxRoot);
 
             var tutorialGate = new TutorialGate(_towers);
             _layout = new HudLayout(mainCamera);
@@ -119,11 +125,10 @@ namespace ScramblyFoxDefense.Core
             _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon, topBand, bannerPill);
             _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera);
             _lockBar = new LockBarView(locks, lockOpenSprite, _layout);
-            _actions = new PlayerActions(config, _input, _cardBar, slots, _towers, economy, audio, tutorialGate);
+            _actions = new PlayerActions(config, _input, _cardBar, picker, placement, ghost, _towers, economy, audio, tutorialGate);
             _badges = new TowerBadges(_towers, economy, badgePrefab, ringSprite, arrowSprite, mainCamera.transform);
-            _slotHighlighter = new SlotHighlighter(slots, _actions);
-            _tutorial = new TutorialHand(tutorialHand, _layout, mainCamera, config, _actions, cards, slots, _towers, _enemies, economy, session);
-            _tutorialFocus = new TutorialFocus(tutorialGate, _cardBar, slots, restartButton);
+            _tutorial = new TutorialHand(tutorialHand, _layout, mainCamera, config, _actions, cards, placement, groundHeight, _towers, _enemies, economy, session);
+            _tutorialFocus = new TutorialFocus(tutorialGate, _cardBar, restartButton);
             _coinFx = new CoinPopFx(_enemies, coinPrefab, fxRoot);
             _soundCues = new SoundCues(audio, _enemies, _towers, config);
             _enemyBars = new EnemyHealthBars(_enemies, roundedSprite, mainCamera.transform);
@@ -158,7 +163,9 @@ namespace ScramblyFoxDefense.Core
                 _layout.Place(muteButton.root, new Vector2(0f, 1f), new Vector2(112f, -26f), 1f);
             }
 
-            if (!_pagePause.IsPaused) _input.Tick();
+            // A hidden page or a rotated phone drops any drag, so no ghost survives the pause.
+            if (_pagePause.IsPaused) _input.Interrupt();
+            else _input.Tick();
             _machine.Tick(deltaTime);
             _enemies.Tick(deltaTime);
             _towers.Tick(deltaTime);
@@ -172,9 +179,16 @@ namespace ScramblyFoxDefense.Core
             _hud.Tick(deltaTime);
             _cardBar.Tick(deltaTime);
             _lockBar.Tick(deltaTime);
-            _slotHighlighter.Tick(deltaTime);
             _tutorial.Tick(deltaTime);
             _endCard.Tick(deltaTime);
+        }
+
+        Vector3[] DecorationPoints()
+        {
+            if (decorationRoot == null) return new Vector3[0];
+            var points = new Vector3[decorationRoot.childCount];
+            for (int i = 0; i < points.Length; i++) points[i] = decorationRoot.GetChild(i).position;
+            return points;
         }
 
         void OnDestroy()

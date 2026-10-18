@@ -8,6 +8,10 @@ Shader "Scrambly/KitLit"
         _MainTex ("Palette", 2D) = "white" {}
         _Color ("Tint", Color) = (1, 1, 1, 1)
         _Flash ("Hit Flash", Range(0, 1)) = 0
+        // Opaque by default; the drag ghost material sets SrcAlpha / OneMinusSrcAlpha and no depth writes.
+        [HideInInspector] _SrcBlend ("Src Blend", Float) = 1
+        [HideInInspector] _DstBlend ("Dst Blend", Float) = 0
+        [HideInInspector] _ZWrite ("Z Write", Float) = 1
     }
     SubShader
     {
@@ -15,6 +19,8 @@ Shader "Scrambly/KitLit"
         Pass
         {
             Tags { "LightMode" = "ForwardBase" }
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag

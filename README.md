@@ -17,8 +17,8 @@ Opening `index.html` straight from disk (`file://`) does not work: browsers bloc
 
 ## How to play
 
-1. **Tutorial (required):** the hand points at the Pop Blaster card, then at the first slot. Until that first tower is built nothing else responds (other cards, slots and Restart are greyed out) and the game waits. The first build starts wave 1.
-2. Tap a card at the bottom (Pop Blaster 30, Puzzle Pulse 40, Racer Zap 55), then a pulsing slot to build. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
+1. **Tutorial (required):** the hand points at the Pop Blaster card; drag it onto the map (the hand shows a good spot near the path start). Until that first tower is built nothing else responds (other cards and Restart are greyed out) and the game waits. The first build starts wave 1.
+2. Drag a card from the bottom (Pop Blaster 30, Puzzle Pulse 40, Racer Zap 55) onto the map. A ghost tower with its range ring follows the pointer (on touch it floats above the finger): green where it can stand, red on the path, next to another tower or a tree, or off the arena. Release on green to build; anywhere else cancels and no coins are spent. Up to 3 towers. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
 3. Tap a tower to upgrade it (up to level 3). When you can afford it, the tower shows a pulsing ring, an arrow and an orange "UP" cost badge. The upgrade hint appears from wave 2; wave 1 is free play. You start with enough demo coins for one tower; before wave 2 ends you can afford a second tower or the first upgrade, not both.
 4. Predators that reach the vault hurt the fox (10 HP: lion and tiger 1, polar bear 3; health bar over the fox). Every predator has a red health bar. If the fox falls, the session ends early on a "So close!" card. Clear a wave with no predator reaching the vault for a gold lock. Each wave pays a bonus, and the breather tells you what comes next.
 5. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time after the tutorial; the speaker button next to it mutes sound and music.
@@ -44,12 +44,12 @@ The architecture is a state machine with one handler per state plus constructor 
 | Composition root, the only `Update` | `Assets/Scripts/Core/GameInstaller.cs` |
 | Session flow | `Core/GameStateMachine.cs`, `States/SessionStates.cs` (Intro, Wave, Breather, Redeem, EndCard) |
 | Tuning (all numbers) | `Config/GameConfig.cs`, `Assets/Config/GameConfig.asset` |
-| Gameplay | `Gameplay/` (Economy, FoxHealth, PathRoute, EnemySystem, WaveSpawner, TowerSystem, SlotManager, PlayerActions, TutorialGate) |
-| Input | `Input/InputRouter.cs`: one tap primitive, first pointer only, cancel on focus loss, priority chain (HUD buttons first) |
+| Gameplay | `Gameplay/` (Economy, FoxHealth, PathRoute, EnemySystem, WaveSpawner, TowerSystem, PlacementValidator, TowerPicker, PlayerActions, TutorialGate) |
+| Input | `Input/InputRouter.cs`: tap and drag primitives, first pointer only, cancel on focus loss, page hide and touch cancel, priority chain (HUD buttons first) |
 | Page pause | `Core/PagePause.cs`, `Assets/Plugins/WebGL/PageState.jslib`, template `index.html` |
 | Restart | `Core/RestartController.cs` (scene reload, guarded) |
 | Audio | `Audio/` (sound ids, cues, mute) → `Assets/Plugins/WebGL/Sfx.jslib` → Web Audio synth in the template; `Audio/EditorSynth.cs` is the editor-only port |
-| HUD without uGUI | `Presentation/` (HudLayout, HudView, cards, locks, badges, tutorial hand and focus, fox and enemy health bars, end card, redeem sequence) |
+| HUD without uGUI | `Presentation/` (HudLayout, HudView, cards, locks, badges, drag ghost, tutorial hand and focus, fox and enemy health bars, end card, redeem sequence) |
 | Effects | `Presentation/` (FeedbackFx, SparkFx particles, CoinPopFx), `BloomEffect.cs` + `Assets/Art/Shaders/Bloom.shader` |
 | Editor tools | `Assets/Editor/` (MainSceneBuilder, BuildTools, KitMaterials, ArtImports, SessionSimulator) |
 
@@ -74,7 +74,8 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Layout | 320×568 portrait | Emulated (touch, DPR 2) | Everything visible, cards tappable |
 | Layout | Desktop 1280×720 | Emulated (mouse) | Centred portrait column, Deep ink sides, no page scroll |
 | Layout | Phone in landscape | Emulated 844×390 touch | "Rotate your phone" overlay, game paused; cleared when rotated back |
-| Input | Touch: tutorial card → slot → tower | Emulated touch taps | Tower built, then upgraded; wave 1 started |
+| Input | Touch: tutorial card dragged onto the map | Emulated touch drag | Tower built; wave 1 started |
+| Drag placement | 390×844 and 320×568, touch and mouse: drop on the path, drop on a free spot, hide the tab mid-drag, release off the canvas, Restart mid-drag, Restart then a new drag (2026-10-18, `node drag.js`) | Chrome headless, `[Drag]` console lines | Path drop: canceled, coins kept; free spot: built (−30); hidden tab: drag canceled; off the canvas: canceled; a second finger on Restart is ignored (first pointer only) and a mouse release on Restart cancels; Restart resets to 50 coins, 0 towers. The ghost is hidden after every outcome |
 | Input | Card without coins, tap empty area, re-tap card | Editor, simulated taps at real screen positions | Card shakes and nothing is built; selection cleared |
 | Tutorial | Wait 20 s, tap Restart, other cards and slots, then card 0 and slot 0 | Editor, simulated taps at real screen positions | Stays on the intro and ignores every non-tutorial tap; card 0 then slot 0 build the tower and wave 1 starts |
 | Visibility | Hide the tab mid-session, then show it | Emulated `visibilitychange` | Paused and resumed at the same game time (no time jump) |

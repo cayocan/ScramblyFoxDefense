@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using ScramblyFoxDefense.Core;
@@ -22,8 +23,9 @@ namespace ScramblyFoxDefense.EditorTools
         const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
 
         /// <summary>
-        /// Orders, comma separated: "pop0" = build tower 0 (Pop Blaster) on slot 0, "puz2" = tower 1 on
-        /// slot 2, "zap1" = tower 2 on slot 1, "up0" = upgrade the tower on slot 0. Empty = never build.
+        /// Orders, comma separated: "pop0" = build tower 0 (Pop Blaster) on reference spot 0, "puz2" = tower 1
+        /// on spot 2, "zap1" = tower 2 on spot 1, "up0" = upgrade the tower on spot 0. Empty = never build.
+        /// Spots are MainSceneBuilder.ReferenceSpots (the former slots) and go through the placement rules.
         /// </summary>
         public static string Run(string plan)
         {
@@ -35,7 +37,9 @@ namespace ScramblyFoxDefense.EditorTools
             var machine = Get<GameStateMachine>(installer, "_machine");
             var coinFx = Get<CoinPopFx>(installer, "_coinFx");
             var actions = Get<PlayerActions>(installer, "_actions");
-            var slots = (SlotManager)typeof(PlayerActions).GetField("_slots", Private).GetValue(actions);
+            var placement = (PlacementValidator)typeof(PlayerActions).GetField("_placement", Private).GetValue(actions);
+            float groundHeight = Get<Transform[]>(installer, "pathWaypoints")[0].position.y;
+            var spots = MainSceneBuilder.ReferenceSpots.Select(cell => MainSceneBuilder.CellToWorld(cell) + Vector3.up * groundHeight).ToArray();
             var economy = (Economy)typeof(EnemySystem).GetField("_economy", Private).GetValue(enemies);
 
             var orders = new Queue<string>(string.IsNullOrWhiteSpace(plan) ? new string[0] : plan.Split(','));
@@ -48,7 +52,7 @@ namespace ScramblyFoxDefense.EditorTools
             float time = 0f;
             while (time < MaxSeconds)
             {
-                while (orders.Count > 0 && TryOrder(orders.Peek(), slots, towers)) orders.Dequeue();
+                while (orders.Count > 0 && TryOrder(orders.Peek(), spots, placement, towers, log)) orders.Dequeue();
 
                 machine.Tick(Step);
                 enemies.Tick(Step);
@@ -68,19 +72,24 @@ namespace ScramblyFoxDefense.EditorTools
             return log.ToString();
         }
 
-        static bool TryOrder(string order, SlotManager slots, TowerSystem towers)
+        static bool TryOrder(string order, Vector3[] spots, PlacementValidator placement, TowerSystem towers, StringBuilder log)
         {
-            int slot = order[order.Length - 1] - '0';
+            var spot = spots[order[order.Length - 1] - '0'];
             string verb = order.Substring(0, order.Length - 1);
-            var target = slots.Slots[slot];
-            switch (verb)
+            int type = verb == "pop" ? 0 : verb == "puz" ? 1 : verb == "zap" ? 2 : -1;
+            if (type >= 0)
             {
-                case "pop": return towers.TryBuild(target, 0);
-                case "puz": return towers.TryBuild(target, 1);
-                case "zap": return towers.TryBuild(target, 2);
-                case "up": return target.Tower != null && towers.TryUpgrade(target.Tower);
-                default: return true; // unknown order: skip it
+                // Same rule as a player drop: an invalid spot is skipped and reported, never built.
+                if (!placement.IsValid(spot))
+                {
+                    log.Append($"| {order} invalid ");
+                    return true;
+                }
+                return towers.TryBuild(spot, type);
             }
+            if (verb != "up") return true; // unknown order: skip it
+            var tower = towers.Towers.FirstOrDefault(t => (t.Transform.position - spot).sqrMagnitude < 0.01f);
+            return tower != null && towers.TryUpgrade(tower);
         }
 
         static T Get<T>(GameInstaller installer, string field) => (T)typeof(GameInstaller).GetField(field, Private).GetValue(installer);

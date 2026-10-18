@@ -27,6 +27,19 @@ async function open(browser, viewport, label) {
   return { page, requests, logs, loadMs, label };
 }
 
+// Stage 2 free placement: press a card and drag the ghost onto the map (touch, first finger). The ghost floats
+// 80 CSS px above the finger (GameConfig.touchGhostOffsetCssPixels), so the finger ends below the target.
+async function touchDrag(page, from, target) {
+  const cdp = await page.createCDPSession();
+  const to = [target[0], target[1] + 80];
+  const send = (type, p) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: p ? [{ x: p[0], y: p[1], id: 0 }] : [] });
+  await send('touchStart', from);
+  for (let i = 1; i <= 8; i++) { await send('touchMove', [from[0] + (to[0] - from[0]) * i / 8, from[1] + (to[1] - from[1]) * i / 8]); await sleep(40); }
+  await sleep(200);
+  await send('touchEnd');
+  await cdp.detach();
+}
+
 async function setHidden(page, hidden) {
   await page.evaluate(h => {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => h });
@@ -44,13 +57,11 @@ async function setHidden(page, hidden) {
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-start.png') });
   const audio = () => phone.page.evaluate(() => window.scramblySfx.state() + (window.scramblySfx.isMuted() ? '/muted' : ''));
   const audioBefore = await audio();
-  // Card 0 (Pop Blaster) then slot 0 (top slot), in CSS px.
-  await phone.page.touchscreen.tap(73, 766);
-  await sleep(300);
-  await phone.page.screenshot({ path: path.join(OUT, 'b-390-selected.png') });
-  await phone.page.touchscreen.tap(165, 182);
+  // Drag card 0 (Pop Blaster) to the suggested spot near the path start, in CSS px.
+  await touchDrag(phone.page, [73, 766], [168, 205]);
   await sleep(600);
-  await phone.page.touchscreen.tap(165, 182); // tap the new tower: upgrade
+  await phone.page.screenshot({ path: path.join(OUT, 'b-390-selected.png') });
+  await phone.page.touchscreen.tap(168, 205); // tap the new tower: upgrade
   await sleep(800);
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-built.png') });
 
@@ -109,10 +120,8 @@ async function setHidden(page, hidden) {
     await sleep(10000);
     const stillWaiting = await full.page.evaluate(() => document.querySelector('canvas') !== null);
     await full.page.touchscreen.tap(195, 508); // a non-tutorial tap (centre of the board): must be ignored
-    await full.page.touchscreen.tap(73, 766);  // tutorial step 1: first card
-    await sleep(300);
-    await full.page.touchscreen.tap(165, 182); // tutorial step 2: first slot -> wave 1 starts
-    await sleep(80000); // one tower: the fox falls in wave 3 (~67 s) and the end card opens
+    await touchDrag(full.page, [73, 766], [168, 205]); // tutorial: drag the first card onto the map -> wave 1 starts
+    await sleep(120000); // one tower: the fox falls in wave 3 (~67 s of game time; headless frames run slower) and the end card opens
     await full.page.screenshot({ path: path.join(OUT, 'b-full-endcard.png') });
     await full.page.touchscreen.tap(195, 508); // Explore Scrambly (panel centre - 10 px, button at -96 px)
     await sleep(800);

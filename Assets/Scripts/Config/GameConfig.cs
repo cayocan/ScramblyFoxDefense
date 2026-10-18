@@ -18,8 +18,24 @@ namespace ScramblyFoxDefense.Config
         public float maxDeltaTime = 0.1f;
 
         [Header("Input")]
-        [Tooltip("Slot pick radius in CSS pixels (GDD: 44).")]
+        [Tooltip("Tower pick radius for upgrade taps, in CSS pixels (GDD: 44).")]
         public float pickRadiusCssPixels = 44f;
+        [Tooltip("On touch the ghost tower floats this far above the finger, so the finger does not hide it.")]
+        public float touchGhostOffsetCssPixels = 80f;
+
+        [Header("Placement (world units on the ground plane)")]
+        [Tooltip("Towers on the map at once; part of the build-or-upgrade decision.")]
+        public int maxTowers = 3;
+        [Tooltip("Minimum distance from the path centre line (the path tile is 1 unit wide).")]
+        public float pathClearance = 0.8f;
+        [Tooltip("Minimum distance between two towers.")]
+        public float towerSpacing = 0.9f;
+        [Tooltip("Minimum distance from a tree, rock or crystal on the board.")]
+        public float decorationSpacing = 0.6f;
+        [Tooltip("Keeps towers this far inside the arena edge.")]
+        public float arenaEdgeMargin = 0.35f;
+        [Tooltip("Where the tutorial suggests the first tower (must pass the placement rules).")]
+        public Vector3 tutorialSpot = new Vector3(-0.5f, 0f, 3.5f);
 
         [Header("Projectiles")]
         public float projectileSpeed = 9f;

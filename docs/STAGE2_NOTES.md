@@ -64,3 +64,15 @@ A clean run is 76–77 s in the simulator, about 80 s with the tutorial taps. Th
 
 - `tools/finish-feature.ps1` writes part of the merge message in Portuguese ("Duracao da feature (inicio ate o fim)"), against the English-only rule. Not blocking; left as is so the Stage 1 history stays consistent.
 - The README test table still lists the Stage 1 browser runs (e.g. "1/5 waves"). They will be re-run on the Stage 2 build in the delivery task.
+
+## Task 2: free placement by dragging
+
+- Input: `InputRouter` keeps the tap primitive (HUD buttons, tower upgrade taps) and adds a drag: a tap handler calls `Capture` and the router then reports move, release and cancel for the first pointer only. Canceled on focus loss, touch cancel, page hidden or phone rotated (`Interrupt`, called every paused frame) and when actions are disabled (Redeem, EndCard). Restart reloads the scene, so the ghost goes with it.
+- Rules (`PlacementValidator`, plain C#): inside the arena minus `arenaEdgeMargin` (0.35), at least `pathClearance` (0.8) from the path polyline, `towerSpacing` (0.9) from every tower, `decorationSpacing` (0.6) from board trees, rocks and crystals (added beyond the brief: otherwise towers could stand inside a tree), and fewer than `maxTowers` (3). All in `GameConfig`.
+- Ghost (`TowerGhost`): one translucent copy per tower type plus a range ring, built once and only shown or hidden. Green or red via `Tint`. It uses a `KitLit` material with alpha blending (blend and ZWrite are now material properties, opaque by default), so no new shader.
+- Release: valid builds (existing build feedback); invalid shakes the card with the deny cue; back over the cards or off the canvas is a silent cancel. Coins are only spent by `TowerSystem.TryBuild`.
+- Slots are gone: `SlotManager`, `Slot` and `SlotHighlighter` deleted; the builder no longer places markers. The 4 former slot cells stay in `MainSceneBuilder.ReferenceSpots` (decoration keeps clear of them, the tutorial suggests the first, `SessionSimulator` builds on them through the validator). Balance re-simulated: identical to Task 1.
+- Ambiguity resolved: "cancel on state change" is applied where actions are disabled (Redeem, EndCard); Wave and Breather changes keep the drag so a player is not interrupted between waves.
+- Bug found and fixed while testing: a touch that ended while the page was hidden left the router thinking that finger was still down, so every later touch was ignored as a second pointer. `Interrupt` now forgets the active finger.
+- Test notes: headless SwiftShader frames are slow, so the mouse test holds 250 ms after pressing (Unity samples the cursor once per frame); the FULL flow now waits 120 s for the one-tower defeat (~67 s of game time).
+- Size: build folder 2,775,382 bytes, ZIP 3,337,591 bytes.

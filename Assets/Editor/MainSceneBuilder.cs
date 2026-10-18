@@ -44,7 +44,11 @@ namespace ScramblyFoxDefense.EditorTools
             new Vector2Int(4, 6), new Vector2Int(1, 6), new Vector2Int(1, 9)
         };
 
-        static readonly Vector2Int[] SlotCells =
+        /// <summary>
+        /// Former build slots. Towers are free-placed now; these stay as good spots: decoration keeps clear of
+        /// them, the tutorial suggests the first one, and SessionSimulator builds on them.
+        /// </summary>
+        internal static readonly Vector2Int[] ReferenceSpots =
         {
             new Vector2Int(2, 1), new Vector2Int(3, 4), new Vector2Int(2, 5), new Vector2Int(2, 8)
         };
@@ -66,7 +70,7 @@ namespace ScramblyFoxDefense.EditorTools
 
             var camera = CreateCamera();
             var board = new GameObject("Board").transform;
-            BuildBoard(board, out var waypoints, out var slots);
+            BuildBoard(board, out var waypoints);
 
             var vault = Spawn(Kit + "tower-square-bottom-a.glb", board);
             vault.name = "Reward Vault";
@@ -88,7 +92,7 @@ namespace ScramblyFoxDefense.EditorTools
             var mute = CreateButton("", camera.transform, new Vector2(44f, 36f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
             mute.root.name = "Button Mute";
             var muteIcon = Icon("Icon", mute.root, ArtImports.Sprite("sound-on"), 22f, WarmWhite);
-            Wire(installer, config, camera, waypoints, slots, prefabs, hud, cards, locks);
+            Wire(installer, config, camera, waypoints, board.Find("Decoration"), prefabs, hud, cards, locks);
             WireEndCard(installer, vault.transform, restart, endCard);
             var wiring = new SerializedObject(installer);
             SetButton(wiring.FindProperty("muteButton"), mute);
@@ -112,7 +116,7 @@ namespace ScramblyFoxDefense.EditorTools
 
         // ---------- Board ----------
 
-        static float BuildBoard(Transform board, out Transform[] waypoints, out Transform[] slots)
+        static float BuildBoard(Transform board, out Transform[] waypoints)
         {
             var pathCells = ExpandPath(PathCorners);
             var pathIndex = new Dictionary<Vector2Int, int>();
@@ -146,25 +150,13 @@ namespace ScramblyFoxDefense.EditorTools
             points.Add(Waypoint(waypointRoot, CellToWorld(new Vector2Int(PathCorners[0].x, -EntranceLength)), tileTop));
             foreach (var corner in PathCorners) points.Add(Waypoint(waypointRoot, CellToWorld(corner), tileTop));
             waypoints = points.ToArray();
-
-            var slotRoot = new GameObject("Slots").transform;
-            slotRoot.SetParent(board, false);
-            slots = SlotCells.Select(cell =>
-            {
-                var marker = Spawn(Kit + "selection-a.glb", slotRoot);
-                marker.name = $"Slot {cell.x},{cell.y}";
-                marker.transform.position = CellToWorld(cell) + Vector3.up * tileTop;
-                KitMaterials.Apply(marker, KitMaterials.Tinted("SlotMarker", Purple));
-                return marker.transform;
-            }).ToArray();
-
             return tileTop;
         }
 
         /// <summary>
         /// Deterministic scatter of autumn trees, rocks and crystals on the empty cells, so the board does not
         /// read as a flat plane. Tall trees never stand in front of (camera side of) a path cell, where they
-        /// would hide predators, and nothing is placed next to a build slot.
+        /// would hide predators, and nothing is placed next to a reference spot.
         /// </summary>
         static void Decorate(Transform board, Dictionary<Vector2Int, int> pathIndex, float tileTop)
         {
@@ -176,7 +168,7 @@ namespace ScramblyFoxDefense.EditorTools
             {
                 var cell = new Vector2Int(column, row);
                 if (pathIndex.ContainsKey(cell)) continue;
-                if (SlotCells.Any(slot => Mathf.Abs(slot.x - cell.x) <= 1 && Mathf.Abs(slot.y - cell.y) <= 1)) continue;
+                if (ReferenceSpots.Any(slot => Mathf.Abs(slot.x - cell.x) <= 1 && Mathf.Abs(slot.y - cell.y) <= 1)) continue;
                 if (row >= Rows - 2 && column <= 2) continue; // keep the vault corner clear
                 if (random.NextDouble() > 0.62) continue;
 
@@ -248,12 +240,12 @@ namespace ScramblyFoxDefense.EditorTools
         }
 
         /// <summary>Tiles and decoration never move: static batching merges them into a few draw calls.
-        /// Slots (pulse), the vault (redeem swell) and waypoints stay dynamic.</summary>
+        /// The vault (redeem swell) and waypoints stay dynamic.</summary>
         static void MarkStaticScenery(Transform board)
         {
             foreach (Transform child in board)
             {
-                if (child.name == "Slots" || child.name == "Path" || child.name == "Reward Vault") continue;
+                if (child.name == "Path" || child.name == "Reward Vault") continue;
                 foreach (var t in child.GetComponentsInChildren<Transform>(true))
                     GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic);
             }
@@ -294,7 +286,7 @@ namespace ScramblyFoxDefense.EditorTools
         /// <summary>Grid step to world yaw: row grows toward the camera (-Z), column grows to +X.</summary>
         static float Yaw(Vector2Int step) => Mathf.Atan2(step.x, -step.y) * Mathf.Rad2Deg;
 
-        static Vector3 CellToWorld(Vector2Int cell) =>
+        internal static Vector3 CellToWorld(Vector2Int cell) =>
             new Vector3(cell.x - (Columns - 1) * 0.5f, 0f, (Rows - 1) * 0.5f - cell.y);
 
         static Transform Waypoint(Transform parent, Vector3 position, float height)
@@ -444,6 +436,7 @@ namespace ScramblyFoxDefense.EditorTools
                 config.enemies[2].health = 94; // was 75
             }
             ApplyShortRunPass(config); // last: the older passes above would regrow the 3-wave run
+            config.tutorialSpot = CellToWorld(ReferenceSpots[0]);
             config.towers[0].prefab = prefabs.PopBlaster;
             config.towers[1].prefab = prefabs.PuzzlePulse;
             config.towers[2].prefab = prefabs.RacerZap;
@@ -783,14 +776,16 @@ namespace ScramblyFoxDefense.EditorTools
             return renderer;
         }
 
-        static void Wire(GameInstaller installer, GameConfig config, Camera camera, Transform[] waypoints, Transform[] slots, Prefabs prefabs, TextMesh[] hud, CardView[] cards, SpriteRenderer[] locks)
+        static void Wire(GameInstaller installer, GameConfig config, Camera camera, Transform[] waypoints, Transform decoration, Prefabs prefabs, TextMesh[] hud, CardView[] cards, SpriteRenderer[] locks)
         {
             var roots = new[] { "Enemies", "Towers", "Fx" }.Select(n => new GameObject(n).transform).ToArray();
             var so = new SerializedObject(installer);
             so.FindProperty("config").objectReferenceValue = config;
             so.FindProperty("mainCamera").objectReferenceValue = camera;
             SetArray(so.FindProperty("pathWaypoints"), waypoints);
-            SetArray(so.FindProperty("slotTransforms"), slots);
+            so.FindProperty("arenaBounds").rectValue = new Rect(-Columns * 0.5f, -Rows * 0.5f, Columns, Rows);
+            so.FindProperty("decorationRoot").objectReferenceValue = decoration;
+            so.FindProperty("ghostMaterial").objectReferenceValue = KitMaterials.Ghost;
             so.FindProperty("boardSize").vector2Value = new Vector2(Columns, Rows + 1); // + vault row
             so.FindProperty("projectilePrefab").objectReferenceValue = prefabs.Projectile;
             so.FindProperty("coinPrefab").objectReferenceValue = prefabs.Coin;
