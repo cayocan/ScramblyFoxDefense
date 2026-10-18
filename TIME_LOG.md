@@ -27,3 +27,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | project-note-language | 2026-10-04 18:25 | 2026-10-04 18:26 | 0h 00min | PROJECT_NOTE note on the Portuguese setup commits and merge duration line |
 | docs-english | 2026-10-04 19:48 | 2026-10-04 19:51 | 0h 02min | GDD and CLAUDE.md translated to English |
 | fix-tutorial-hand | 2026-10-04 19:54 | 2026-10-04 19:57 | 0h 03min | Tutorial hand redrawn as a pointing hand (old sprite read as a middle finger) |
+| stage2-short-run | 2026-10-18 18:23 | 2026-10-18 18:57 | 0h 34min | Stage 2: 3 waves (~77 s clean in SessionSimulator, was 105.6 s), 2 s breather, 50 starting coins, second tower or first upgrade before wave 2 ends (not both), 3 locks, upgrade hint from wave 2 |

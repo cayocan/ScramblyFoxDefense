@@ -28,8 +28,8 @@ namespace ScramblyFoxDefense.Presentation
         readonly GameSession _session;
         bool _upgradeHintDone;
 
-        // The first waves are free play (build more towers); upgrades are taught from wave 3.
-        const int UpgradeHintFromWave = 2;
+        // Wave 1 is free play (build more towers); upgrades are taught from wave 2.
+        const int UpgradeHintFromWave = 1;
         float _idle;
         float _time;
 

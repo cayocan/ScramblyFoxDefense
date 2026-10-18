@@ -1,6 +1,6 @@
 # Scrambly Fox Defense
 
-A one-handed tower defense playable for Scrambly (Simula take-home). The fox guards the Reward Vault while her squad of Cube Pets stops clumsy predators (lions, tigers, polar bears). The session follows Scrambly's own steps: **Discover** (pick a game card) → **Play and progress** (five waves, five reward locks) → **Redeem** (coins fly into the vault) → **Explore Scrambly** (simulated CTA).
+A one-handed tower defense playable for Scrambly (Simula take-home). The fox guards the Reward Vault while her squad of Cube Pets stops clumsy predators (lions, tigers, polar bears). The session follows Scrambly's own steps: **Discover** (pick a game card) → **Play and progress** (three waves, three reward locks) → **Redeem** (coins fly into the vault) → **Explore Scrambly** (simulated CTA).
 
 All balances are demo coins. Nothing is real money, coins you earn are never taken away, and the CTA never navigates.
 
@@ -19,11 +19,11 @@ Opening `index.html` straight from disk (`file://`) does not work: browsers bloc
 
 1. **Tutorial (required):** the hand points at the Pop Blaster card, then at the first slot. Until that first tower is built nothing else responds (other cards, slots and Restart are greyed out) and the game waits. The first build starts wave 1.
 2. Tap a card at the bottom (Pop Blaster 30, Puzzle Pulse 40, Racer Zap 55), then a pulsing slot to build. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
-3. Tap a tower to upgrade it (up to level 3). When you can afford it, the tower shows a pulsing ring, an arrow and an orange "UP" cost badge. The upgrade hint appears from wave 3; the first waves are free play.
+3. Tap a tower to upgrade it (up to level 3). When you can afford it, the tower shows a pulsing ring, an arrow and an orange "UP" cost badge. The upgrade hint appears from wave 2; wave 1 is free play. You start with enough demo coins for one tower; before wave 2 ends you can afford a second tower or the first upgrade, not both.
 4. Predators that reach the vault hurt the fox (10 HP: lion and tiger 1, polar bear 3; health bar over the fox). Every predator has a red health bar. If the fox falls, the session ends early on a "So close!" card. Clear a wave with no predator reaching the vault for a gold lock. Each wave pays a bonus, and the breather tells you what comes next.
-5. After wave 5 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time after the tutorial; the speaker button next to it mutes sound and music.
+5. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time after the tutorial; the speaker button next to it mutes sound and music.
 
-A session lasts about 40 s (fox falls early) to about 110 s (all five waves).
+A session lasts about 65 s (fox falls in wave 3) to about 80 s (all three waves).
 
 ## Package contents
 
@@ -82,7 +82,7 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Music | Loop after first tap, frozen while hidden | Chrome headless, `scramblySfx.musicStep()` | Step advances while audible, stays frozen while the tab is hidden |
 | Package | Production ZIP unpacked into an empty folder, served with `python -m http.server` | Chrome headless (`TEST_URL`) | All browser checks pass from the unpacked ZIP; `index.html` at the root |
 | Full flow | Wait 10 s, an ignored tap, the two tutorial taps, then the session with one tower, **Explore Scrambly** and **Play again** | Chrome headless, real touch taps (`FULL=1`) | Tutorial holds the session; the fox falls in wave 2 and "So close!" opens (coins kept, 1/5 waves); "CTA clicked — demo only" on screen and in the console; URL unchanged; Play again back to Discover |
-| Balance | Scripted plans, 5 waves, fox 10 HP, final config | Editor, SessionSimulator | One tower: fox falls in wave 2 (~41 s); two towers: wave 3 (~61 s); three towers without upgrades: wave 5 (~116 s); three towers + upgrades: perfect, 10/10 (~111 s) |
+| Balance | Scripted plans, 3 waves, fox 10 HP, Stage 2 config | Editor, SessionSimulator | One tower: fox falls in wave 3 (~67 s); second tower or first upgrade, then nothing else: falls in wave 3; second tower + one upgrade: wins (fox 2/10, ~78 s); either order + two upgrades: perfect, 10/10 (~76–77 s). Numbers in `docs/STAGE2_NOTES.md` |
 | CTA | Tap **Explore Scrambly** | Editor, simulated tap | "CTA clicked — demo only" on screen and in the console; no navigation |
 | Restart | 10 restarts in a row mid-wave | Editor (tested 2026-10-03, before the later features) | Identical state each time (1 installer, same object count), 0 errors |
 
@@ -95,6 +95,6 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 
 ## Known limitations
 
-- Sessions run about 40–110 s, longer than the brief's 45–60 s target: five waves and a fox health bar were chosen for depth during playtesting.
+- Sessions run about 65–80 s, longer than the brief's 45–60 s target: three waves and a fox health bar keep one real build-or-upgrade decision.
 - Sound and music are synthesized (Web Audio in the browser, a C# port in the editor); there are no recorded audio files. They start after the first tap, have a mute button and are silent while the page is hidden or the phone is in landscape.
 - Reward icons, padlocks and the tutorial hand are simple shapes drawn in code; HUD buttons and panels use the Kenney UI Pack; the 3D art is the Kenney kits recolored to the palette.
