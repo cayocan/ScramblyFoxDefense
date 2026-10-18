@@ -8,134 +8,176 @@ using UnityEngine;
 namespace ScramblyFoxDefense.Gameplay
 {
     /// <summary>
-    /// Routes every tap (GDD section 4): card selects or deselects a tower type; a free slot builds the
-    /// selection; a tower upgrades; anything else cancels. Not enough coins shakes the card.
+    /// Routes every press (GDD section 4, Stage 2 free placement): pressing an affordable card drags a ghost
+    /// tower; releasing on a valid point builds it, anywhere else cancels. A tap on a tower upgrades it.
+    /// Not enough coins, a full map or an invalid drop shakes the card; coins are only spent on a build.
     /// </summary>
-    public sealed class PlayerActions
+    public sealed class PlayerActions : IDragTarget
     {
         readonly GameConfig _config;
         readonly InputRouter _input;
         readonly CardBarView _cards;
-        readonly SlotManager _slots;
+        readonly TowerPicker _picker;
+        readonly PlacementValidator _placement;
+        readonly TowerGhost _ghost;
         readonly TowerSystem _towers;
         readonly Economy _economy;
         readonly IAudioService _audio;
         readonly TutorialGate _tutorial;
+        bool _enabled;
+        Vector3? _ghostPoint;
+        bool _ghostValid;
 
-        public bool Enabled { get; set; }
+        public bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                _enabled = value;
+                if (!value) ClearSelection();
+            }
+        }
+
+        /// <summary>The card being dragged, or -1.</summary>
         public int SelectedCard { get; private set; } = -1;
 
-        /// <summary>Raised on any accepted tap; drives the tutorial hand's idle timer.</summary>
+        /// <summary>Raised on any accepted press; drives the tutorial hand's idle timer.</summary>
         public event Action Acted;
 
-        public PlayerActions(GameConfig config, InputRouter input, CardBarView cards, SlotManager slots, TowerSystem towers, Economy economy, IAudioService audio, TutorialGate tutorial)
+        public PlayerActions(GameConfig config, InputRouter input, CardBarView cards, TowerPicker picker, PlacementValidator placement, TowerGhost ghost,
+            TowerSystem towers, Economy economy, IAudioService audio, TutorialGate tutorial)
         {
             _tutorial = tutorial;
             _audio = audio;
             _config = config;
             _input = input;
             _cards = cards;
-            _slots = slots;
+            _picker = picker;
+            _placement = placement;
+            _ghost = ghost;
             _towers = towers;
             _economy = economy;
-            _input.Register(OnTapped);
+            _input.Register(OnPressed);
             _input.Canceled += ClearSelection;
         }
 
         public void Dispose()
         {
-            _input.Unregister(OnTapped);
+            _input.Unregister(OnPressed);
             _input.Canceled -= ClearSelection;
         }
 
-        public void ClearSelection() => Select(-1);
+        /// <summary>Drops any drag in progress: the ghost hides and nothing is spent.</summary>
+        public void ClearSelection()
+        {
+            if (SelectedCard >= 0 && _input.Dragging) _input.CancelDrag(); // calls back into DragCanceled
+            EndDrag();
+        }
 
-        /// <summary>Board and card taps. Always consumes the tap while enabled.</summary>
-        bool OnTapped(Vector2 screenPoint)
+        /// <summary>Board and card presses. Always consumes the press while enabled.</summary>
+        bool OnPressed(Vector2 screenPoint)
         {
             if (!Enabled) return false;
-            if (_tutorial.Active) return TutorialTap(screenPoint);
-            Acted?.Invoke();
 
             int card = _cards.HitTest(screenPoint);
+            // Opening tutorial: only the first card reacts; every other press is swallowed.
+            if (_tutorial.Active && card != TutorialGate.Card) return true;
+            Acted?.Invoke();
+
             if (card >= 0)
             {
-                OnCard(card);
+                StartDrag(card);
                 return true;
             }
 
-            var slot = _slots.Pick(screenPoint);
-            if (slot == null)
-            {
-                ClearSelection();
-                return true;
-            }
-
-            if (!slot.IsFree)
-            {
-                if (!_towers.TryUpgrade(slot.Tower) && !slot.Tower.IsMaxLevel) _audio.Play(Sound.Deny);
-                ClearSelection();
-                return true;
-            }
-
-            if (SelectedCard < 0) return true;
-            if (_towers.TryBuild(slot, SelectedCard)) ClearSelection();
-            else Deny(SelectedCard);
+            var tower = _picker.Pick(screenPoint);
+            if (tower != null && !_towers.TryUpgrade(tower) && !tower.IsMaxLevel) _audio.Play(Sound.Deny);
             return true;
         }
 
-        /// <summary>
-        /// Opening tutorial: only the hand's target reacts (first card, then the first slot). Every other tap is
-        /// swallowed so nothing else can happen until the first tower stands.
-        /// </summary>
-        bool TutorialTap(Vector2 screenPoint)
+        void StartDrag(int card)
         {
-            if (SelectedCard != TutorialGate.Card)
-            {
-                if (_cards.HitTest(screenPoint) == TutorialGate.Card)
-                {
-                    Acted?.Invoke();
-                    Select(TutorialGate.Card);
-                    _audio.Play(Sound.Select);
-                }
-                return true;
-            }
-            var slot = _slots.Pick(screenPoint);
-            if (slot == _slots.Slots[TutorialGate.SlotIndex])
-            {
-                Acted?.Invoke();
-                if (_towers.TryBuild(slot, TutorialGate.Card)) ClearSelection();
-            }
-            return true;
-        }
-
-        void OnCard(int card)
-        {
-            if (card == SelectedCard)
-            {
-                ClearSelection();
-                return;
-            }
-            if (!_economy.CanAfford(_config.towers[card].levels[0].cost))
+            if (!_economy.CanAfford(_config.towers[card].levels[0].cost) || !_placement.HasRoom)
             {
                 Deny(card);
-                ClearSelection();
                 return;
             }
-            Select(card);
+            SelectedCard = card;
+            _cards.SetSelected(card);
             _audio.Play(Sound.Select);
+            _input.Capture(this);
+            Log($"start card={card}");
+        }
+
+        public void DragMoved(Vector2 screenPoint, bool touch)
+        {
+            if (SelectedCard < 0) return;
+            // Over the card band the drag reads as "not yet on the map": no ghost.
+            if (_cards.HitTest(screenPoint) >= 0)
+            {
+                _ghost.Hide();
+                _ghostPoint = null;
+                return;
+            }
+            if (touch) screenPoint.y += _config.touchGhostOffsetCssPixels * TowerPicker.CssToScreenPixels();
+            _ghostPoint = _picker.Ground(screenPoint);
+            if (!_ghostPoint.HasValue)
+            {
+                _ghost.Hide();
+                return;
+            }
+            _ghostValid = _placement.IsValid(_ghostPoint.Value);
+            _ghost.Show(SelectedCard, _ghostPoint.Value, _ghostValid);
+        }
+
+        public void DragReleased(Vector2 screenPoint, bool touch)
+        {
+            int card = SelectedCard;
+            if (card < 0) return;
+            DragMoved(screenPoint, touch);
+            bool onCanvas = screenPoint.x >= 0f && screenPoint.y >= 0f && screenPoint.x <= Screen.width && screenPoint.y <= Screen.height;
+            bool shown = _ghost.Visible && _ghostPoint.HasValue;
+            Vector3 point = _ghostPoint.GetValueOrDefault();
+            bool valid = _ghostValid;
+            EndDrag();
+
+            // Released back on the cards or off the canvas: a plain cancel, no penalty cue.
+            if (!onCanvas || !shown)
+            {
+                Log("released off the map, canceled");
+                return;
+            }
+            if (valid && _towers.TryBuild(point, card))
+            {
+                Log($"built card={card} at ({point.x:F2}, {point.z:F2})");
+                return;
+            }
+            Deny(card);
+            Log($"invalid drop at ({point.x:F2}, {point.z:F2}), canceled");
+        }
+
+        public void DragCanceled()
+        {
+            EndDrag();
+            Log("canceled (interrupted)");
+        }
+
+        // One console line per drag outcome: the browser checks read coins and ghost state from it.
+        void Log(string what) => Debug.Log($"[Drag] {what} wallet={_economy.Wallet} ghost={(_ghost.Visible ? "visible" : "hidden")} towers={_towers.Towers.Count}");
+
+        void EndDrag()
+        {
+            _ghost.Hide();
+            _ghostPoint = null;
+            if (SelectedCard < 0) return;
+            SelectedCard = -1;
+            _cards.SetSelected(-1);
         }
 
         void Deny(int card)
         {
             _cards.Shake(card);
             _audio.Play(Sound.Deny);
-        }
-
-        void Select(int card)
-        {
-            SelectedCard = card;
-            _cards.SetSelected(card);
         }
     }
 }

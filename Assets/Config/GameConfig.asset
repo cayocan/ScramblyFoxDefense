@@ -18,6 +18,13 @@ MonoBehaviour:
   breatherSeconds: 2
   maxDeltaTime: 0.1
   pickRadiusCssPixels: 44
+  touchGhostOffsetCssPixels: 80
+  maxTowers: 3
+  pathClearance: 0.8
+  towerSpacing: 0.9
+  decorationSpacing: 0.6
+  arenaEdgeMargin: 0.35
+  tutorialSpot: {x: -0.5, y: 0, z: 3.5}
   projectileSpeed: 9
   towers:
   - displayName: Pop Blaster

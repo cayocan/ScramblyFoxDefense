@@ -6,8 +6,8 @@ using UnityEngine;
 namespace ScramblyFoxDefense.Presentation
 {
     /// <summary>
-    /// Text-free tutorial (GDD section 4): 1) point at the first card, 2) point at the slot nearest the
-    /// path start, 3) the first time the wallet covers an upgrade, point at that tower. After that it only
+    /// Text-free tutorial (GDD section 4): 1) point at the first card, 2) while it is dragged, point at the
+    /// suggested spot near the path start (GameConfig.tutorialSpot), 3) the first time the wallet covers an upgrade, point at that tower. After that it only
     /// returns as an idle hint (5 s without a tap while no predators are on the board).
     /// </summary>
     public sealed class TutorialHand
@@ -21,7 +21,8 @@ namespace ScramblyFoxDefense.Presentation
         readonly GameConfig _config;
         readonly PlayerActions _actions;
         readonly CardView[] _cards;
-        readonly SlotManager _slots;
+        readonly PlacementValidator _placement;
+        readonly Vector3 _tutorialSpot;
         readonly TowerSystem _towers;
         readonly EnemySystem _enemies;
         readonly Economy _economy;
@@ -34,7 +35,7 @@ namespace ScramblyFoxDefense.Presentation
         float _time;
 
         public TutorialHand(SpriteRenderer hand, HudLayout layout, Camera camera, GameConfig config, PlayerActions actions,
-            CardView[] cards, SlotManager slots, TowerSystem towers, EnemySystem enemies, Economy economy, GameSession session)
+            CardView[] cards, PlacementValidator placement, float groundHeight, TowerSystem towers, EnemySystem enemies, Economy economy, GameSession session)
         {
             _session = session;
             _hand = hand;
@@ -43,7 +44,8 @@ namespace ScramblyFoxDefense.Presentation
             _config = config;
             _actions = actions;
             _cards = cards;
-            _slots = slots;
+            _placement = placement;
+            _tutorialSpot = new Vector3(config.tutorialSpot.x, groundHeight, config.tutorialSpot.z);
             _towers = towers;
             _enemies = enemies;
             _economy = economy;
@@ -79,9 +81,9 @@ namespace ScramblyFoxDefense.Presentation
         {
             if (_towers.Towers.Count == 0)
             {
-                // Steps 1 and 2: first card, then the slot nearest the path start.
+                // Steps 1 and 2: first card, then (while dragging) the suggested spot near the path start.
                 if (_actions.SelectedCard < 0) return CardFace(0);
-                return _slots.Slots[0].Transform.position;
+                return _tutorialSpot;
             }
 
             var upgradable = _session.WaveIndex >= UpgradeHintFromWave ? CheapestAffordableUpgrade() : null;
@@ -89,10 +91,10 @@ namespace ScramblyFoxDefense.Presentation
 
             // Idle hint between waves: the best affordable action.
             if (_idle < IdleHintSeconds || _enemies.Active.Count > 0) return null;
-            if (_actions.SelectedCard >= 0) return FreeSlot()?.Transform.position;
+            if (_actions.SelectedCard >= 0) return null; // already dragging
             if (upgradable != null) return upgradable.Transform.position + Vector3.up * 0.6f;
             int card = CheapestAffordableCard();
-            return card >= 0 && FreeSlot() != null ? CardFace(card) : (Vector3?)null;
+            return card >= 0 && _placement.HasRoom ? CardFace(card) : (Vector3?)null;
         }
 
         /// <summary>The pet face on a card (card roots are laid out in reference pixels), so the title stays readable.</summary>
@@ -116,13 +118,6 @@ namespace ScramblyFoxDefense.Presentation
                 if (_economy.CanAfford(cost) && (best < 0 || cost < _config.towers[best].levels[0].cost)) best = i;
             }
             return best;
-        }
-
-        Slot FreeSlot()
-        {
-            foreach (var slot in _slots.Slots)
-                if (slot.IsFree) return slot;
-            return null;
         }
 
         void OnActed() => _idle = 0f;

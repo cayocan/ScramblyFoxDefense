@@ -31,6 +31,20 @@ namespace ScramblyFoxDefense.EditorTools
 
         public static Material Tinted(string name, Color color) => GetOrCreate(name, null, color);
 
+        /// <summary>Drag preview: flat, alpha blended, drawn after the board without depth writes.</summary>
+        public static Material Ghost
+        {
+            get
+            {
+                var material = GetOrCreate("TowerGhost", null, Color.white);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.SetFloat("_ZWrite", 0f);
+                material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                return material;
+            }
+        }
+
         public static Material ForAsset(string assetPath) =>
             assetPath.Contains("/CubePets/") ? Pets : Towers;
 

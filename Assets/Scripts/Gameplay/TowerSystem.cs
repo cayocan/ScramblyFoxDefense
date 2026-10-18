@@ -9,7 +9,6 @@ namespace ScramblyFoxDefense.Gameplay
     public sealed class Tower
     {
         public TowerDefinition Definition;
-        public Slot Slot;
         public Transform Transform;
         public Transform Pet;
         public Animation PetAnimation;
@@ -35,7 +34,7 @@ namespace ScramblyFoxDefense.Gameplay
         public Color Color;
     }
 
-    /// <summary>Builds towers on slots, picks targets and fires pooled projectiles.</summary>
+    /// <summary>Tower registry (capped by GameConfig.maxTowers): builds towers, picks targets and fires pooled projectiles.</summary>
     public sealed class TowerSystem
     {
         const float MuzzleHeight = 0.25f;
@@ -68,25 +67,24 @@ namespace ScramblyFoxDefense.Gameplay
             _projectilePool = new ObjectPool(projectilePrefab, towerRoot, 16);
         }
 
-        public bool TryBuild(Slot slot, int towerIndex)
+        /// <summary>Builds at a point the caller already validated (PlacementValidator). False when capped or broke.</summary>
+        public bool TryBuild(Vector3 position, int towerIndex)
         {
             var definition = _config.towers[towerIndex];
-            if (!slot.IsFree || !_economy.TrySpend(definition.levels[0].cost)) return false;
+            if (_towers.Count >= _config.maxTowers || !_economy.TrySpend(definition.levels[0].cost)) return false;
 
-            var go = UnityEngine.Object.Instantiate(definition.prefab, slot.Transform.position, Quaternion.identity, _towerRoot);
+            var go = UnityEngine.Object.Instantiate(definition.prefab, position, Quaternion.identity, _towerRoot);
             var pet = go.transform.Find("Pet");
             var towerBase = go.transform.Find("Base");
             var tower = new Tower
             {
                 Definition = definition,
-                Slot = slot,
                 Transform = go.transform,
                 Pet = pet,
                 PetAnimation = pet != null ? pet.GetComponentInChildren<Animation>() : null,
                 Base = towerBase,
                 BaseHeight = pet != null && towerBase != null ? pet.localPosition.y - towerBase.localPosition.y : 0.5f
             };
-            slot.Tower = tower;
             _towers.Add(tower);
             Built?.Invoke(tower);
             return true;
