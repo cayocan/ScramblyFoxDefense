@@ -49,6 +49,8 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] SpriteRenderer topBand;
         [SerializeField] SpriteRenderer bannerPill;
         [SerializeField] SpriteRenderer tutorialHand;
+        [SerializeField] Sprite handOpenSprite;
+        [SerializeField] Sprite handGrabSprite;
         [SerializeField] CardView[] cards;
         [SerializeField] SpriteRenderer[] locks;
         [SerializeField] Sprite lockOpenSprite;
@@ -127,7 +129,7 @@ namespace ScramblyFoxDefense.Core
             _lockBar = new LockBarView(locks, lockOpenSprite, _layout);
             _actions = new PlayerActions(config, _input, _cardBar, picker, placement, ghost, _towers, economy, audio, tutorialGate);
             _badges = new TowerBadges(_towers, economy, badgePrefab, ringSprite, arrowSprite, mainCamera.transform);
-            _tutorial = new TutorialHand(tutorialHand, _layout, mainCamera, config, _actions, cards, placement, groundHeight, _towers, _enemies, economy, session);
+            _tutorial = new TutorialHand(tutorialHand, handOpenSprite, handGrabSprite, ghost, picker, _layout, mainCamera, config, _actions, cards, placement, groundHeight, _towers, _enemies, economy, session);
             _tutorialFocus = new TutorialFocus(tutorialGate, _cardBar, restartButton);
             _coinFx = new CoinPopFx(_enemies, coinPrefab, fxRoot);
             _soundCues = new SoundCues(audio, _enemies, _towers, config);

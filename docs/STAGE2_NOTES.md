@@ -76,3 +76,10 @@ A clean run is 76–77 s in the simulator, about 80 s with the tutorial taps. Th
 - Bug found and fixed while testing: a touch that ended while the page was hidden left the router thinking that finger was still down, so every later touch was ignored as a second pointer. `Interrupt` now forgets the active finger.
 - Test notes: headless SwiftShader frames are slow, so the mouse test holds 250 ms after pressing (Unity samples the cursor once per frame); the FULL flow now waits 120 s for the one-tower defeat (~67 s of game time).
 - Size: build folder 2,775,382 bytes, ZIP 3,337,591 bytes.
+
+## Task 3: grabbing-hand tutorial
+
+- `tools/draw-hands.py` draws `hand-open.png` and `hand-grab.png` (64 px, palette colours, plain fist with no raised finger), checked at 128 px and 44 px.
+- `TutorialHand` loops a 2.8 s demo while no tower stands: open over the Pop Blaster card, grab, carry a ghost along an arc to `GameConfig.tutorialSpot`, release, fade. The ghost turns red while it crosses the path and green at the spot, which shows the rule. The hand hides as soon as the player starts a drag; the player's drag then owns the ghost. The spot is checked against `PlacementValidator` at start (warning if it breaks the rules); none was logged.
+- After the first tower the old pointing hand is still used for the upgrade and idle hints.
+- Verified in headless Chrome (`node tutorial.js`): 12 frames of the loop at 390x844 (`out/t-hand-sheet.png`), and the tutorial completed with a real touch drag at 390x844 and 320x568 (built at the spot, wallet 50 -> 20).
