@@ -19,7 +19,7 @@ namespace ScramblyFoxDefense.Presentation
         struct Particle
         {
             public Vector3 Velocity;
-            public float Age, Life, Size;
+            public float Age, Life, Size, Gravity;
             public Color Color;
         }
 
@@ -73,7 +73,7 @@ namespace ScramblyFoxDefense.Presentation
                     _free.Push(i);
                     continue;
                 }
-                p.Velocity.y += Gravity * deltaTime;
+                p.Velocity.y += p.Gravity * deltaTime;
                 var transform = sprite.transform;
                 transform.position += p.Velocity * deltaTime;
                 transform.rotation = rotation;
@@ -99,7 +99,17 @@ namespace ScramblyFoxDefense.Presentation
             Burst(position, Core, 5, 2f, 0.3f, 0.5f, Vector3.up * 1f);
         }
 
-        void Burst(Vector3 position, Color color, int count, float speed, float life, float size, Vector3 bias)
+        /// <summary>
+        /// Unlock celebration over a HUD card, drawn above the HUD. The HUD plane sits close to the camera, so
+        /// speed, size and gravity are given in reference pixels and scaled by the HUD pixel unit.
+        /// </summary>
+        public void Celebrate(Vector3 position, float pixelUnit)
+        {
+            Burst(position, new Color(0.96f, 0.51f, 0.14f), 26, 340f * pixelUnit, 0.75f, 22f * pixelUnit, Vector3.up * 160f * pixelUnit, 12, -500f * pixelUnit);
+            Burst(position, Core, 14, 220f * pixelUnit, 0.6f, 16f * pixelUnit, Vector3.up * 120f * pixelUnit, 12, -500f * pixelUnit);
+        }
+
+        void Burst(Vector3 position, Color color, int count, float speed, float life, float size, Vector3 bias, int order = -9, float gravity = Gravity)
         {
             for (int k = 0; k < count && _free.Count > 0; k++)
             {
@@ -108,6 +118,7 @@ namespace ScramblyFoxDefense.Presentation
                 _particles[i] = new Particle
                 {
                     Velocity = random + bias,
+                    Gravity = gravity,
                     Age = 0f,
                     Life = life * (0.7f + (float)_random.NextDouble() * 0.6f),
                     // Sprite is 64 px at 1 px/unit.
@@ -115,6 +126,7 @@ namespace ScramblyFoxDefense.Presentation
                     Color = color
                 };
                 var sprite = _sprites[i];
+                sprite.sortingOrder = order;
                 sprite.transform.position = position;
                 sprite.gameObject.SetActive(true);
                 _live.Add(i);

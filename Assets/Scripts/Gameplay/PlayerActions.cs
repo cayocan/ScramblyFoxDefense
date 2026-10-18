@@ -10,7 +10,7 @@ namespace ScramblyFoxDefense.Gameplay
     /// <summary>
     /// Routes every press (GDD section 4, Stage 2 free placement): pressing an affordable card drags a ghost
     /// tower; releasing on a valid point builds it, anywhere else cancels. A tap on a tower upgrades it.
-    /// Not enough coins, a full map or an invalid drop shakes the card; coins are only spent on a build.
+    /// A locked card, not enough coins, a full map or an invalid drop shakes the card; coins are only spent on a build.
     /// </summary>
     public sealed class PlayerActions : IDragTarget
     {
@@ -24,6 +24,7 @@ namespace ScramblyFoxDefense.Gameplay
         readonly Economy _economy;
         readonly IAudioService _audio;
         readonly TutorialGate _tutorial;
+        readonly TowerUnlocks _unlocks;
         bool _enabled;
         Vector3? _ghostPoint;
         bool _ghostValid;
@@ -45,8 +46,9 @@ namespace ScramblyFoxDefense.Gameplay
         public event Action Acted;
 
         public PlayerActions(GameConfig config, InputRouter input, CardBarView cards, TowerPicker picker, PlacementValidator placement, TowerGhost ghost,
-            TowerSystem towers, Economy economy, IAudioService audio, TutorialGate tutorial)
+            TowerSystem towers, Economy economy, IAudioService audio, TutorialGate tutorial, TowerUnlocks unlocks)
         {
+            _unlocks = unlocks;
             _tutorial = tutorial;
             _audio = audio;
             _config = config;
@@ -97,13 +99,14 @@ namespace ScramblyFoxDefense.Gameplay
 
         void StartDrag(int card)
         {
-            if (!_economy.CanAfford(_config.towers[card].levels[0].cost) || !_placement.HasRoom)
+            if (!_unlocks.IsUnlocked(card) || !_economy.CanAfford(_config.towers[card].levels[0].cost) || !_placement.HasRoom)
             {
                 Deny(card);
                 return;
             }
             SelectedCard = card;
             _cards.SetSelected(card);
+            _cards.MarkUsed(card);
             _audio.Play(Sound.Select);
             _input.Capture(this);
             Log($"start card={card}");
