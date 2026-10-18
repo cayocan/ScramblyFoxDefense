@@ -94,4 +94,13 @@ A clean run is 76–77 s in the simulator, about 80 s with the tutorial taps. Th
 
 ## Cut for time (two-hour Stage 2 limit)
 
-Following the documented cut order, Task 5 (opening hook), Task 6 (top HUD redesign) and Task 7 (audio pass) were not done. The unlock uses the existing synth `Unlock` cue.
+Following the documented cut order, Task 5 (opening hook) and Task 6 (top HUD redesign) were not done. Task 7 (audio) was done afterwards in the time left once WebGL build time (17 min, measured in the Unity log) is not counted.
+
+## Task 7: audio pass
+
+- 10 Kenney CC0 files copied to `Assets/WebGLTemplates/Scrambly/sfx/` (Unity copies them next to `index.html`), 94,470 bytes: Select = ui_click_003, Build = ui_confirmation_001, Upgrade = game_impactPlate_light_001, kill = game_impactSoft_medium_001, new WaveClear = game_impactBell_heavy_001, Unlock = jingles_PIZZI00, Coin = ui_pluck_001, CTA = ui_confirmation_003, Deny = ui_error_004, end-card Fanfare = jingles_STEEL00. Shots, leak and wave start stay synthesized.
+- "Audition": no listening was possible in this session. The files were picked by name from the Stage 2 short list and checked for decode success in Chrome; the levels are set per sound in `SAMPLE_GAIN`. A human listen is still due.
+- The template fetches and decodes them after the first gesture (same origin, relative URLs); a missing or undecodable file keeps the synth for that id (tested by blocking the OGGs).
+- Music: `SetMusicLevel` (jslib + `IAudioService`) is 0 at the intro and the wave number during play: about 6% faster per level, hi-hat ticks from level 1, a melody octave at level 3. The page outlives restarts, so `IntroState` resets it to 0. The music ducks under the two jingles.
+- Rules unchanged: locked until the first gesture, mute suspends the context, hidden page or landscape suspends it; samples are buffer sources on the same context, so they stop with it.
+- Verified (`node audio.js`, `node test.js`): see the README test table. Size: build folder 2,890,674 bytes.

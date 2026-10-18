@@ -19,13 +19,16 @@ namespace ScramblyFoxDefense.Audio
         Fanfare = 11,
         ShootPop = 12,
         ShootPulse = 13,
-        ShootZap = 14
+        ShootZap = 14,
+        WaveClear = 15
     }
 
     public interface IAudioService
     {
         bool Muted { get; set; }
         void Play(Sound sound);
+        /// <summary>0 at the intro, then the wave number: the page music speeds up and adds layers.</summary>
+        void SetMusicLevel(int level);
     }
 
     /// <summary>
@@ -38,6 +41,9 @@ namespace ScramblyFoxDefense.Audio
         [DllImport("__Internal")] static extern void Sfx_Play(int id);
         [DllImport("__Internal")] static extern void Sfx_SetMuted(int muted);
         [DllImport("__Internal")] static extern int Sfx_IsMuted();
+        [DllImport("__Internal")] static extern void Sfx_SetMusicLevel(int level);
+
+        public void SetMusicLevel(int level) => Sfx_SetMusicLevel(level);
 
         public bool Muted
         {
@@ -65,11 +71,15 @@ namespace ScramblyFoxDefense.Audio
         }
 
         public void Play(Sound sound) => _synth.Play(sound);
+
+        public void SetMusicLevel(int level) { } // the editor port keeps one tempo
 #else
         // Non-web players are not a target: silent.
         public bool Muted { get; set; }
 
         public void Play(Sound sound) { }
+
+        public void SetMusicLevel(int level) { }
 #endif
     }
 }

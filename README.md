@@ -49,7 +49,7 @@ The architecture is a state machine with one handler per state plus constructor 
 | Input | `Input/InputRouter.cs`: tap and drag primitives, first pointer only, cancel on focus loss, page hide and touch cancel, priority chain (HUD buttons first) |
 | Page pause | `Core/PagePause.cs`, `Assets/Plugins/WebGL/PageState.jslib`, template `index.html` |
 | Restart | `Core/RestartController.cs` (scene reload, guarded) |
-| Audio | `Audio/` (sound ids, cues, mute) → `Assets/Plugins/WebGL/Sfx.jslib` → Web Audio synth in the template; `Audio/EditorSynth.cs` is the editor-only port |
+| Audio | `Audio/` (sound ids, cues, mute, music level) → `Assets/Plugins/WebGL/Sfx.jslib` → Web Audio in the template: 10 Kenney CC0 OGG one-shots in `sfx/` (decoded after the first gesture) with the synth as fallback, plus the synth music loop; `Audio/EditorSynth.cs` is the editor-only port |
 | HUD without uGUI | `Presentation/` (HudLayout, HudView, cards, locks, badges, drag ghost, tutorial hand and focus, fox and enemy health bars, end card, redeem sequence) |
 | Effects | `Presentation/` (FeedbackFx, SparkFx particles, CoinPopFx), `BloomEffect.cs` + `Assets/Art/Shaders/Bloom.shader` |
 | Editor tools | `Assets/Editor/` (MainSceneBuilder, BuildTools, KitMaterials, ArtImports, SessionSimulator) |
@@ -58,8 +58,8 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,784,044 (Stage 1: 2,779,524) |
-| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,370,490 (Stage 1: 3,326,131) |
+| Build folder (`index.html` + `Build/`) | 2,890,674 (Stage 1: 2,779,524) |
+| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,551,344 (Stage 1: 3,326,131) |
 | Brief limit | 5,000,000 |
 
 Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (editing the docs shifts the ZIP by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shaders, own particles and bloom instead of the ParticleSystem and Post Processing packages, synthesized audio instead of audio files.
@@ -78,6 +78,7 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Input | Touch: tutorial card dragged onto the map | Emulated touch drag | Tower built; wave 1 started |
 | Tutorial | Grabbing-hand loop, then the first tower dragged by touch at 390×844 and 320×568 (2026-10-18, `node tutorial.js`) | Chrome headless | Open, grab, carry, release frames captured; tower built at the suggested spot at both sizes |
 | Unlocks | Locked card at start, both unlocks, Restart and hidden tab during the celebration (2026-10-18, `node unlock.js`) | Chrome headless, `[Unlock]` and `[Drag]` lines | Locked card refused; Puzzle Pulse unlocked after wave 1, Racer Zap after wave 2; Restart returns to the locked state; hidden tab freezes the celebration (same game time on resume) and it completes |
+| Audio (Stage 2) | First gesture, samples, music level, mute, hidden tab, restart, OGGs blocked (2026-10-18, `node audio.js`) | Chrome headless, `scramblySfx` test hooks | locked before the gesture; 10/10 samples decoded; music level 1 in wave 1, back to 0 after restart; muted and hidden = suspended with the music step frozen; with the OGGs blocked the synth plays and the game runs with no errors |
 | Drag placement | 390×844 and 320×568, touch and mouse: drop on the path, drop on a free spot, hide the tab mid-drag, release off the canvas, Restart mid-drag, Restart then a new drag (2026-10-18, `node drag.js`) | Chrome headless, `[Drag]` console lines | Path drop: canceled, coins kept; free spot: built (−30); hidden tab: drag canceled; off the canvas: canceled; a second finger on Restart is ignored (first pointer only) and a mouse release on Restart cancels; Restart resets to 50 coins, 0 towers. The ghost is hidden after every outcome |
 | Input | Card without coins, tap empty area, re-tap card | Editor, simulated taps at real screen positions | Card shakes and nothing is built; selection cleared |
 | Tutorial | Wait 20 s, tap Restart, other cards and slots, then card 0 and slot 0 | Editor, simulated taps at real screen positions | Stays on the intro and ignores every non-tutorial tap; card 0 then slot 0 build the tower and wave 1 starts |
@@ -100,5 +101,5 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 ## Known limitations
 
 - Sessions run about 65–80 s, longer than the brief's 45–60 s target: three waves and a fox health bar keep one real build-or-upgrade decision.
-- Sound and music are synthesized (Web Audio in the browser, a C# port in the editor); there are no recorded audio files. They start after the first tap, have a mute button and are silent while the page is hidden or the phone is in landscape.
+- Music and shot sounds are synthesized; the other effects and two jingles are Kenney CC0 OGG files (94 KB), with the synth as fallback when a file cannot be decoded. Audio starts after the first tap, has a mute button and is silent while the page is hidden or the phone is in landscape. The samples were picked by name, length and level, not by ear.
 - Reward icons, padlocks and the tutorial hand are simple shapes drawn in code; HUD buttons and panels use the Kenney UI Pack; the 3D art is the Kenney kits recolored to the palette.
