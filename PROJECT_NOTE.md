@@ -26,3 +26,12 @@ Feature-by-feature times are in `TIME_LOG.md`; each merge commit also records it
 ## A note on commit language
 
 Everything in the project is written in English, with two exceptions in the git history. The commits of the initial setup (the first 8 minutes on day 1) are in Portuguese, my native language, because they came before I adopted the English-only rule. And every merge commit carries a "Duracao da feature (inicio ate o fim)" line ("feature duration, start to end"), written by the `finish-feature` script, which I wrote in Portuguese before that rule. I left the history as it is rather than rewriting it.
+
+## Stage 2 (2026-10-18)
+
+A two-hour revision from reviewer feedback; the full list is in `CHANGELOG_STAGE2.md` and the numbers in `docs/STAGE2_NOTES.md`.
+
+- **Decisions:** 3 waves and a coin budget that forces one choice before wave 2 ends (second tower or first upgrade, never both: at most 68 coins against a cheapest pair of 70), proved with `SessionSimulator`. Free placement validated by a plain C# rule class (arena, path clearance, tower spacing, and spacing from board decoration, which I added so towers never stand inside a tree). Unlocks gate the existing three towers; no new towers, enemies or systems. To stay inside two hours I followed the cut order and dropped the opening hook, the HUD redesign and the audio pass.
+- **AI use:** Claude Code drove the editor through the Unity CLI (compile, scene rebuild, simulator, WebGL builds) and wrote the headless Chrome checks (`drag.js`, `tutorial.js`, `unlock.js`) that read one console line per drag or unlock outcome.
+- **One correction:** the drag test found that a touch ending while the page was hidden left the input stuck on that finger, so the next touches were ignored. The router now forgets the active finger whenever the page pauses.
+- **One rejected AI output:** the first Stage 2 balance (lions at 18 HP spawning every 1.6 s) made every plan lose, including the intended winning ones; the single tutorial tower could not keep up with wave 1. It was rejected and retuned (14 HP, slower first wave) until one tower loses and both choices win.

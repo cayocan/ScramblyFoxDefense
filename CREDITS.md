@@ -4,12 +4,14 @@
 
 | Asset | Author | License | Used for |
 |---|---|---|---|
-| [Tower Defense Kit](https://kenney.nl/assets/tower-defense-kit) (v2.1) | Kenney | CC0 1.0 | Board tiles, path, tower bases, slot markers, vault, trees/rocks/crystals decoration |
+| [Tower Defense Kit](https://kenney.nl/assets/tower-defense-kit) (v2.1) | Kenney | CC0 1.0 | Board tiles, path, tower bases, vault, trees/rocks/crystals decoration |
 | [Cube Pets](https://kenney.nl/assets/cube-pets) | Kenney | CC0 1.0 | Fox, dog and cat (defenders); lion, tiger and polar bear (predators) |
 | [UI Pack](https://kenney.nl/assets/ui-pack) (v2.0) | Kenney | CC0 1.0 (`source/Assets/Art/UI/Kenney-UI-Pack-License.txt`) | HUD buttons, cards, panels (4 grey sprites tinted to the palette) |
 | [Fredoka](https://fonts.google.com/specimen/Fredoka) | The Fredoka Project Authors | SIL OFL 1.1 (`source/Assets/Art/Fonts/OFL.txt`) | All in-game text (weight 600 instance, subset) |
 
-The palette recolors, the other UI sprites (icons, padlocks, hand), sound effects and music loop are made for this project (generated in code, the audio synthesized at runtime), no third-party files.
+The palette recolors, the other UI sprites (icons, padlocks, the pointing, open and grabbing hands; `tools/draw-hands.py`), sound effects and music loop are made for this project (generated in code, the audio synthesized at runtime), no third-party files.
+
+`docs/stage2-audio-candidates` holds Kenney CC0 audio files short-listed for a Stage 2 audio pass that was cut for time; none of them is used in the build.
 
 The license files ship next to the models in `source/Assets/Art/*/License.txt`. Only the models that are used are included.
 
