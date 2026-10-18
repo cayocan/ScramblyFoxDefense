@@ -66,7 +66,9 @@
       if (window.scramblySfx) window.scramblySfx.refresh();
     }
 
-    // ---- Sound: synthesized with Web Audio (no audio files, no Unity audio module) ----
+    // ---- Sound: Web Audio, no Unity audio module ----
+    // Stage 2: a few Kenney CC0 one-shots (sfx/*.ogg, same origin) decoded after the first gesture; any sound
+    // whose file is missing or cannot be decoded (e.g. no OGG support) falls back to the synth below.
     // Brief: starts only after a user interaction, has a mute control, is silent while the page is hidden.
     window.scramblySfx = (function () {
       var ctx = null, master = null, muted = false, lastShot = {};
@@ -84,11 +86,53 @@
           master.connect(limiter);
           limiter.connect(ctx.destination);
           startMusic();
+          loadSamples();
         }
         refresh();
       }
 
+      // ---- Recorded one-shots (ids match ScramblyFoxDefense.Audio.Sound) ----
+      var SAMPLES = { 0: "ui_click_003", 1: "ui_confirmation_001", 2: "game_impactPlate_light_001", 4: "game_impactSoft_medium_001",
+                      7: "jingles_PIZZI00", 8: "ui_pluck_001", 9: "ui_confirmation_003", 10: "ui_error_004", 11: "jingles_STEEL00",
+                      15: "game_impactBell_heavy_001" };
+      var SAMPLE_GAIN = { 0: 0.6, 1: 0.8, 2: 0.8, 4: 0.5, 7: 0.9, 8: 0.6, 9: 0.8, 10: 0.7, 11: 0.9, 15: 0.6 };
+      var JINGLES = { 7: 1.6, 11: 2.4 }; // seconds the music ducks under each jingle
+      var buffers = {};
+
+      function loadSamples() {
+        if (!window.fetch) return;
+        Object.keys(SAMPLES).forEach(function (id) {
+          fetch("sfx/" + SAMPLES[id] + ".ogg")
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+            .then(function (data) { return new Promise(function (ok, fail) { ctx.decodeAudioData(data, ok, fail); }); })
+            .then(function (buffer) { buffers[id] = buffer; })
+            .catch(function () { /* keep the synth for this id */ });
+        });
+      }
+
+      function playSample(id) {
+        var source = ctx.createBufferSource(), gain = ctx.createGain();
+        source.buffer = buffers[id];
+        gain.gain.value = SAMPLE_GAIN[id] || 0.7;
+        source.connect(gain); gain.connect(master);
+        source.start();
+        if (JINGLES[id] && musicBus) duck(JINGLES[id]);
+      }
+
+      // Music dips under a jingle, then comes back.
+      function duck(seconds) {
+        var t = ctx.currentTime, g = musicBus.gain;
+        g.cancelScheduledValues(t);
+        g.setValueAtTime(g.value, t);
+        g.linearRampToValueAtTime(0.06, t + 0.08);
+        g.setValueAtTime(0.06, t + seconds);
+        g.linearRampToValueAtTime(MUSIC_GAIN, t + seconds + 0.4);
+      }
+
       // ---- Background music: a soft synthesized loop, scheduled on the audio clock ----
+      // Reacts to the game: level 0 at the intro, then 1-3 with the wave. Each level plays a little faster and adds
+      // a layer (hi-hat ticks from level 1, a higher melody octave at level 3).
+      var MUSIC_GAIN = 0.32, musicLevel = 0;
       // C major pentatonic melody over I-vi-IV-V. Scheduling uses ctx.currentTime, which stops while the
       // context is suspended (hidden page, landscape, mute), so the loop pauses and resumes in place.
       var musicBus = null, musicTimer = null, musicStep = 0, musicNext = 0;
@@ -115,18 +159,21 @@
         if (beat === 0 || beat === 4) noteAt(midi(BASS[bar] - (beat === 4 ? 0 : 12)), t, STEP * 3.5, "triangle", 0.5, musicBus);
         if (beat % 2 === 0) noteAt(midi(BASS[bar] + 16), t, STEP * 1.6, "sine", 0.12, musicBus); // soft chord pulse
         if (MELODY[step]) noteAt(midi(MELODY[step]), t, STEP * 1.8, "triangle", 0.32, musicBus);
+        if (musicLevel >= 1 && beat % 2 === 1) noteAt(6000 + 1500 * (musicLevel - 1), t, 0.03, "square", 0.025 + 0.01 * musicLevel, musicBus); // hi-hat tick
+        if (musicLevel >= 3 && MELODY[step]) noteAt(midi(MELODY[step] + 12), t, STEP * 1.2, "sine", 0.1, musicBus);
       }
+      function stepLength() { return STEP / (1 + 0.06 * musicLevel); }
 
       function startMusic() {
         musicBus = ctx.createGain();
-        musicBus.gain.value = 0.32; // under the sound effects
+        musicBus.gain.value = MUSIC_GAIN; // under the sound effects
         musicBus.connect(master);
         musicNext = ctx.currentTime + 0.1;
         musicTimer = setInterval(function () {
           // Lookahead scheduler: queue notes up to 150 ms ahead of the audio clock.
           while (musicNext < ctx.currentTime + 0.15) {
             playStep(musicStep, musicNext);
-            musicNext += STEP;
+            musicNext += stepLength();
             musicStep = (musicStep + 1) % MELODY.length;
           }
         }, 50);
@@ -169,24 +216,29 @@
         /* 11 Fanfare*/ function () { [523, 659, 784, 1047, 784, 1047].forEach(function (f, i) { tone(f, i * 0.1, 0.18, "triangle", 0.26); }); },
         /* 12 ShootPop  */ function () { tone(1400, 0, 0.07, "square", 0.14, 700); tone(2100, 0, 0.04, "triangle", 0.1); },
         /* 13 ShootPulse*/ function () { tone(320, 0, 0.2, "sine", 0.4, 150); tone(640, 0, 0.12, "triangle", 0.15, 300); },
-        /* 14 ShootZap  */ function () { tone(2400, 0, 0.1, "sawtooth", 0.12, 800); tone(1200, 0.02, 0.08, "square", 0.08, 2400); }
+        /* 14 ShootZap  */ function () { tone(2400, 0, 0.1, "sawtooth", 0.12, 800); tone(1200, 0.02, 0.08, "square", 0.08, 2400); },
+        /* 15 WaveClear */ function () { [659, 784, 1047, 1319].forEach(function (f, i) { tone(f, i * 0.07, 0.16, "triangle", 0.26); }); }
       ];
 
       return {
         unlock: unlock,
         refresh: refresh,
         setMuted: function (value) { muted = !!value; refresh(); },
+        setMusicLevel: function (level) { musicLevel = Math.max(0, Math.min(3, level | 0)); },
+        musicLevel: function () { return musicLevel; },                       // for tests
+        samplesLoaded: function () { return Object.keys(buffers).length; },   // for tests
         isMuted: function () { return muted; },
         state: function () { return ctx ? ctx.state : "locked"; }, // for tests: locked / running / suspended
         musicStep: function () { return musicTimer ? musicStep : -1; }, // for tests: advances only while audible
         play: function (id) {
           if (!ctx || muted || window.scramblyPaused || ctx.state !== "running") return;
-          if (id === 3 || id >= 12) { // cap shot spam per sound
+          if (id === 3 || (id >= 12 && id <= 14)) { // cap shot spam per sound
             var now = ctx.currentTime;
             if (now - (lastShot[id] || 0) < 0.06) return;
             lastShot[id] = now;
           }
-          if (sounds[id]) sounds[id]();
+          if (buffers[id]) playSample(id);
+          else if (sounds[id]) sounds[id]();
         }
       };
     })();

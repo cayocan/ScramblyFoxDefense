@@ -7,6 +7,7 @@ Revision of the Stage 1 playable (tag `stage1-final`, untouched) driven by revie
 - **Shorter run with a real decision.** 3 waves instead of 5, 2.6 s breathers, retuned predators and rewards. A clean run is about 77–78 s of game time (was 105.6 s), about 80 s with the tutorial. You start with coins for one tower; before wave 2 ends you can afford a second tower or the first upgrade, not both (at most 68 coins against a cheapest pair of 70). One tower alone falls in wave 3.
 - **Drag towers anywhere.** Fixed slots are gone. Press a card and drag a ghost tower with its range ring onto the map: green where it can stand, red on the path, next to a tower or a tree, or off the arena. Release on green to build; anywhere else cancels and no coins are spent. Up to 3 towers. On touch the ghost floats above the finger. Tapping a tower still upgrades it.
 - **Grabbing-hand tutorial.** A hand opens over the first card, grabs, carries a ghost tower to a suggested spot near the path and lets go, in a loop, until the player drags the first tower. It hides as soon as the player starts dragging.
+- **Richer sound.** Ten Kenney CC0 one-shots (UI click, place, upgrade, hit, wave clear bell, coin, CTA, error, an unlock jingle and an end-card jingle; 94 KB) are fetched from the build folder and decoded after the first gesture; any that fail fall back to the Stage 1 synth. The music speeds up and adds layers each wave and ducks under the jingles. Shots stay synthesized (they fire too often for samples).
 - **Milestone unlocks.** Only the first tower card is open at the start; the others show a silhouette and a padlock. Clearing wave 1 unlocks Puzzle Pulse, clearing wave 2 unlocks Racer Zap, each with a celebration: "New friend: <name>!" banner, the card slides in with an overshoot, sparks, a screen flash and a cue. The new card pulses until first used.
 
 ## Fixed
@@ -17,10 +18,10 @@ Revision of the Stage 1 playable (tag `stage1-final`, untouched) driven by revie
 
 - Stronger opening hook (title, threat telegraph, "Tap to start").
 - Top HUD redesign (coin pill, wave pips, round buttons).
-- Audio pass: sound is still the Stage 1 Web Audio synth; the unlock uses the existing `Unlock` cue. The CC0 candidates in `docs/stage2-audio-candidates` were not used.
 
 ## Known issues
 
+- The samples were chosen by name, length and level, not by ear (no listening was possible in the automated session); give them a listen before relying on the mix.
 - The padlock on a locked card sits a little low and covers part of the card name.
 - In the tutorial demo the ghost briefly turns red while it crosses the path on its way to the spot (it shows the placement rule, but it is not a deliberate beat).
 - Tested in headless Chrome only (emulated touch, faked `document.hidden`), not on a real phone or a second browser.

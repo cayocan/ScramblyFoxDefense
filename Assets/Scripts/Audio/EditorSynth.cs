@@ -69,7 +69,7 @@ namespace ScramblyFoxDefense.Audio
         public void Play(Sound sound)
         {
             double now = _clock;
-            if (sound == Sound.Shoot || sound >= Sound.ShootPop)
+            if (sound == Sound.Shoot || (sound >= Sound.ShootPop && sound <= Sound.ShootZap))
             {
                 int id = (int)sound;
                 if (now - _lastShot[id] < 0.06) return; // cap shot spam per sound, like the page
@@ -90,6 +90,7 @@ namespace ScramblyFoxDefense.Audio
                     case Sound.Coin: Tone(now, 1319, 0, 0.07, Wave.Square, 0.08f); Tone(now, 1976, 0.05, 0.12, Wave.Square, 0.08f); break;
                     case Sound.Cta: Arp(now, new[] { 523, 784, 1047 }, 0.08, 0.14, 0.3f); break;
                     case Sound.Deny: Tone(now, 180, 0, 0.12, Wave.Square, 0.12f); Tone(now, 150, 0.1, 0.14, Wave.Square, 0.12f); break;
+                    case Sound.WaveClear: Arp(now, new[] { 659, 784, 1047, 1319 }, 0.07, 0.16, 0.26f); break;
                     case Sound.Fanfare: Arp(now, new[] { 523, 659, 784, 1047, 784, 1047 }, 0.1, 0.18, 0.26f); break;
                     case Sound.ShootPop: Tone(now, 1400, 0, 0.07, Wave.Square, 0.14f, 700); Tone(now, 2100, 0, 0.04, Wave.Triangle, 0.1f); break;
                     case Sound.ShootPulse: Tone(now, 320, 0, 0.2, Wave.Sine, 0.4f, 150); Tone(now, 640, 0, 0.12, Wave.Triangle, 0.15f, 300); break;

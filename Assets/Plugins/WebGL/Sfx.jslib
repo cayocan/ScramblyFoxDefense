@@ -4,6 +4,11 @@ mergeInto(LibraryManager.library, {
     if (window.scramblySfx) window.scramblySfx.play(id);
   },
 
+  // 0 at the intro, then the wave number: the music speeds up and adds layers.
+  Sfx_SetMusicLevel: function (level) {
+    if (window.scramblySfx && window.scramblySfx.setMusicLevel) window.scramblySfx.setMusicLevel(level);
+  },
+
   Sfx_SetMuted: function (muted) {
     if (window.scramblySfx) window.scramblySfx.setMuted(muted !== 0);
   },

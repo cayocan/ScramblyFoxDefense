@@ -25,11 +25,13 @@ namespace ScramblyFoxDefense.States
         readonly TowerSystem _towers;
         readonly PlayerActions _build;
         readonly HudView _hud;
+        readonly IAudioService _audio;
         float _elapsed;
         bool _startRequested;
 
-        public IntroState(GameStateMachine machine, GameConfig config, TowerSystem towers, PlayerActions build, HudView hud)
+        public IntroState(GameStateMachine machine, GameConfig config, TowerSystem towers, PlayerActions build, HudView hud, IAudioService audio)
         {
+            _audio = audio;
             _machine = machine;
             _config = config;
             _towers = towers;
@@ -43,6 +45,7 @@ namespace ScramblyFoxDefense.States
             _startRequested = false;
             _build.Enabled = true;
             _hud.SetPhase("Discover");
+            _audio.SetMusicLevel(0); // the page music outlives a restart: back to the calm intro loop
             _towers.Built += OnBuilt;
         }
 
@@ -93,6 +96,7 @@ namespace ScramblyFoxDefense.States
             _leaksAtStart = _economy.Leaks;
             _spawner.Begin(_config.waves[_session.WaveIndex]);
             _audio.Play(Sound.Wave);
+            _audio.SetMusicLevel(_session.WaveIndex + 1);
         }
 
         public void Tick(float deltaTime)
@@ -116,7 +120,7 @@ namespace ScramblyFoxDefense.States
             // Mid-run the breather follows with the unlock celebration, so the clear banner stays short.
             _hud.ShowBanner(perfect ? $"Perfect wave!{bonus}" : $"Wave cleared{bonus}", last ? 1.6f : BreatherState.ClearBannerSeconds);
             _locks.Unlock(_session.WaveIndex, perfect);
-            _audio.Play(perfect ? Sound.Upgrade : Sound.Unlock);
+            _audio.Play(Sound.WaveClear);
             if (last) _machine.Enter<RedeemState>();
             else _machine.Enter<BreatherState>();
         }
@@ -184,7 +188,7 @@ namespace ScramblyFoxDefense.States
                     _cards.PlayUnlock(card);
                     _sparks.Celebrate(_cards.FacePosition(card), _layout.PixelUnit);
                     _feedback.ScreenFlash();
-                    _audio.Play(Sound.Unlock); // placeholder cue until the audio pass
+                    _audio.Play(Sound.Unlock); // jingle; the page music ducks under it
                     Debug.Log($"[Unlock] card={card} {_config.towers[card].displayName} at wave {_session.WaveIndex + 1}");
                 }
             }
