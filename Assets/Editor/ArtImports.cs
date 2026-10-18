@@ -18,7 +18,7 @@ namespace ScramblyFoxDefense.EditorTools
             "Assets/Art/CubePets/Textures/colormap-predator-bear.png"
         };
 
-        static readonly string[] Sprites = { "rounded", "lock-closed", "lock-open", "coin", "trophy", "medal", "basket", "hand", "sound-on", "sound-off", "spark", "ring", "arrow-up", "kenney-button", "kenney-card", "kenney-flat", "kenney-star" };
+        static readonly string[] Sprites = { "rounded", "lock-closed", "lock-open", "coin", "trophy", "medal", "basket", "hand", "hand-open", "hand-grab", "sound-on", "sound-off", "spark", "ring", "arrow-up", "kenney-button", "kenney-card", "kenney-flat", "kenney-star" };
 
         public static Font Font => AssetDatabase.LoadAssetAtPath<Font>(FontPath);
 

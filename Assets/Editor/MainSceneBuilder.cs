@@ -796,6 +796,8 @@ namespace ScramblyFoxDefense.EditorTools
             so.FindProperty("arrowSprite").objectReferenceValue = ArtImports.Sprite("arrow-up");
             so.FindProperty("roundedSprite").objectReferenceValue = ArtImports.Sprite("rounded");
             so.FindProperty("lockOpenSprite").objectReferenceValue = ArtImports.Sprite("lock-open");
+            so.FindProperty("handOpenSprite").objectReferenceValue = ArtImports.Sprite("hand-open");
+            so.FindProperty("handGrabSprite").objectReferenceValue = ArtImports.Sprite("hand-grab");
             so.FindProperty("coinIcon").objectReferenceValue = camera.transform.Find("HUD/Coin Icon").GetComponent<SpriteRenderer>();
             so.FindProperty("topBand").objectReferenceValue = camera.transform.Find("HUD/Top Band").GetComponent<SpriteRenderer>();
             so.FindProperty("bannerPill").objectReferenceValue = camera.transform.Find("HUD/Banner Pill").GetComponent<SpriteRenderer>();
