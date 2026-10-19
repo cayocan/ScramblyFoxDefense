@@ -57,6 +57,7 @@ async function setHidden(page, hidden) {
   await phone.page.screenshot({ path: path.join(OUT, 'b-390-start.png') });
   const audio = () => phone.page.evaluate(() => window.scramblySfx.state() + (window.scramblySfx.isMuted() ? '/muted' : ''));
   const audioBefore = await audio();
+  await phone.page.touchscreen.tap(195, 420); await sleep(600); // opening hook: tap to start
   // Drag card 0 (Pop Blaster) to the suggested spot near the path start, in CSS px.
   await touchDrag(phone.page, [73, 766], [168, 205]);
   await sleep(600);

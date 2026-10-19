@@ -50,6 +50,9 @@ const audio = page => page.evaluate(() => {
 
   const a = await open(browser, false);
   report.push(`before any gesture: ${await audio(a.page)}`);
+  for (let i = 0; i < 10; i++) { await a.page.screenshot({ path: require('path').join(__dirname, 'out', 'h-hook-' + i + '.png') }); await sleep(500); } // first 5 s
+  await a.page.touchscreen.tap(195, 420); await sleep(600); // opening hook: tap to start (also the first gesture)
+  report.push(`after the start tap: ${await audio(a.page)}; ${a.logs.filter(l => /\[Intro\]/.test(l)).join('')}`);
   await tutorialDrag(a.page);
   await sleep(2500);
   report.push(`after the first drag (wave 1): ${await audio(a.page)}`);
@@ -68,6 +71,7 @@ const audio = page => page.evaluate(() => {
   await a.page.close();
 
   const b = await open(browser, true);
+  await b.page.touchscreen.tap(195, 420); await sleep(600);
   await tutorialDrag(b.page);
   await sleep(2500);
   report.push(`OGGs blocked (synth fallback): ${await audio(b.page)}; drag: ${b.logs.filter(l => /\[Drag\] built/.test(l)).join('') || 'not built'}; errors: ${b.logs.filter(l => /PAGEERROR/.test(l)).join(' | ') || 'none'}`);

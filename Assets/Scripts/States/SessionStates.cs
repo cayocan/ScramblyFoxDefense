@@ -17,20 +17,33 @@ namespace ScramblyFoxDefense.States
         public int WavesCleared;
     }
 
-    /// <summary>Discover: wave 1 starts on the first build or after the intro timeout.</summary>
+    /// <summary>
+    /// Discover. Opening hook first (no new screen): "Defend the Vault!" over the board, a distant roar (camera
+    /// shake and growl) as the threat telegraph, and a pulsing "Tap to start". A tap anywhere (which also unlocks
+    /// the page audio) or introMaxSeconds starts the tutorial; wave 1 starts with the first tower.
+    /// </summary>
     public sealed class IntroState : IGameState
     {
+        const float RoarAt = 0.7f;
+
         readonly GameStateMachine _machine;
         readonly GameConfig _config;
         readonly TowerSystem _towers;
         readonly PlayerActions _build;
         readonly HudView _hud;
         readonly IAudioService _audio;
+        readonly InputRouter _input;
+        readonly FeedbackFx _feedback;
         float _elapsed;
         bool _startRequested;
+        bool _hook;
+        bool _roared;
 
-        public IntroState(GameStateMachine machine, GameConfig config, TowerSystem towers, PlayerActions build, HudView hud, IAudioService audio)
+        public IntroState(GameStateMachine machine, GameConfig config, TowerSystem towers, PlayerActions build, HudView hud, IAudioService audio,
+            InputRouter input, FeedbackFx feedback)
         {
+            _input = input;
+            _feedback = feedback;
             _audio = audio;
             _machine = machine;
             _config = config;
@@ -43,20 +56,59 @@ namespace ScramblyFoxDefense.States
         {
             _elapsed = 0f;
             _startRequested = false;
-            _build.Enabled = true;
-            _hud.SetPhase("Discover");
+            _roared = false;
+            _hook = true;
+            _build.Enabled = false; // the tutorial waits for the hook
+            _hud.ShowBanner("Defend the Vault!", _config.introMaxSeconds + 1f);
+            _hud.SetPhase("Tap to start");
             _audio.SetMusicLevel(0); // the page music outlives a restart: back to the calm intro loop
+            _input.Register(OnHookTap);
             _towers.Built += OnBuilt;
         }
 
         public void Tick(float deltaTime)
         {
             _elapsed += deltaTime;
+            if (_hook)
+            {
+                if (!_roared && _elapsed >= RoarAt)
+                {
+                    _roared = true;
+                    _feedback.Shake();
+                    _audio.Play(Sound.Leak); // low growl; silent until the page audio is unlocked
+                }
+                _hud.SetPhaseAlpha(0.55f + 0.45f * Mathf.Sin(_elapsed * 6f));
+                if (_elapsed >= _config.introMaxSeconds) EndHook();
+                return;
+            }
             // The opening tutorial must be completed: wave 1 starts with the first tower, never on a timer.
             if (_startRequested) _machine.Enter<WaveState>();
         }
 
-        public void Exit() => _towers.Built -= OnBuilt;
+        public void Exit()
+        {
+            _towers.Built -= OnBuilt;
+            _input.Unregister(OnHookTap);
+        }
+
+        bool OnHookTap(Vector2 screenPoint)
+        {
+            if (!_hook) return false;
+            _audio.Play(Sound.Select); // the same tap unlocked the page audio, so this is the first sound
+            EndHook();
+            return true;
+        }
+
+        void EndHook()
+        {
+            _hook = false;
+            _input.Unregister(OnHookTap);
+            _hud.HideBanner();
+            _hud.SetPhase("Discover");
+            _hud.SetPhaseAlpha(1f);
+            _build.Enabled = true;
+            Debug.Log($"[Intro] tutorial starts after {_elapsed:F1} s");
+        }
 
         void OnBuilt(Tower tower) => _startRequested = true;
     }

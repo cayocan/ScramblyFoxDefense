@@ -143,7 +143,7 @@ namespace ScramblyFoxDefense.Core
             _endCard = new EndCardView(endCardPanel, endTitle, endCollected, ctaToast, rewardCards, ctaButton, playAgainButton, _layout, mainCamera);
 
             _machine = new GameStateMachine();
-            _machine.Register(new IntroState(_machine, config, _towers, _actions, _hud, audio));
+            _machine.Register(new IntroState(_machine, config, _towers, _actions, _hud, audio, _input, _feedback));
             _machine.Register(new WaveState(_machine, config, session, spawner, _hud, _lockBar, audio, economy, fox));
             _machine.Register(new BreatherState(_machine, config, session, _hud, unlocks, _cardBar, _sparks, _feedback, _layout, audio));
             _machine.Register(new RedeemState(_machine, _actions, _hud, _redeem, _input, _cardBar, _badges, audio));
