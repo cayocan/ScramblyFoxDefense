@@ -121,8 +121,7 @@
       function startTrack(buffer) {
         track = ctx.createBufferSource();
         track.buffer = buffer;
-        track.loop = true;
-        track.playbackRate.value = 1 + 0.04 * musicLevel;
+        track.loop = true; // always at its recorded speed and pitch
         var trackGain = ctx.createGain();
         trackGain.gain.value = 0.9; // the file is mastered louder than the synth notes
         track.connect(trackGain); trackGain.connect(musicBus); // musicBus: ducking and mute still apply
@@ -245,8 +244,7 @@
         refresh: refresh,
         setMuted: function (value) { muted = !!value; refresh(); },
         setMusicLevel: function (level) {
-          musicLevel = Math.max(0, Math.min(3, level | 0));
-          if (track) track.playbackRate.setTargetAtTime(1 + 0.04 * musicLevel, ctx.currentTime, 0.5); // a little faster each wave
+          musicLevel = Math.max(0, Math.min(3, level | 0)); // only the synth fallback reacts (tempo and layers, no pitch change)
         },
         musicSource: function () { return track ? "file" : (musicTimer ? "synth" : "none"); }, // for tests
         musicLevel: function () { return musicLevel; },                       // for tests
