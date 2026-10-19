@@ -34,7 +34,7 @@ namespace ScramblyFoxDefense.Gameplay
         public Color Color;
     }
 
-    /// <summary>Tower registry (capped by GameConfig.maxTowers): builds towers, picks targets and fires pooled projectiles.</summary>
+    /// <summary>Tower registry (optionally capped by GameConfig.maxTowers, 0 = no cap): builds towers, picks targets and fires pooled projectiles.</summary>
     public sealed class TowerSystem
     {
         const float MuzzleHeight = 0.25f;
@@ -71,7 +71,7 @@ namespace ScramblyFoxDefense.Gameplay
         public bool TryBuild(Vector3 position, int towerIndex)
         {
             var definition = _config.towers[towerIndex];
-            if (_towers.Count >= _config.maxTowers || !_economy.TrySpend(definition.levels[0].cost)) return false;
+            if ((_config.maxTowers > 0 && _towers.Count >= _config.maxTowers) || !_economy.TrySpend(definition.levels[0].cost)) return false;
 
             var go = UnityEngine.Object.Instantiate(definition.prefab, position, Quaternion.identity, _towerRoot);
             var pet = go.transform.Find("Pet");

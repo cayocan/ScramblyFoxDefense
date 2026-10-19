@@ -6,7 +6,7 @@ namespace ScramblyFoxDefense.Gameplay
 {
     /// <summary>
     /// Free placement rules (no scene lookups): inside the arena, clear of the path, of other towers and of the
-    /// board decoration, and under the tower cap. Distances come from GameConfig and are measured on XZ.
+    /// board decoration, and under the tower cap when one is set. Distances come from GameConfig and are measured on XZ.
     /// </summary>
     public sealed class PlacementValidator
     {
@@ -25,7 +25,7 @@ namespace ScramblyFoxDefense.Gameplay
             _obstacles = obstacles;
         }
 
-        public bool HasRoom => _towers.Count < _config.maxTowers;
+        public bool HasRoom => _config.maxTowers <= 0 || _towers.Count < _config.maxTowers;
 
         public bool IsValid(Vector3 point)
         {

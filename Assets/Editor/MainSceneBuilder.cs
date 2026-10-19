@@ -513,6 +513,7 @@ namespace ScramblyFoxDefense.EditorTools
         public static void ApplyShortRunPass(GameConfig config)
         {
             config.startingCoins = 50;
+            config.maxTowers = 0; // no tower cap (user request): coins alone limit the build-or-upgrade choice
             config.breatherSeconds = 2.6f; // clear banner 0.8 s + unlock celebration 1.2 s + next-wave preview 0.6 s
             config.enemies[0].health = 14; config.enemies[0].coinReward = 2;
             config.enemies[1].health = 10; config.enemies[1].coinReward = 2;
