@@ -14,6 +14,10 @@ namespace ScramblyFoxDefense.Presentation
         readonly SpriteRenderer _coinIcon;
         readonly SpriteRenderer _topBand;
         readonly SpriteRenderer _bannerPill;
+        readonly SpriteRenderer _coinPill;
+        float _shownCoins;
+        float _coinPop;
+        Vector3 _coinsScale;
         float _bannerTimer;
         float _bannerAge;
         Vector3 _bannerScale;
@@ -22,8 +26,10 @@ namespace ScramblyFoxDefense.Presentation
         const float BannerPop = 0.25f;
 
         public HudView(HudLayout layout, Economy economy, TextMesh coins, TextMesh phase, TextMesh banner, SpriteRenderer coinIcon,
-            SpriteRenderer topBand, SpriteRenderer bannerPill)
+            SpriteRenderer topBand, SpriteRenderer bannerPill, SpriteRenderer coinPill)
         {
+            _coinPill = coinPill;
+            _shownCoins = economy.Wallet;
             _coinIcon = coinIcon;
             _topBand = topBand;
             _bannerPill = bannerPill;
@@ -68,6 +74,7 @@ namespace ScramblyFoxDefense.Presentation
 
         public void Tick(float deltaTime)
         {
+            TickCoins(deltaTime);
             PlaceCoinIcon(); // TextMesh rebuilds its bounds a frame after a text change
             if (_bannerTimer <= 0f) return;
             _bannerTimer -= deltaTime;
@@ -85,8 +92,10 @@ namespace ScramblyFoxDefense.Presentation
             _phase.anchor = TextAnchor.MiddleCenter;
             _coins.anchor = TextAnchor.MiddleRight;
             _layout.PlaceText(_phase, new Vector2(0.5f, 1f), new Vector2(0f, -94f), 14f);
-            _layout.PlaceText(_coins, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f);
-            _layout.Place(_coinIcon.transform, new Vector2(1f, 1f), new Vector2(-14f, -24f), 18f / 64f);
+            _layout.PlaceText(_coins, new Vector2(1f, 1f), new Vector2(-24f, -30f), 18f);
+            _coinsScale = _coins.transform.localScale;
+            _layout.Place(_coinIcon.transform, new Vector2(1f, 1f), new Vector2(-24f, -30f), 20f / 64f);
+            _layout.Place(_coinPill.transform, new Vector2(1f, 1f), new Vector2(-24f, -30f), 1f);
             PlaceCoinIcon();
             // 26 px fits the longest banner ("Demo rewards unlocked!") inside the 390 px reference width.
             _layout.PlaceText(_banner, new Vector2(0.5f, 1f), new Vector2(0f, -124f), 26f);
@@ -109,8 +118,25 @@ namespace ScramblyFoxDefense.Presentation
 
         void RefreshCoins()
         {
-            _coins.text = $"Demo coins {_economy.Wallet}";
+            // Gains count up and pop; spending snaps down at once.
+            if (_economy.Wallet > _shownCoins) _coinPop = 0.25f;
+            else _shownCoins = _economy.Wallet;
+            _coins.text = $"Demo coins {Mathf.RoundToInt(_shownCoins)}";
             PlaceCoinIcon();
+        }
+
+        void TickCoins(float deltaTime)
+        {
+            if (_shownCoins < _economy.Wallet)
+            {
+                _shownCoins = Mathf.Min(_economy.Wallet, _shownCoins + Mathf.Max(30f, (_economy.Wallet - _shownCoins) * 8f) * deltaTime);
+                _coins.text = $"Demo coins {Mathf.RoundToInt(_shownCoins)}";
+            }
+            if (_coinPop > 0f && _coinsScale != Vector3.zero)
+            {
+                _coinPop = Mathf.Max(0f, _coinPop - deltaTime);
+                _coins.transform.localScale = _coinsScale * (1f + Mathf.Sin(_coinPop / 0.25f * Mathf.PI) * 0.12f);
+            }
         }
 
         /// <summary>Keeps the coin sprite just left of the right-aligned balance, whatever its width.</summary>
@@ -124,6 +150,15 @@ namespace ScramblyFoxDefense.Presentation
             position.x = left - 14f * _layout.PixelUnit;
             position.y = _coins.transform.localPosition.y;
             _coinIcon.transform.localPosition = position;
+            // The pill hugs icon + balance, with 10 px of padding on each side.
+            float right = parent.InverseTransformPoint(bounds.max).x;
+            float leftEdge = position.x - 12f * _layout.PixelUnit;
+            float widthPixels = (right - leftEdge) / Mathf.Max(_layout.PixelUnit, 1e-5f) + 20f;
+            _coinPill.size = new Vector2(widthPixels, 36f);
+            var pill = _coinPill.transform.localPosition;
+            pill.x = (leftEdge + right) * 0.5f;
+            pill.y = position.y;
+            _coinPill.transform.localPosition = pill;
         }
     }
 }

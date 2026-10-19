@@ -59,8 +59,8 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,891,935 (Stage 1: 2,779,524) |
-| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,553,256 (Stage 1: 3,326,131) |
+| Build folder (`index.html` + `Build/`) | 2,886,406 (Stage 1: 2,779,524) |
+| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,547,236 (Stage 1: 3,326,131) |
 | Brief limit | 5,000,000 |
 
 Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (editing the docs shifts the ZIP by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shaders, own particles and bloom instead of the ParticleSystem and Post Processing packages, synthesized audio instead of audio files.
@@ -79,6 +79,7 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Input | Touch: tutorial card dragged onto the map | Emulated touch drag | Tower built; wave 1 started |
 | Tutorial | Grabbing-hand loop, then the first tower dragged by touch at 390×844 and 320×568 (2026-10-18, `node tutorial.js`) | Chrome headless | Open, grab, carry, release frames captured; tower built at the suggested spot at both sizes |
 | Unlocks | Locked card at start, both unlocks, Restart and hidden tab during the celebration (2026-10-18, `node unlock.js`) | Chrome headless, `[Unlock]` and `[Drag]` lines | Locked card refused; Puzzle Pulse unlocked after wave 1, Racer Zap after wave 2; Restart returns to the locked state; hidden tab freezes the celebration (same game time on resume) and it completes |
+| Top HUD (Stage 2) | Idle and mid-wave at 390×844 and 320×568, Mute and Restart (2026-10-18, `node hud.js`) | Chrome headless | Coin pill, wave pips (current wave orange) and round buttons with no overlap at both sizes; mute, unmute and restart work |
 | Opening hook (Stage 2) | First 5 s at 390×844, start tap at 390×844 and 320×568 (2026-10-18, `node audio.js`, `node tutorial.js`) | Chrome headless, `[Intro]` line | Title and pulsing "Tap to start" (`out/h-hook-*.png`); the tap starts the tutorial (1.0 s and 1.2 s) and unlocks audio (locked -> running); with no tap it starts after 8 s |
 | Audio (Stage 2) | First gesture, samples, music level, mute, hidden tab, restart, OGGs blocked (2026-10-18, `node audio.js`) | Chrome headless, `scramblySfx` test hooks | locked before the gesture; 10/10 samples decoded; music level 1 in wave 1, back to 0 after restart; muted and hidden = suspended with the music step frozen; with the OGGs blocked the synth plays and the game runs with no errors |
 | Drag placement | 390×844 and 320×568, touch and mouse: drop on the path, drop on a free spot, hide the tab mid-drag, release off the canvas, Restart mid-drag, Restart then a new drag (2026-10-18, `node drag.js`) | Chrome headless, `[Drag]` console lines | Path drop: canceled, coins kept; free spot: built (−30); hidden tab: drag canceled; off the canvas: canceled; a second finger on Restart is ignored (first pointer only) and a mouse release on Restart cancels; Restart resets to 50 coins, 0 towers. The ghost is hidden after every outcome |

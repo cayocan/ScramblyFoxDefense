@@ -94,7 +94,7 @@ A clean run is 76–77 s in the simulator, about 80 s with the tutorial taps. Th
 
 ## Cut for time (two-hour Stage 2 limit)
 
-Following the documented cut order, Task 6 (top HUD redesign) was not done. Task 7 (audio) and Task 5 (opening hook) were done afterwards in the time left once WebGL build time (17 min, measured in the Unity log) is not counted.
+Task 7 (audio), Task 5 (opening hook) and a trimmed Task 6 (top HUD: coin pill, wave pips, round buttons; no fox health in the HUD) were done afterwards in the time left once WebGL build time (17 min, measured in the Unity log) is not counted.
 
 ## Task 7: audio pass
 
@@ -110,3 +110,10 @@ Following the documented cut order, Task 6 (top HUD redesign) was not done. Task
 - `IntroState` starts with a hook phase (no new screen or menu): banner "Defend the Vault!", the fox idles on the vault, at 0.7 s a distant roar (new `FeedbackFx.Shake` plus the synth growl, audible only once audio is unlocked), and the phase line pulses "Tap to start". Player actions are disabled during the hook, so the tutorial hand waits.
 - A tap anywhere ends it (the same tap unlocks the page audio, and a select click plays); otherwise it ends after `introMaxSeconds` (8 s). The tutorial starts right after. Logged as `[Intro] tutorial starts after N s`.
 - Verified: `node tutorial.js` (tap at 390x844 after 1.0 s and at 320x568 after 1.2 s, tutorial then completed by drag), `node audio.js` (locked before the tap, running after; 5 s of frames in `out/h-hook-*.png`, which also showed the 8 s auto-start), `node test.js` (no regressions). The browser tests now tap once to start.
+
+## Task 6: top HUD (trimmed)
+
+- Kept to the cut order's floor plus the cheap part: a purple coin pill (`Coin Pill`, sized by `HudView` to hug the coin icon and balance), a count that rolls up toward the wallet with a pop on gains (spending snaps down), the three padlocks as wave pips (`LockBarView.SetCurrent`: the wave being played pulses orange until its lock opens), and round buttons from the 44 px rounded sprite (Restart 88 x 44 capsule, Mute 44 x 44 circle) in the palette purple.
+- Not done: moving the fox health into the HUD with a fox icon (it stays as the bar over the fox).
+- Touch targets: 44 reference px; the whole HUD scales by min(width / 390, height / 844), so they are 44 CSS px at 390x844 but about 30 at 320x568. Noted as a known issue.
+- Verified (`node hud.js`): screenshots idle and mid-wave at both sizes (`out/hud-*.png`), no overlap; mute, unmute and restart work at both sizes; 0 errors.
