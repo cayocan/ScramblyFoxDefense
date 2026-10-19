@@ -20,6 +20,7 @@ const SIZES = { 390: { h: 844, card: [73, 766], spot: [168, 205] }, 320: { h: 56
     await page.goto(URL, { waitUntil: 'load' });
     await page.waitForFunction(() => document.getElementById('loading').style.display === 'none', { timeout: 90000 });
     await sleep(1500);
+    await page.mouse.click(195, 420); await sleep(600); // opening hook: tap to start
     if (width === 390) for (let i = 0; i < 12; i++) { await page.screenshot({ path: path.join(OUT, `t-hand-${String(i).padStart(2, '0')}.png`) }); await sleep(250); }
 
     // Real drag of the first card to the suggested spot (the ghost floats 80 CSS px above the finger).
@@ -32,7 +33,7 @@ const SIZES = { 390: { h: 844, card: [73, 766], spot: [168, 205] }, 320: { h: 56
     await send('touchEnd');
     await sleep(1500);
     await page.screenshot({ path: path.join(OUT, `t-${width}-done.png`) });
-    console.log(`[${width}x${h}] ${logs.filter(l => /\[Drag\]|\[Tutorial\]|PAGEERROR/.test(l)).join(' || ')}`);
+    console.log(`[${width}x${h}] ${logs.filter(l => /\[Drag\]|\[Tutorial\]|\[Intro\]|PAGEERROR/.test(l)).join(' || ')}`);
     await page.close();
   }
   await browser.close();

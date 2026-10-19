@@ -17,12 +17,13 @@ Opening `index.html` straight from disk (`file://`) does not work: browsers bloc
 
 ## How to play
 
-1. **Tutorial (required):** a hand grabs the Pop Blaster card and carries a ghost tower to a good spot near the path start; drag the card onto the map the same way (the hand hides as soon as you start). Until that first tower is built nothing else responds (other cards and Restart are greyed out) and the game waits. The first build starts wave 1.
-2. Drag a card from the bottom (Pop Blaster 30, Puzzle Pulse 40, Racer Zap 55) onto the map. A ghost tower with its range ring follows the pointer (on touch it floats above the finger): green where it can stand, red on the path, next to another tower or a tree, or off the arena. Release on green to build; anywhere else cancels and no coins are spent. Up to 3 towers. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
-3. **Unlocks:** only Pop Blaster is open at the start; the other cards show a silhouette and a padlock. Clearing wave 1 unlocks Puzzle Pulse and clearing wave 2 unlocks Racer Zap, each with a short celebration. The new card pulses until you use it.
-4. Tap a tower to upgrade it (up to level 3). When you can afford it, the tower shows a pulsing ring, an arrow and an orange "UP" cost badge. The upgrade hint appears from wave 2; wave 1 is free play. You start with enough demo coins for one tower; before wave 2 ends you can afford a second tower or the first upgrade, not both.
-5. Predators that reach the vault hurt the fox (10 HP: lion and tiger 1, polar bear 3; health bar over the fox). Every predator has a red health bar. If the fox falls, the session ends early on a "So close!" card. Clear a wave with no predator reaching the vault for a gold lock. Each wave pays a bonus, and the breather tells you what comes next.
-6. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time after the tutorial; the speaker button next to it mutes sound and music.
+1. **Opening:** "Defend the Vault!", a distant roar and a pulsing "Tap to start". Tap anywhere (this also turns the sound on); after 8 s it starts by itself.
+2. **Tutorial (required):** a hand grabs the Pop Blaster card and carries a ghost tower to a good spot near the path start; drag the card onto the map the same way (the hand hides as soon as you start). Until that first tower is built nothing else responds (other cards and Restart are greyed out) and the game waits. The first build starts wave 1.
+3. Drag a card from the bottom (Pop Blaster 30, Puzzle Pulse 40, Racer Zap 55) onto the map. A ghost tower with its range ring follows the pointer (on touch it floats above the finger): green where it can stand, red on the path, next to another tower or a tree, or off the arena. Release on green to build; anywhere else cancels and no coins are spent. Up to 3 towers. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
+4. **Unlocks:** only Pop Blaster is open at the start; the other cards show a silhouette and a padlock. Clearing wave 1 unlocks Puzzle Pulse and clearing wave 2 unlocks Racer Zap, each with a short celebration. The new card pulses until you use it.
+5. Tap a tower to upgrade it (up to level 3). When you can afford it, the tower shows a pulsing ring, an arrow and an orange "UP" cost badge. The upgrade hint appears from wave 2; wave 1 is free play. You start with enough demo coins for one tower; before wave 2 ends you can afford a second tower or the first upgrade, not both.
+6. Predators that reach the vault hurt the fox (10 HP: lion and tiger 1, polar bear 3; health bar over the fox). Every predator has a red health bar. If the fox falls, the session ends early on a "So close!" card. Clear a wave with no predator reaching the vault for a gold lock. Each wave pays a bonus, and the breather tells you what comes next.
+7. After wave 3 the coins fly into the vault. Then tap **Explore Scrambly** or **Play again**. **Restart** (top left) works at any time after the tutorial; the speaker button next to it mutes sound and music.
 
 A session lasts about 65 s (fox falls in wave 3) to about 80 s (all three waves).
 
@@ -58,7 +59,7 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,890,674 (Stage 1: 2,779,524) |
+| Build folder (`index.html` + `Build/`) | 2,891,935 (Stage 1: 2,779,524) |
 | Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,551,344 (Stage 1: 3,326,131) |
 | Brief limit | 5,000,000 |
 
@@ -78,6 +79,7 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 | Input | Touch: tutorial card dragged onto the map | Emulated touch drag | Tower built; wave 1 started |
 | Tutorial | Grabbing-hand loop, then the first tower dragged by touch at 390×844 and 320×568 (2026-10-18, `node tutorial.js`) | Chrome headless | Open, grab, carry, release frames captured; tower built at the suggested spot at both sizes |
 | Unlocks | Locked card at start, both unlocks, Restart and hidden tab during the celebration (2026-10-18, `node unlock.js`) | Chrome headless, `[Unlock]` and `[Drag]` lines | Locked card refused; Puzzle Pulse unlocked after wave 1, Racer Zap after wave 2; Restart returns to the locked state; hidden tab freezes the celebration (same game time on resume) and it completes |
+| Opening hook (Stage 2) | First 5 s at 390×844, start tap at 390×844 and 320×568 (2026-10-18, `node audio.js`, `node tutorial.js`) | Chrome headless, `[Intro]` line | Title and pulsing "Tap to start" (`out/h-hook-*.png`); the tap starts the tutorial (1.0 s and 1.2 s) and unlocks audio (locked -> running); with no tap it starts after 8 s |
 | Audio (Stage 2) | First gesture, samples, music level, mute, hidden tab, restart, OGGs blocked (2026-10-18, `node audio.js`) | Chrome headless, `scramblySfx` test hooks | locked before the gesture; 10/10 samples decoded; music level 1 in wave 1, back to 0 after restart; muted and hidden = suspended with the music step frozen; with the OGGs blocked the synth plays and the game runs with no errors |
 | Drag placement | 390×844 and 320×568, touch and mouse: drop on the path, drop on a free spot, hide the tab mid-drag, release off the canvas, Restart mid-drag, Restart then a new drag (2026-10-18, `node drag.js`) | Chrome headless, `[Drag]` console lines | Path drop: canceled, coins kept; free spot: built (−30); hidden tab: drag canceled; off the canvas: canceled; a second finger on Restart is ignored (first pointer only) and a mouse release on Restart cancels; Restart resets to 50 coins, 0 towers. The ghost is hidden after every outcome |
 | Input | Card without coins, tap empty area, re-tap card | Editor, simulated taps at real screen positions | Card shakes and nothing is built; selection cleared |

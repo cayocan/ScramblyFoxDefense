@@ -42,6 +42,14 @@ namespace ScramblyFoxDefense.Presentation
 
         public void SetPhase(string text) => _phase.text = text;
 
+        /// <summary>Opening hook: the "Tap to start" line pulses by fading.</summary>
+        public void SetPhaseAlpha(float alpha)
+        {
+            var color = _phase.color;
+            color.a = alpha;
+            _phase.color = color;
+        }
+
         public void ShowBanner(string text, float seconds)
         {
             _banner.text = text;

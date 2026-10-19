@@ -159,7 +159,10 @@ namespace ScramblyFoxDefense.Presentation
         void Burst(Tower tower) => Spawn(tower.Transform.position + Vector3.up * 0.2f, 1.8f / 64f, new Color(0.96f, 0.51f, 0.14f, 0.9f));
 
         /// <summary>A predator reached the vault: a short camera shake sells the loss.</summary>
-        void OnLeaked(Enemy enemy)
+        void OnLeaked(Enemy enemy) => Shake();
+
+        /// <summary>Short camera shake (a leak, or the opening hook's distant roar).</summary>
+        public void Shake()
         {
             if (_shakeTime <= 0f) _cameraRest = _camera.localPosition;
             _shakeTime = ShakeDuration;

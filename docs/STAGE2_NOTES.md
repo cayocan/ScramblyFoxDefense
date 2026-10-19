@@ -94,7 +94,7 @@ A clean run is 76–77 s in the simulator, about 80 s with the tutorial taps. Th
 
 ## Cut for time (two-hour Stage 2 limit)
 
-Following the documented cut order, Task 5 (opening hook) and Task 6 (top HUD redesign) were not done. Task 7 (audio) was done afterwards in the time left once WebGL build time (17 min, measured in the Unity log) is not counted.
+Following the documented cut order, Task 6 (top HUD redesign) was not done. Task 7 (audio) and Task 5 (opening hook) were done afterwards in the time left once WebGL build time (17 min, measured in the Unity log) is not counted.
 
 ## Task 7: audio pass
 
@@ -104,3 +104,9 @@ Following the documented cut order, Task 5 (opening hook) and Task 6 (top HUD re
 - Music: `SetMusicLevel` (jslib + `IAudioService`) is 0 at the intro and the wave number during play: about 6% faster per level, hi-hat ticks from level 1, a melody octave at level 3. The page outlives restarts, so `IntroState` resets it to 0. The music ducks under the two jingles.
 - Rules unchanged: locked until the first gesture, mute suspends the context, hidden page or landscape suspends it; samples are buffer sources on the same context, so they stop with it.
 - Verified (`node audio.js`, `node test.js`): see the README test table. Size: build folder 2,890,674 bytes.
+
+## Task 5: opening hook
+
+- `IntroState` starts with a hook phase (no new screen or menu): banner "Defend the Vault!", the fox idles on the vault, at 0.7 s a distant roar (new `FeedbackFx.Shake` plus the synth growl, audible only once audio is unlocked), and the phase line pulses "Tap to start". Player actions are disabled during the hook, so the tutorial hand waits.
+- A tap anywhere ends it (the same tap unlocks the page audio, and a select click plays); otherwise it ends after `introMaxSeconds` (8 s). The tutorial starts right after. Logged as `[Intro] tutorial starts after N s`.
+- Verified: `node tutorial.js` (tap at 390x844 after 1.0 s and at 320x568 after 1.2 s, tutorial then completed by drag), `node audio.js` (locked before the tap, running after; 5 s of frames in `out/h-hook-*.png`, which also showed the 8 s auto-start), `node test.js` (no regressions). The browser tests now tap once to start.

@@ -25,6 +25,7 @@ async function open(browser, width, height, touch) {
   await page.goto(URL, { waitUntil: 'load' });
   await page.waitForFunction(() => document.getElementById('loading').style.display === 'none', { timeout: 90000 });
   await sleep(1500);
+  await page.mouse.click(195, 420); await sleep(600); // opening hook: tap to start
   const cdp = await page.createCDPSession();
   return { page, logs, cdp };
 }
