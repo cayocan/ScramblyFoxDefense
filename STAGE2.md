@@ -14,7 +14,7 @@ Related documents: `CHANGELOG_STAGE2.md` (what changed, known issues), `docs/STA
 | Winning a level should feel like an unlock | The game starts with only the first tower card. Wave 1 unlocks Puzzle Pulse, wave 2 unlocks Racer Zap. Each unlock gets a banner, a card slide-in, sparks, a screen flash and a jingle, and the new card pulses until it is used | 4 |
 | A hook that makes players want to begin | "Defend the Vault!", a distant roar (camera shake and a growl) and a pulsing "Tap to start". The tap also turns on the sound | 5 |
 | The top UI should look better | Purple coin pill with a rolling count, the padlocks double as wave pips with the current wave pulsing, round Restart and Mute buttons. Trimmed: the fox health stays above the fox | 6 |
-| Sound and music should be more satisfying | 10 Kenney CC0 one-shots and jingles (94 KB) with the synth as fallback; a CC0 music loop (Children's March Theme, CleytonKauffman) replaces the synth loop, plays faster each wave and ducks under jingles | 7 |
+| Sound and music should be more satisfying | 10 Kenney CC0 one-shots and jingles (94 KB) with the synth as fallback; a CC0 music loop (Children's March Theme, CleytonKauffman) replaces the synth loop (recorded speed and pitch) and ducks under jingles | 7 |
 | Keep one real decision, no new towers, enemies or systems | Only existing content was used. The decision is proved with numbers in section 4 | 1, 4 |
 | Deliver a production ZIP | `ScramblyFoxDefense-stage2.zip`, 4,244,694 bytes, with `index.html` at the root | 8 |
 
