@@ -8,6 +8,7 @@
 | [Cube Pets](https://kenney.nl/assets/cube-pets) | Kenney | CC0 1.0 | Fox, dog and cat (defenders); lion, tiger and polar bear (predators) |
 | [UI Pack](https://kenney.nl/assets/ui-pack) (v2.0) | Kenney | CC0 1.0 (`source/Assets/Art/UI/Kenney-UI-Pack-License.txt`) | HUD buttons, cards, panels (4 grey sprites tinted to the palette) |
 | [Interface Sounds](https://kenney.nl/assets/interface-sounds), [Impact Sounds](https://kenney.nl/assets/impact-sounds), [Music Jingles](https://kenney.nl/assets/music-jingles) | Kenney | CC0 1.0 (`source/Assets/WebGLTemplates/Scrambly/sfx/License-*.txt`, also next to `index.html` in `sfx/`) | 10 one-shots and jingles (Stage 2): UI click, place, upgrade, hit, wave clear, coin, CTA, error, unlock and end-card jingles |
+| [Children's March Theme](https://opengameart.org/content/childrens-march-theme) | CleytonKauffman | CC0 1.0 | Background music loop (Stage 2), re-encoded mono 32 kHz OGG (`sfx/music.ogg`, 345 KB) |
 | [Fredoka](https://fonts.google.com/specimen/Fredoka) | The Fredoka Project Authors | SIL OFL 1.1 (`source/Assets/Art/Fonts/OFL.txt`) | All in-game text (weight 600 instance, subset) |
 
 The palette recolors, the other UI sprites (icons, padlocks, the pointing, open and grabbing hands; `tools/draw-hands.py`), the shot sounds and the music loop are made for this project (generated in code, the audio synthesized at runtime).

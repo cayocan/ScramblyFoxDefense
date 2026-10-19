@@ -21,7 +21,7 @@ Opening `index.html` straight from disk (`file://`) does not work: browsers bloc
 
 1. **Opening:** "Defend the Vault!", a distant roar and a pulsing "Tap to start". Tap anywhere (this also turns the sound on); after 8 s it starts by itself.
 2. **Tutorial (required):** a hand grabs the Pop Blaster card and carries a ghost tower to a good spot near the path start; drag the card onto the map the same way (the hand hides as soon as you start). Until that first tower is built nothing else responds (other cards and Restart are greyed out) and the game waits. The first build starts wave 1.
-3. Drag a card from the bottom (Pop Blaster 30, Puzzle Pulse 40, Racer Zap 55) onto the map. A ghost tower with its range ring follows the pointer (on touch it floats above the finger): green where it can stand, red on the path, next to another tower or a tree, or off the arena. Release on green to build; anywhere else cancels and no coins are spent. Up to 3 towers. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
+3. Drag a card from the bottom (Pop Blaster 30, Puzzle Pulse 40, Racer Zap 55) onto the map. A ghost tower with its range ring follows the pointer (on touch it floats above the finger): green where it can stand, red on the path, next to another tower or a tree, or off the arena. Release on green to build; anywhere else cancels and no coins are spent. There is no tower cap; coins are the only limit. Each pet plays differently: Pop Blaster fires fast single shots, Puzzle Pulse hits an area, Racer Zap snipes the strongest predator.
 4. **Unlocks:** only Pop Blaster is open at the start; the other cards show a silhouette and a padlock. Clearing wave 1 unlocks Puzzle Pulse and clearing wave 2 unlocks Racer Zap, each with a short celebration. The new card pulses until you use it.
 5. Tap a tower to upgrade it (up to level 3). When you can afford it, the tower shows a pulsing ring, an arrow and an orange "UP" cost badge. The upgrade hint appears from wave 2; wave 1 is free play. You start with enough demo coins for one tower; before wave 2 ends you can afford a second tower or the first upgrade, not both.
 6. Predators that reach the vault hurt the fox (10 HP: lion and tiger 1, polar bear 3; health bar over the fox). Every predator has a red health bar. If the fox falls, the session ends early on a "So close!" card. Clear a wave with no predator reaching the vault for a gold lock. Each wave pays a bonus, and the breather tells you what comes next.
@@ -61,8 +61,8 @@ The architecture is a state machine with one handler per state plus constructor 
 
 | Item | Bytes |
 |---|---|
-| Build folder (`index.html` + `Build/`) | 2,886,406 (Stage 1: 2,779,524) |
-| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,554,410 (Stage 1: 3,326,131) |
+| Build folder (`index.html` + `Build/`) | 3,232,528 (Stage 1: 2,779,524) |
+| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 4,244,694 (Stage 1: 3,326,131) |
 | Brief limit | 5,000,000 |
 
 Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (editing the docs shifts the ZIP by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shaders, own particles and bloom instead of the ParticleSystem and Post Processing packages, synthesized audio instead of audio files.
@@ -106,5 +106,5 @@ Environment: Windows 10, Unity 6000.3.19f1, Chrome (headless, SwiftShader) drive
 ## Known limitations
 
 - Sessions run about 65–80 s, longer than the brief's 45–60 s target: three waves and a fox health bar keep one real build-or-upgrade decision.
-- Music and shot sounds are synthesized; the other effects and two jingles are Kenney CC0 OGG files (94 KB), with the synth as fallback when a file cannot be decoded. Audio starts after the first tap, has a mute button and is silent while the page is hidden or the phone is in landscape. The samples were picked by name, length and level, not by ear.
+- Shot sounds are synthesized; the music is a CC0 loop (Children's March Theme, CleytonKauffman, 345 KB) and the other effects and two jingles are Kenney CC0 OGG files (94 KB), with the synth as fallback when a file cannot be decoded. Audio starts after the first tap, has a mute button and is silent while the page is hidden or the phone is in landscape. The samples were picked by name, length and level, not by ear.
 - Reward icons, padlocks and the tutorial hand are simple shapes drawn in code; HUD buttons and panels use the Kenney UI Pack; the 3D art is the Kenney kits recolored to the palette.

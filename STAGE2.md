@@ -9,14 +9,14 @@ Related documents: `CHANGELOG_STAGE2.md` (what changed, known issues), `docs/STA
 | Reviewer feedback | What was done | Task |
 |---|---|---|
 | A full run takes about 3 minutes; tighten it and keep a real decision | 3 waves instead of 5, 2.6 s breathers, retuned predators and rewards. A clean run takes about 77–78 s of game time, about 80 s with the tutorial; Stage 1 took 105.6 s. Before wave 2 ends the player can afford a second tower or the first upgrade, never both | 1 |
-| Drag towers anywhere instead of fixed spots | Fixed slots removed. A ghost tower with its range ring follows the pointer: green where it can stand, red on the path, next to a tower or a tree, or off the arena. Up to 3 towers | 2 |
+| Drag towers anywhere instead of fixed spots | Fixed slots removed. A ghost tower with its range ring follows the pointer: green where it can stand, red on the path, next to a tower or a tree, or off the arena. No tower cap: coins are the only limit | 2 |
 | Replace the tapping hand with a grabbing hand that drags a ghost | A hand opens over the first card, grabs it, carries a ghost to a suggested spot and lets go, in a loop. It hides as soon as the player drags | 3 |
 | Winning a level should feel like an unlock | The game starts with only the first tower card. Wave 1 unlocks Puzzle Pulse, wave 2 unlocks Racer Zap. Each unlock gets a banner, a card slide-in, sparks, a screen flash and a jingle, and the new card pulses until it is used | 4 |
 | A hook that makes players want to begin | "Defend the Vault!", a distant roar (camera shake and a growl) and a pulsing "Tap to start". The tap also turns on the sound | 5 |
 | The top UI should look better | Purple coin pill with a rolling count, the padlocks double as wave pips with the current wave pulsing, round Restart and Mute buttons. Trimmed: the fox health stays above the fox | 6 |
-| Sound and music should be more satisfying | 10 Kenney CC0 one-shots and jingles (94 KB) with the synth as fallback; the music gets faster and fuller each wave and ducks under jingles | 7 |
+| Sound and music should be more satisfying | 10 Kenney CC0 one-shots and jingles (94 KB) with the synth as fallback; a CC0 music loop (Children's March Theme, CleytonKauffman) replaces the synth loop, plays faster each wave and ducks under jingles | 7 |
 | Keep one real decision, no new towers, enemies or systems | Only existing content was used. The decision is proved with numbers in section 4 | 1, 4 |
-| Deliver a production ZIP | `ScramblyFoxDefense-stage2.zip`, 3,554,410 bytes, with `index.html` at the root | 8 |
+| Deliver a production ZIP | `ScramblyFoxDefense-stage2.zip`, 4,244,694 bytes, with `index.html` at the root | 8 |
 
 ## 2. Timeline (2026-10-18)
 
@@ -104,8 +104,8 @@ All checks ran in headless Chrome (SwiftShader) against a static `python -m http
 
 | Item | Stage 1 | Stage 2 |
 |---|---|---|
-| Build folder | 2,779,524 bytes | 2,886,406 bytes |
-| Production ZIP (build, source, docs) | 3,326,131 bytes | 3,554,410 bytes (71% of 5,000,000) |
+| Build folder | 2,779,524 bytes | 3,232,528 bytes |
+| Production ZIP (build, source, docs) | 3,326,131 bytes | 4,244,694 bytes (85% of 5,000,000) |
 
 Measured with `tools/measure-zip.ps1 -Out Builds/ScramblyFoxDefense-stage2.zip`. Editing the docs shifts the ZIP by a few hundred bytes.
 

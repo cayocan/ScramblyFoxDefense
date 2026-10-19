@@ -117,3 +117,8 @@ Task 7 (audio), Task 5 (opening hook) and a trimmed Task 6 (top HUD: coin pill, 
 - Not done: moving the fox health into the HUD with a fox icon (it stays as the bar over the fox).
 - Touch targets: 44 reference px; the whole HUD scales by min(width / 390, height / 844), so they are 44 CSS px at 390x844 but about 30 at 320x568. Noted as a known issue.
 - Verified (`node hud.js`): screenshots idle and mid-wave at both sizes (`out/hud-*.png`), no overlap; mute, unmute and restart work at both sizes; 0 errors.
+
+## After the report: no tower cap, CC0 music loop (user request)
+
+- `maxTowers` is now 0 = no limit (set in `ApplyShortRunPass`). SessionSimulator: four Pop Blasters now build (`pop3` was refused before) and win; the economy decision is unchanged.
+- Music: Kenney's "Music Loops" pack only ships in the paid All-in-1 bundle, so a CC0 loop from another author was used: "Children's March Theme" by CleytonKauffman (OpenGameArt, license checked on the page), 64 s, re-encoded with ffmpeg to mono 32 kHz Vorbis (853 KB -> 345 KB) so the ZIP, which carries it twice (build and source), stays under 5 MB. It loops on the music bus (ducking, mute and hidden-page rules unchanged), plays 4% faster per wave, and the synth loop is the fallback. Verified with `node audio.js`: music=file after the tap, suspended when muted or hidden, synth when the OGGs are blocked, no errors.

@@ -51,3 +51,4 @@ The lines above are typed by hand at merge time; the authoritative durations are
 
 Order: Tasks 1, 2, 3, 4 and 8 first (1h45 of branch time), then Tasks 7, 5 and a trimmed 6 in the time left when build time is not counted. Details and gaps: `STAGE2.md` section 3.
 | stage2-docs | 2026-10-18 21:16 | 2026-10-18 21:22 | 0h 6min | STAGE2.md report (feedback map, timeline with timestamps, time with and without builds, decisions, AI corrections, verification, sizes), TIME_LOG Stage 2 summary; final ZIP played from a clean folder |
+| stage2-music-loop-no-cap | 2026-10-18 21:53 | 2026-10-18 22:01 | 0h 8min | No tower cap (maxTowers 0); CC0 music loop (Children's March Theme, CleytonKauffman) replaces the synth loop, re-encoded to 345 KB, synth fallback |

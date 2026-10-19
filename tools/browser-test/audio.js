@@ -41,7 +41,7 @@ async function setHidden(page, hidden) {
 
 const audio = page => page.evaluate(() => {
   const s = window.scramblySfx;
-  return `state=${s.state()} muted=${s.isMuted()} samples=${s.samplesLoaded()} level=${s.musicLevel()} step=${s.musicStep()}`;
+  return `state=${s.state()} muted=${s.isMuted()} samples=${s.samplesLoaded()} level=${s.musicLevel()} step=${s.musicStep()} music=${s.musicSource()}`;
 });
 
 (async () => {

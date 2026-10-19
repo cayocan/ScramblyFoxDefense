@@ -108,6 +108,25 @@
             .then(function (buffer) { buffers[id] = buffer; })
             .catch(function () { /* keep the synth for this id */ });
         });
+        // Music: "Children's March Theme" by CleytonKauffman (CC0, OpenGameArt), re-encoded mono 32 kHz.
+        // Once decoded it replaces the synth loop; if it fails, the synth keeps playing.
+        fetch("sfx/music.ogg")
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+          .then(function (data) { return new Promise(function (ok, fail) { ctx.decodeAudioData(data, ok, fail); }); })
+          .then(startTrack)
+          .catch(function () { /* synth loop stays */ });
+      }
+
+      var track = null;
+      function startTrack(buffer) {
+        track = ctx.createBufferSource();
+        track.buffer = buffer;
+        track.loop = true;
+        track.playbackRate.value = 1 + 0.04 * musicLevel;
+        var trackGain = ctx.createGain();
+        trackGain.gain.value = 0.9; // the file is mastered louder than the synth notes
+        track.connect(trackGain); trackGain.connect(musicBus); // musicBus: ducking and mute still apply
+        track.start();
       }
 
       function playSample(id) {
@@ -155,6 +174,7 @@
       }
 
       function playStep(step, t) {
+        if (track) return; // the recorded loop is playing: the scheduler only keeps time (test hook)
         var bar = Math.floor(step / 8), beat = step % 8;
         if (beat === 0 || beat === 4) noteAt(midi(BASS[bar] - (beat === 4 ? 0 : 12)), t, STEP * 3.5, "triangle", 0.5, musicBus);
         if (beat % 2 === 0) noteAt(midi(BASS[bar] + 16), t, STEP * 1.6, "sine", 0.12, musicBus); // soft chord pulse
@@ -224,7 +244,11 @@
         unlock: unlock,
         refresh: refresh,
         setMuted: function (value) { muted = !!value; refresh(); },
-        setMusicLevel: function (level) { musicLevel = Math.max(0, Math.min(3, level | 0)); },
+        setMusicLevel: function (level) {
+          musicLevel = Math.max(0, Math.min(3, level | 0));
+          if (track) track.playbackRate.setTargetAtTime(1 + 0.04 * musicLevel, ctx.currentTime, 0.5); // a little faster each wave
+        },
+        musicSource: function () { return track ? "file" : (musicTimer ? "synth" : "none"); }, // for tests
         musicLevel: function () { return musicLevel; },                       // for tests
         samplesLoaded: function () { return Object.keys(buffers).length; },   // for tests
         isMuted: function () { return muted; },
