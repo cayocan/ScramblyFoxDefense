@@ -36,3 +36,4 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | stage2-audio-pass | 2026-10-18 20:48 | 2026-10-18 20:57 | 0h 09min | 10 Kenney CC0 one-shots and jingles (94 KB) decoded after the first gesture with synth fallback, music speeds up and layers per wave and ducks under jingles, WaveClear bell; audio, network and layout checks in Chrome; ZIP 3,551,344 bytes |
 | stage2-opening-hook | 2026-10-18 20:58 | 2026-10-18 21:07 | 0h 09min | Opening hook in IntroState: "Defend the Vault!", roar shake + growl, pulsing "Tap to start" (tap unlocks audio, 8 s auto-start); tests tap to start |
 | stage2-final-sizes | 2026-10-18 21:08 | 2026-10-18 21:08 | 0h 00min | README ZIP size after the opening hook |
+| stage2-top-hud | 2026-10-18 21:08 | 2026-10-18 21:14 | 0h 6min | Trimmed top HUD: coin pill with rolling count, padlocks as wave pips (current wave pulses), round Restart and Mute buttons; screenshots and button checks at 390x844 and 320x568 |

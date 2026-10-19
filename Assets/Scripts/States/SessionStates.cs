@@ -146,6 +146,7 @@ namespace ScramblyFoxDefense.States
             _hud.SetPhase("Play");
             _hud.ShowBanner(last ? "Final wave!" : $"Wave {_session.WaveIndex + 1}", 1.5f);
             _leaksAtStart = _economy.Leaks;
+            _locks.SetCurrent(_session.WaveIndex);
             _spawner.Begin(_config.waves[_session.WaveIndex]);
             _audio.Play(Sound.Wave);
             _audio.SetMusicLevel(_session.WaveIndex + 1);

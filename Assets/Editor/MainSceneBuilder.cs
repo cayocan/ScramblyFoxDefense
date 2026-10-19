@@ -87,9 +87,10 @@ namespace ScramblyFoxDefense.EditorTools
             var hud = CreateHud(camera.transform);
             var cards = CreateCards(camera.transform);
             var locks = CreateLocks(camera.transform, config.waves.Length);
-            var restart = CreateButton("Restart", camera.transform, new Vector2(80f, 36f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
+            // Stage 2 HUD: round buttons (the 44 px rounded sprite gives a capsule and a circle), 44 px touch targets.
+            var restart = CreateButton("Restart", camera.transform, new Vector2(88f, 44f), KitMaterials.Tinted("ButtonSecondary", Purple), WarmWhite, 15f, "rounded");
             var endCard = CreateEndCard(camera.transform);
-            var mute = CreateButton("", camera.transform, new Vector2(44f, 36f), KitMaterials.Tinted("ButtonSecondary", new Color(0.36f, 0.28f, 0.52f)), WarmWhite, 14f);
+            var mute = CreateButton("", camera.transform, new Vector2(44f, 44f), KitMaterials.Tinted("ButtonSecondary", Purple), WarmWhite, 14f, "rounded");
             mute.root.name = "Button Mute";
             var muteIcon = Icon("Icon", mute.root, ArtImports.Sprite("sound-on"), 22f, WarmWhite);
             Wire(installer, config, camera, waypoints, board.Find("Decoration"), prefabs, hud, cards, locks);
@@ -598,6 +599,9 @@ namespace ScramblyFoxDefense.EditorTools
             // Pill behind wave banners, resized to the text by HudView.
             var pill = Rounded("Banner Pill", root, new Vector2(200f, 44f), new Color(0.13f, 0.07f, 0.22f, 0.92f), 4, "kenney-button");
             pill.name = "Banner Pill";
+            // Stage 2 HUD: purple capsule behind the balance, resized to the text by HudView.
+            var coinPill = Rounded("Coin Pill", root, new Vector2(150f, 36f), Purple, -4);
+            coinPill.name = "Coin Pill";
             return new[]
             {
                 CreateText("Coins", root, WarmWhite),
@@ -698,11 +702,11 @@ namespace ScramblyFoxDefense.EditorTools
             return parts;
         }
 
-        static HudButton CreateButton(string text, Transform parent, Vector2 size, Material material, Color textColor, float textHeight)
+        static HudButton CreateButton(string text, Transform parent, Vector2 size, Material material, Color textColor, float textHeight, string sprite = "kenney-button")
         {
             var root = new GameObject($"Button {text}").transform;
             root.SetParent(parent, false);
-            var background = Rounded("Background", root, size, material.color, 0, "kenney-button");
+            var background = Rounded("Background", root, size, material.color, 0, sprite);
             var label = CreateText(text, root, textColor);
             label.transform.localScale = Vector3.one * (textHeight / 0.064f);
             return new HudButton { root = root, background = background, label = label, sizePixels = size };
@@ -801,6 +805,7 @@ namespace ScramblyFoxDefense.EditorTools
             so.FindProperty("coinIcon").objectReferenceValue = camera.transform.Find("HUD/Coin Icon").GetComponent<SpriteRenderer>();
             so.FindProperty("topBand").objectReferenceValue = camera.transform.Find("HUD/Top Band").GetComponent<SpriteRenderer>();
             so.FindProperty("bannerPill").objectReferenceValue = camera.transform.Find("HUD/Banner Pill").GetComponent<SpriteRenderer>();
+            so.FindProperty("coinPill").objectReferenceValue = camera.transform.Find("HUD/Coin Pill").GetComponent<SpriteRenderer>();
             SetArray(so.FindProperty("locks"), locks);
             var cardsProperty = so.FindProperty("cards");
             cardsProperty.arraySize = cards.Length;

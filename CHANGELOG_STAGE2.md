@@ -8,6 +8,7 @@ Revision of the Stage 1 playable (tag `stage1-final`, untouched) driven by revie
 - **Drag towers anywhere.** Fixed slots are gone. Press a card and drag a ghost tower with its range ring onto the map: green where it can stand, red on the path, next to a tower or a tree, or off the arena. Release on green to build; anywhere else cancels and no coins are spent. Up to 3 towers. On touch the ghost floats above the finger. Tapping a tower still upgrades it.
 - **Opening hook.** No new screen: "Defend the Vault!" over the board, a distant roar (camera shake and a growl once audio is on) and a pulsing "Tap to start". The tap also unlocks the audio; the tutorial starts on that tap, or by itself after 8 s.
 - **Grabbing-hand tutorial.** A hand opens over the first card, grabs, carries a ghost tower to a suggested spot near the path and lets go, in a loop, until the player drags the first tower. It hides as soon as the player starts dragging.
+- **Top HUD.** Purple coin pill around the demo balance, whose count rolls up with a small pop on every gain; the three padlocks double as wave pips (the current wave pulses orange); Restart is a 44 px tall capsule and Mute a 44 px circle in the palette purple.
 - **Richer sound.** Ten Kenney CC0 one-shots (UI click, place, upgrade, hit, wave clear bell, coin, CTA, error, an unlock jingle and an end-card jingle; 94 KB) are fetched from the build folder and decoded after the first gesture; any that fail fall back to the Stage 1 synth. The music speeds up and adds layers each wave and ducks under the jingles. Shots stay synthesized (they fire too often for samples).
 - **Milestone unlocks.** Only the first tower card is open at the start; the others show a silhouette and a padlock. Clearing wave 1 unlocks Puzzle Pulse, clearing wave 2 unlocks Racer Zap, each with a celebration: "New friend: <name>!" banner, the card slides in with an overshoot, sparks, a screen flash and a cue. The new card pulses until first used.
 
@@ -17,10 +18,11 @@ Revision of the Stage 1 playable (tag `stage1-final`, untouched) driven by revie
 
 ## Not done (cut for the two-hour limit, in the documented cut order)
 
-- Top HUD redesign (coin pill, wave pips, round buttons).
+- Top HUD: the fox health stays as the bar over the fox; it was not moved into the HUD with a fox icon.
 
 ## Known issues
 
+- The HUD scales with the screen, so at 320x568 the 44 px buttons render about 30 CSS px tall (44 px at 390x844).
 - "Tap to start" reuses the small phase line under the locks; a bigger call to action would read better.
 - The roar growl is silent on the very first visit (audio is locked until the first tap); only the shake shows.
 - The samples were chosen by name, length and level, not by ear (no listening was possible in the automated session); give them a listen before relying on the mix.

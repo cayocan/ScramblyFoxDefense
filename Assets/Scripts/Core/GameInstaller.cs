@@ -48,6 +48,7 @@ namespace ScramblyFoxDefense.Core
         [SerializeField] SpriteRenderer coinIcon;
         [SerializeField] SpriteRenderer topBand;
         [SerializeField] SpriteRenderer bannerPill;
+        [SerializeField] SpriteRenderer coinPill;
         [SerializeField] SpriteRenderer tutorialHand;
         [SerializeField] Sprite handOpenSprite;
         [SerializeField] Sprite handGrabSprite;
@@ -125,7 +126,7 @@ namespace ScramblyFoxDefense.Core
             var audio = new WebAudioService();
             _mute = new MuteToggle(audio, muteButton, muteIcon, soundOnSprite, soundOffSprite, mainCamera);
             _input.Register(_mute.HandleTap);
-            _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon, topBand, bannerPill);
+            _hud = new HudView(_layout, economy, coinsText, phaseText, bannerText, coinIcon, topBand, bannerPill, coinPill);
             _cardBar = new CardBarView(cards, config, economy, _layout, mainCamera, unlocks, locks[0].sprite); // locks start closed
             _lockBar = new LockBarView(locks, lockOpenSprite, _layout);
             _actions = new PlayerActions(config, _input, _cardBar, picker, placement, ghost, _towers, economy, audio, tutorialGate, unlocks);
@@ -162,8 +163,9 @@ namespace ScramblyFoxDefense.Core
                 _cardBar.Layout();
                 _lockBar.Layout();
                 _endCard.Layout();
-                _layout.Place(restartButton.root, new Vector2(0f, 1f), new Vector2(46f, -26f), 1f);
-                _layout.Place(muteButton.root, new Vector2(0f, 1f), new Vector2(112f, -26f), 1f);
+                // Restart capsule (88 x 44) and Mute circle (44 x 44), 12 px from the edges, 8 px apart.
+                _layout.Place(restartButton.root, new Vector2(0f, 1f), new Vector2(56f, -30f), 1f);
+                _layout.Place(muteButton.root, new Vector2(0f, 1f), new Vector2(130f, -30f), 1f);
             }
 
             // A hidden page or a rotated phone drops any drag, so no ghost survives the pause.
