@@ -13,7 +13,7 @@ $outPath = Join-Path $root $Out
 if (Test-Path $outPath) { Remove-Item $outPath }
 
 $sourceItems = @('Assets', 'Packages\manifest.json', 'Packages\packages-lock.json', 'ProjectSettings', 'tools')
-$rootDocs = @('README.md', 'CREDITS.md', 'PROJECT_NOTE.md', 'TIME_LOG.md', 'CHANGELOG_STAGE2.md')
+$rootDocs = @('README.md', 'CREDITS.md', 'PROJECT_NOTE.md', 'TIME_LOG.md', 'CHANGELOG_STAGE2.md', 'STAGE2.md')
 
 $zip = [System.IO.Compression.ZipFile]::Open($outPath, 'Create')
 function Add-Entry([string]$file, [string]$entry) {

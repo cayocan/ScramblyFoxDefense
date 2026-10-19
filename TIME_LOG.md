@@ -37,3 +37,17 @@ Total limit: 6 h. Each feature records start, end and duration here (the same du
 | stage2-opening-hook | 2026-10-18 20:58 | 2026-10-18 21:07 | 0h 09min | Opening hook in IntroState: "Defend the Vault!", roar shake + growl, pulsing "Tap to start" (tap unlocks audio, 8 s auto-start); tests tap to start |
 | stage2-final-sizes | 2026-10-18 21:08 | 2026-10-18 21:08 | 0h 00min | README ZIP size after the opening hook |
 | stage2-top-hud | 2026-10-18 21:08 | 2026-10-18 21:14 | 0h 6min | Trimmed top HUD: coin pill with rolling count, padlocks as wave pips (current wave pulses), round Restart and Mute buttons; screenshots and button checks at 390x844 and 320x568 |
+
+### Stage 2 summary (2026-10-18)
+
+The lines above are typed by hand at merge time; the authoritative durations are the ones in the merge commits (`Duracao da feature` line), used in `STAGE2.md`.
+
+| Measure | Time |
+|---|---|
+| Branch time, Tasks 1-8 (sum of merge-commit durations) | 2h05 |
+| WebGL build time inside those branches (9 builds, Unity editor log) | 23.7 min |
+| Branch time without builds | ~1h41 |
+| Wall clock, first branch to last merge (18:23 -> 21:14), including gaps between branches | 2h51 |
+
+Order: Tasks 1, 2, 3, 4 and 8 first (1h45 of branch time), then Tasks 7, 5 and a trimmed 6 in the time left when build time is not counted. Details and gaps: `STAGE2.md` section 3.
+| stage2-docs | 2026-10-18 21:16 | 2026-10-18 21:22 | 0h 6min | STAGE2.md report (feedback map, timeline with timestamps, time with and without builds, decisions, AI corrections, verification, sizes), TIME_LOG Stage 2 summary; final ZIP played from a clean folder |

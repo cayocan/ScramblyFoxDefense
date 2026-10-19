@@ -1,5 +1,7 @@
 # Scrambly Fox Defense
 
+> **Stage 2 (2026-10-18):** revision from reviewer feedback. The report, with timeline, time spent and evidence, is in `STAGE2.md`; the change list is in `CHANGELOG_STAGE2.md`.
+
 A one-handed tower defense playable for Scrambly (Simula take-home). The fox guards the Reward Vault while her squad of Cube Pets stops clumsy predators (lions, tigers, polar bears). The session follows Scrambly's own steps: **Discover** (pick a game card) → **Play and progress** (three waves, three reward locks) → **Redeem** (coins fly into the vault) → **Explore Scrambly** (simulated CTA).
 
 All balances are demo coins. Nothing is real money, coins you earn are never taken away, and the CTA never navigates.
@@ -60,7 +62,7 @@ The architecture is a state machine with one handler per state plus constructor 
 | Item | Bytes |
 |---|---|
 | Build folder (`index.html` + `Build/`) | 2,886,406 (Stage 1: 2,779,524) |
-| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,547,236 (Stage 1: 3,326,131) |
+| Production ZIP `ScramblyFoxDefense-stage2.zip` (build + source + docs) | 3,554,410 (Stage 1: 3,326,131) |
 | Brief limit | 5,000,000 |
 
 Measured with `tools/measure-zip.ps1 -Out Builds\ScramblyFoxDefense.zip` (editing the docs shifts the ZIP by a few hundred bytes). How the size was cut is logged in `docs/rag/decisions.md`: no uGUI/TMP, physics SDK set to None, own lighting data, minimal shaders, own particles and bloom instead of the ParticleSystem and Post Processing packages, synthesized audio instead of audio files.
