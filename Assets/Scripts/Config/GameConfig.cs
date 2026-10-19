@@ -24,8 +24,8 @@ namespace ScramblyFoxDefense.Config
         public float touchGhostOffsetCssPixels = 80f;
 
         [Header("Placement (world units on the ground plane)")]
-        [Tooltip("Towers on the map at once; part of the build-or-upgrade decision.")]
-        public int maxTowers = 3;
+        [Tooltip("Towers on the map at once; 0 = no limit (coins are the only limit).")]
+        public int maxTowers;
         [Tooltip("Minimum distance from the path centre line (the path tile is 1 unit wide).")]
         public float pathClearance = 0.8f;
         [Tooltip("Minimum distance between two towers.")]

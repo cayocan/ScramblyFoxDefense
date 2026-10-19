@@ -19,7 +19,7 @@ MonoBehaviour:
   maxDeltaTime: 0.1
   pickRadiusCssPixels: 44
   touchGhostOffsetCssPixels: 80
-  maxTowers: 3
+  maxTowers: 0
   pathClearance: 0.8
   towerSpacing: 0.9
   decorationSpacing: 0.6
